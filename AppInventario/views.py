@@ -158,7 +158,7 @@ def user_login(request):
                 messages.error(request, 'Cuenta suspendida o inactiva. Por favor, ponte en contacto con la administración.')
                 return render(request, 'registration/login.html')
             login(request, user)
-            return redirect('inicio')
+            return redirect('admin_panel')
         else:
             messages.error(request, 'Usuario o contraseña incorrectos')
     return render(request, 'registration/login.html')
