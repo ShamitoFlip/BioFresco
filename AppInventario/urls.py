@@ -9,8 +9,6 @@ urlpatterns = [
     path('password-reset/', views.password_reset_request, name='password_reset_request'),
     path('password-reset/confirm/', views.password_reset_confirm, name='password_reset_confirm'),
     path('', views.inicio, name='inicio'),
-    path('nosotros/', views.nosotros, name='nosotros'),
-    
     # Rutas Historial de Servicios
     path('servicios/historial/', views.servicios_historial, name='servicios_historial'),
     

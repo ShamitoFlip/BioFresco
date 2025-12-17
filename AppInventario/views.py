@@ -144,9 +144,6 @@ def validar_horario_atencion(fecha_servicio, hora_obj):
 def inicio(request):
     return render(request, 'paginas/inicio.html')
 
-def nosotros(request):
-    return render(request, 'paginas/nosotros.html')   
-
 def user_login(request):
     if request.method == 'POST':
         # Prefer the 'real_' fields (our real inputs). Fallback to legacy names if needed.
