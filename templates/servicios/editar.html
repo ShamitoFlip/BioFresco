@@ -1,0 +1,352 @@
+{% extends "base.html" %}
+
+{% block titulo %}Editar Cita - Administrador{% endblock %}
+
+{% block contenido %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h1 class="display-5 mb-4">
+                <i class="fas fa-calendar-alt text-info me-2"></i>Editar Cita
+            </h1>
+
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    <form method="POST" novalidate>
+                        {% csrf_token %}
+
+                        <h5 class="mb-3">Editar Cita</h5>
+
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="empleado" class="form-label">Especialista *</label>
+                                <select class="form-select" id="empleado" name="empleado" required>
+                                    <option value="">Seleccionar especialista</option>
+                                    {% for e in empleados %}
+                                    <option value="{{ e.id }}" {% if servicio.estilista and e.id == servicio.estilista.id %}selected{% endif %}>{{ e.nombre }}{% if e.apellido %} {{ e.apellido }}{% endif %}{% if e.cargo %} - {{ e.cargo }}{% else %} - {{ e.especialidad }}{% endif %}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="nombre_cliente" class="form-label">Nombre *</label>
+                                <input type="text" class="form-control" id="nombre_cliente" name="nombre_cliente" value="{{ servicio.nombre_cliente }}" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="email_cliente" class="form-label">Email *</label>
+                                <input type="email" class="form-control" id="email_cliente" name="email_cliente" value="{{ servicio.email_cliente }}" required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="telefono_cliente" class="form-label">Teléfono</label>
+                                <input type="text" class="form-control" id="telefono_cliente" name="telefono_cliente" value="{{ servicio.telefono_cliente }}">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="servicio" class="form-label">Seleccionar Servicio *</label>
+                            <select class="form-select" id="servicio" name="servicio" required>
+                                <option value="">Seleccionar servicio</option>
+                                {% for s in servicios %}
+                                <option value="{{ s.id }}" data-precio="{{ s.precio }}" {% if servicio.servicio and s.id == servicio.servicio.id %}selected{% endif %}>{{ s.nombre }}{% if s.precio %} - ${{ s.precio }}{% endif %}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="fecha_servicio" class="form-label">Fecha de la Cita *</label>
+                                <input type="date" class="form-control" id="fecha_servicio" name="fecha_servicio" value="{{ servicio.fecha_servicio|date:'Y-m-d' }}" required>
+                                <small class="form-text text-muted">Desde hoy hasta máximo 1 mes</small>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="hora" class="form-label">Hora de la Cita *</label>
+                                <select class="form-select" id="hora" name="hora" required>
+                                    <option value="">Seleccionar hora</option>
+                                </select>
+                                <small class="form-text text-muted">Lun-Vie: 9:00 AM - 7:00 PM | Sáb: 10:00 AM - 2:00 PM</small>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="costo" class="form-label">Costo estimado *</label>
+                                <input type="number" class="form-control" id="costo" name="costo" step="0.01" value="{{ servicio.costo }}" required readonly>
+                            </div>
+                        <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const servicioSelect = document.getElementById('servicio');
+                            const costoInput = document.getElementById('costo');
+                            const fechaInput = document.getElementById('fecha_servicio');
+                            const horaSelect = document.getElementById('hora');
+                            
+                            // Horarios de atención:
+                            // Lunes a Viernes: 9:00 AM - 7:00 PM (9:00 - 19:00)
+                            // Sábado: 10:00 AM - 2:00 PM (10:00 - 14:00)
+                            // Domingo: Cerrado
+                            
+                            // Obtener el día de la semana (0 = Domingo, 1 = Lunes, ..., 6 = Sábado)
+                            function obtenerDiaSemana(fecha) {
+                                return fecha.getDay();
+                            }
+                            
+                            // Generar opciones de hora según el día de la semana
+                            function generarOpcionesHora(diaSemana) {
+                                const horas = [];
+                                
+                                if (diaSemana === 0) {
+                                    // Domingo: Cerrado - no hay horas disponibles
+                                    return [];
+                                } else if (diaSemana === 6) {
+                                    // Sábado: 10:00 - 14:00
+                                    for (let hora = 10; hora < 14; hora++) {
+                                        horas.push(`${String(hora).padStart(2, '0')}:00`);
+                                        horas.push(`${String(hora).padStart(2, '0')}:30`);
+                                    }
+                                    horas.push('14:00');
+                                } else {
+                                    // Lunes a Viernes: 9:00 - 19:00
+                                    for (let hora = 9; hora < 19; hora++) {
+                                        horas.push(`${String(hora).padStart(2, '0')}:00`);
+                                        horas.push(`${String(hora).padStart(2, '0')}:30`);
+                                    }
+                                    horas.push('19:00');
+                                }
+                                
+                                return horas;
+                            }
+                            
+                            // Configurar límites de fecha (hoy hasta 1 mes)
+                            const hoy = new Date();
+                            const fechaMaxima = new Date();
+                            fechaMaxima.setDate(fechaMaxima.getDate() + 30); // 30 días desde hoy (1 mes)
+                            
+                            // Formatear fechas para input date (YYYY-MM-DD)
+                            const formatearFecha = (fecha) => {
+                                const año = fecha.getFullYear();
+                                const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+                                const dia = String(fecha.getDate()).padStart(2, '0');
+                                return `${año}-${mes}-${dia}`;
+                            };
+                            
+                            // Función para bloquear domingos
+                            function bloquearDomingos(input) {
+                                input.addEventListener('input', function() {
+                                    if (this.value) {
+                                        const fechaSeleccionada = new Date(this.value + 'T00:00:00');
+                                        const diaSemana = obtenerDiaSemana(fechaSeleccionada);
+                                        
+                                        if (diaSemana === 0) {
+                                            alert('Los domingos la clínica está cerrada. Por favor selecciona otro día.');
+                                            this.value = '';
+                                            if (horaSelect) {
+                                                while (horaSelect.options.length > 1) {
+                                                    horaSelect.remove(1);
+                                                }
+                                            }
+                                        }
+                                    }
+                                });
+                            }
+                            
+                            // Guardar la hora actual seleccionada desde el servicio
+                            let horaActualSeleccionada = null;
+                            {% if servicio.hora %}
+                                {% with hora_str=servicio.hora|time:"H:i" %}
+                                    horaActualSeleccionada = '{{ hora_str }}';
+                                {% endwith %}
+                            {% endif %}
+                            
+                            // Función para actualizar las opciones de hora según la fecha
+                            function actualizarOpcionesHora() {
+                                if (!fechaInput || !horaSelect) return;
+                                
+                                // Limpiar opciones existentes (excepto la primera "Seleccionar hora")
+                                while (horaSelect.options.length > 1) {
+                                    horaSelect.remove(1);
+                                }
+                                
+                                const fechaSeleccionada = fechaInput.value ? new Date(fechaInput.value + 'T00:00:00') : null;
+                                const fechaHoy = new Date();
+                                fechaHoy.setHours(0, 0, 0, 0);
+                                
+                                // Verificar si es domingo
+                                if (fechaSeleccionada) {
+                                    const diaSemana = obtenerDiaSemana(fechaSeleccionada);
+                                    if (diaSemana === 0) {
+                                        // Domingo: Cerrado
+                                        const option = document.createElement('option');
+                                        option.value = '';
+                                        option.textContent = 'Domingo: Cerrado';
+                                        option.disabled = true;
+                                        horaSelect.appendChild(option);
+                                        return;
+                                    }
+                                }
+                                
+                                // Obtener día de la semana para generar horas apropiadas
+                                const diaSemana = fechaSeleccionada ? obtenerDiaSemana(fechaSeleccionada) : null;
+                                const todasLasHoras = generarOpcionesHora(diaSemana || 1); // Por defecto lunes si no hay fecha
+                                
+                                // Determinar hora mínima permitida
+                                let horaMinimaPermitida = null;
+                                if (fechaSeleccionada) {
+                                    fechaSeleccionada.setHours(0, 0, 0, 0);
+                                    if (fechaSeleccionada.getTime() === fechaHoy.getTime()) {
+                                        // Si es hoy, calcular hora mínima
+                                        const ahora = new Date();
+                                        let horaActual = ahora.getHours();
+                                        let minutoActual = ahora.getMinutes();
+                                        
+                                        // Redondear al siguiente intervalo de 30 minutos
+                                        if (minutoActual > 30) {
+                                            horaActual += 1;
+                                            minutoActual = 0;
+                                        } else if (minutoActual > 0) {
+                                            minutoActual = 30;
+                                        }
+                                        
+                                        horaMinimaPermitida = `${String(horaActual).padStart(2, '0')}:${String(minutoActual).padStart(2, '0')}`;
+                                    }
+                                }
+                                
+                                // Si hay una hora actual seleccionada, agregarla primero si corresponde al día
+                                if (horaActualSeleccionada && todasLasHoras.includes(horaActualSeleccionada)) {
+                                    const option = document.createElement('option');
+                                    option.value = horaActualSeleccionada;
+                                    const [horaNum, minuto] = horaActualSeleccionada.split(':');
+                                    const horaInt = parseInt(horaNum);
+                                    let horaMostrar;
+                                    if (horaInt === 0) {
+                                        horaMostrar = `12:${minuto} AM`;
+                                    } else if (horaInt < 12) {
+                                        horaMostrar = `${horaInt}:${minuto} AM`;
+                                    } else if (horaInt === 12) {
+                                        horaMostrar = `12:${minuto} PM`;
+                                    } else {
+                                        const horaPM = horaInt - 12;
+                                        horaMostrar = `${horaPM}:${minuto} PM`;
+                                    }
+                                    option.textContent = horaMostrar;
+                                    option.selected = true;
+                                    horaSelect.appendChild(option);
+                                }
+                                
+                                // Agregar opciones de hora
+                                let opcionesAgregadas = 0;
+                                todasLasHoras.forEach(hora => {
+                                    // No duplicar la hora ya seleccionada
+                                    if (hora === horaActualSeleccionada) {
+                                        return;
+                                    }
+                                    
+                                    // Filtrar horas pasadas si es hoy
+                                    if (horaMinimaPermitida) {
+                                        const [horaMin, minutoMin] = horaMinimaPermitida.split(':').map(Number);
+                                        const [horaAct, minutoAct] = hora.split(':').map(Number);
+                                        const minutosMinimos = horaMin * 60 + minutoMin;
+                                        const minutosActuales = horaAct * 60 + minutoAct;
+                                        
+                                        if (minutosActuales < minutosMinimos) {
+                                            return;
+                                        }
+                                    }
+                                    
+                                    const option = document.createElement('option');
+                                    option.value = hora;
+                                    
+                                    // Formatear hora para mostrar en formato AM/PM
+                                    const [horaNum, minuto] = hora.split(':');
+                                    const horaInt = parseInt(horaNum);
+                                    let horaMostrar;
+                                    if (horaInt === 0) {
+                                        horaMostrar = `12:${minuto} AM`;
+                                    } else if (horaInt < 12) {
+                                        horaMostrar = `${horaInt}:${minuto} AM`;
+                                    } else if (horaInt === 12) {
+                                        horaMostrar = `12:${minuto} PM`;
+                                    } else {
+                                        const horaPM = horaInt - 12;
+                                        horaMostrar = `${horaPM}:${minuto} PM`;
+                                    }
+                                    option.textContent = horaMostrar;
+                                    horaSelect.appendChild(option);
+                                    opcionesAgregadas++;
+                                });
+                                
+                                if (opcionesAgregadas === 0 && !horaActualSeleccionada) {
+                                    const option = document.createElement('option');
+                                    option.value = '';
+                                    if (fechaSeleccionada && obtenerDiaSemana(fechaSeleccionada) === 0) {
+                                        option.textContent = 'Domingo: Cerrado';
+                                    } else {
+                                        option.textContent = 'No hay horarios disponibles para este día';
+                                    }
+                                    option.disabled = true;
+                                    horaSelect.appendChild(option);
+                                }
+                            }
+                            
+                            // Configurar min y max para fecha
+                            if (fechaInput) {
+                                fechaInput.setAttribute('min', formatearFecha(hoy));
+                                fechaInput.setAttribute('max', formatearFecha(fechaMaxima));
+                                
+                                // Bloquear domingos
+                                bloquearDomingos(fechaInput);
+                                
+                                // Actualizar opciones de hora cuando cambia la fecha
+                                fechaInput.addEventListener('change', actualizarOpcionesHora);
+                                
+                                // Inicializar opciones de hora
+                                actualizarOpcionesHora();
+                            }
+                            
+                            if (servicioSelect && costoInput) {
+                                servicioSelect.addEventListener('change', function() {
+                                    const selected = servicioSelect.options[servicioSelect.selectedIndex];
+                                    const precio = selected.getAttribute('data-precio');
+                                    if (precio) {
+                                        costoInput.value = precio;
+                                    } else {
+                                        costoInput.value = '';
+                                    }
+                                });
+                            }
+                        });
+                        </script>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="estado" class="form-label">Estado *</label>
+                            <select class="form-select" id="estado" name="estado" required>
+                                <option value="pendiente" {% if servicio.estado == 'pendiente' %}selected{% endif %}>Pendiente</option>
+                                <option value="completado" {% if servicio.estado == 'completado' %}selected{% endif %}>Completado</option>
+                            </select>
+                        </div>
+
+                        <div class="alert alert-info" role="alert">
+                            <small><strong>Fecha de registro:</strong> {{ servicio.fecha_registro }}</small>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-warning btn-lg">
+                                <i class="fas fa-save me-2"></i>Actualizar Cita
+                            </button>
+                            <a href="{% url 'servicios_lista' %}" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <a href="{% url 'servicios_lista' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Volver a la lista
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

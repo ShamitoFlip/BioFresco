@@ -1,0 +1,406 @@
+{% extends "base.html" %}
+
+{% block titulo %}Citas de Tratamientos - Administrador{% endblock %}
+
+{% block contenido %}
+<div class="container py-3 py-md-5">
+    <div class="row justify-content-center">
+        <div class="col-12">
+            <!-- Encabezado -->
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center mb-3 mb-md-4 gap-2">
+                <div class="flex-grow-1">
+                    <h1 class="h4 h-md-3 mb-0">
+                        <i class="fas fa-calendar-check text-success me-2"></i>Gestión de Citas
+                    </h1>
+                </div>
+                <a href="{% url 'servicios_crear' %}" class="btn btn-success" style="white-space: nowrap;">
+                    <i class="fas fa-plus me-1"></i>Nueva Cita
+                </a>
+            </div>
+
+            {% if messages %}
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                {% for message in messages %}
+                    <strong>{{ message }}</strong>
+                {% endfor %}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endif %}
+
+            <!-- Filtros -->
+            <div class="card border-0 shadow-sm mb-3 mb-md-4">
+                <div class="card-body p-2 p-md-3">
+                    <h5 class="card-title mb-3 small"><i class="fas fa-filter me-2"></i>Filtros de Búsqueda</h5>
+                    <form method="get" action="{% url 'servicios_lista' %}" id="filtrosForm">
+                        <div class="row g-3">
+                            <!-- Filtro por Fechas -->
+                            <div class="col-md-3 col-12">
+                                <label for="fecha_desde" class="form-label">Fecha Desde</label>
+                                <input type="date" class="form-control" id="fecha_desde" name="fecha_desde" value="{{ fecha_desde }}">
+                            </div>
+                            <div class="col-md-3 col-12">
+                                <label for="fecha_hasta" class="form-label">Fecha Hasta</label>
+                                <input type="date" class="form-control" id="fecha_hasta" name="fecha_hasta" value="{{ fecha_hasta }}">
+                            </div>
+                            
+                            <!-- Filtro por Servicio -->
+                            <div class="col-md-3 col-12">
+                                <label for="servicio_id" class="form-label">Servicio</label>
+                                <select class="form-select" id="servicio_id" name="servicio_id">
+                                    <option value="">Todos los servicios</option>
+                                    {% for servicio in servicios_disponibles %}
+                                    <option value="{{ servicio.id }}" {% if servicio_id_seleccionado == servicio.id|stringformat:"s" %}selected{% endif %}>
+                                        {{ servicio.nombre }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            
+                            <!-- Filtro por Estado -->
+                            <div class="col-md-3 col-12">
+                                <label class="form-label">Estado</label>
+                                <div class="border rounded p-2" style="background-color: #f8f9fa;">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="estado" value="pendiente" id="estado_pendiente" 
+                                               {% if 'pendiente' in estados_seleccionados %}checked{% endif %}>
+                                        <label class="form-check-label" for="estado_pendiente">
+                                            Pendiente
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="estado" value="en_progreso" id="estado_en_progreso"
+                                               {% if 'en_progreso' in estados_seleccionados %}checked{% endif %}>
+                                        <label class="form-check-label" for="estado_en_progreso">
+                                            En Progreso
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" name="estado" value="completado" id="estado_completado"
+                                               {% if 'completado' in estados_seleccionados %}checked{% endif %}>
+                                        <label class="form-check-label" for="estado_completado">
+                                            Completado
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <div class="d-flex flex-column flex-md-row gap-2">
+                                    <button type="submit" class="btn btn-primary-admin">
+                                        <i class="fas fa-filter me-2"></i>Filtrar
+                                    </button>
+                                    <a href="{% url 'servicios_lista' %}" class="btn btn-secondary">
+                                        <i class="fas fa-times me-2"></i>Limpiar
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Filtro por RUT (búsqueda en tiempo real) -->
+            <div class="card border-0 shadow-sm mb-3 mb-md-4">
+                <div class="card-body p-2 p-md-3">
+                    <h5 class="card-title mb-3 small"><i class="fas fa-search me-2"></i>Búsqueda Rápida por RUT</h5>
+                    <div class="row">
+                        <div class="col-12">
+                            <label for="filtro_rut_tabla" class="form-label">Buscar por RUT o Nombre de Cliente</label>
+                            <input type="text" class="form-control" id="filtro_rut_tabla" 
+                                   placeholder="Ingrese RUT o nombre del cliente para filtrar la tabla">
+                            <small class="form-text text-muted">La tabla se filtrará automáticamente mientras escribe</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {% if servicios %}
+            <!-- Vista de tabla para desktop -->
+            <div class="card shadow d-none d-md-block mb-4">
+                <div class="card-body p-3">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <p class="mb-0 text-muted small">
+                            <i class="fas fa-calendar-check me-1"></i>
+                            Mostrando <strong>{{ servicios|length }}</strong> cita{{ servicios|length|pluralize }}
+                        </p>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover table-striped mb-0">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Servicio</th>
+                                    <th>Especialista</th>
+                                    <th>Cliente</th>
+                                    <th>RUT</th>
+                                    <th>Email</th>
+                                    <th>Teléfono</th>
+                                    <th>Fecha</th>
+                                    <th>Costo</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabla-servicios">
+                                {% for servicio in servicios %}
+                                <tr data-rut="{{ servicio.rut_cliente|lower|default:'' }}" 
+                                    data-nombre="{{ servicio.nombre_cliente|lower|default:'' }}"
+                                    data-servicio="{{ servicio.servicio.nombre|lower|default:'' }}"
+                                    data-estado="{{ servicio.estado|lower|default:'' }}">
+                                    <td>{{ servicio.id }}</td>
+                                    <td><strong>{{ servicio.servicio.nombre }}</strong></td>
+                                    <td>{{ servicio.estilista.nombre }}{% if servicio.estilista.apellido %} {{ servicio.estilista.apellido }}{% endif %}</td>
+                                    <td>{{ servicio.nombre_cliente }}</td>
+                                    <td>{{ servicio.rut_cliente|default:"N/A" }}</td>
+                                    <td><small>{{ servicio.email_cliente }}</small></td>
+                                    <td>{{ servicio.telefono_cliente }}</td>
+                                    <td>
+                                        {% if servicio.hora %}
+                                            <small>{{ servicio.fecha_servicio|date:"d/m/Y" }} {{ servicio.hora|time:"H:i" }}</small>
+                                        {% else %}
+                                            <small>{{ servicio.fecha_servicio|date:"d/m/Y" }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>${{ servicio.costo }}</td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if servicio.estado == 'pendiente' %}bg-warning
+                                            {% elif servicio.estado == 'en_progreso' %}bg-primary
+                                            {% elif servicio.estado == 'completado' %}bg-success
+                                            {% endif %}">
+                                            {{ servicio.get_estado_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-1">
+                                            <a href="{% url 'servicios_editar' servicio.id %}" class="btn btn-sm btn-primary" title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="{% url 'servicios_eliminar' servicio.id %}" class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro de que deseas eliminar esta cita?');" title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                            {% if servicio.estado != 'completado' %}
+                                            <a href="{% url 'servicios_marcar_completado' servicio.id %}" class="btn btn-sm btn-success" onclick="return confirm('Marcar esta cita como completada?');" title="Marcar completado">
+                                                <i class="fas fa-check"></i>
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vista de cards para móvil -->
+            <div class="d-md-none">
+                <div class="mb-3">
+                    <p class="text-muted small mb-0">
+                        <i class="fas fa-calendar-check me-1"></i>
+                        Mostrando <strong>{{ servicios|length }}</strong> cita{{ servicios|length|pluralize }}
+                    </p>
+                </div>
+                {% for servicio in servicios %}
+                <div class="card shadow-sm mb-3 servicio-card" 
+                     data-rut="{{ servicio.rut_cliente|lower|default:'' }}" 
+                     data-nombre="{{ servicio.nombre_cliente|lower|default:'' }}"
+                     data-servicio="{{ servicio.servicio.nombre|lower|default:'' }}"
+                     data-estado="{{ servicio.estado|lower|default:'' }}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div class="flex-grow-1">
+                                <h6 class="card-title mb-0 fw-bold">
+                                    {{ servicio.servicio.nombre }}
+                                </h6>
+                                <small class="text-muted">ID: {{ servicio.id }}</small>
+                            </div>
+                            <span class="badge 
+                                {% if servicio.estado == 'pendiente' %}bg-warning
+                                {% elif servicio.estado == 'en_progreso' %}bg-primary
+                                {% elif servicio.estado == 'completado' %}bg-success
+                                {% endif %}">
+                                {{ servicio.get_estado_display }}
+                            </span>
+                        </div>
+                        
+                        <div class="row mb-2">
+                            <div class="col-6">
+                                <small class="text-muted d-block">Cliente:</small>
+                                <strong>{{ servicio.nombre_cliente }}</strong>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">RUT:</small>
+                                <span>{{ servicio.rut_cliente|default:"N/A" }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-2">
+                            <div class="col-6">
+                                <small class="text-muted d-block">Especialista:</small>
+                                <span>{{ servicio.estilista.nombre }}{% if servicio.estilista.apellido %} {{ servicio.estilista.apellido }}{% endif %}</span>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Costo:</small>
+                                <strong class="text-primary">${{ servicio.costo }}</strong>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-2">
+                            <small class="text-muted d-block">Fecha y Hora:</small>
+                            {% if servicio.hora %}
+                                <span>{{ servicio.fecha_servicio|date:"d/m/Y" }} {{ servicio.hora|time:"H:i" }}</span>
+                            {% else %}
+                                <span>{{ servicio.fecha_servicio|date:"d/m/Y" }}</span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="row mb-2">
+                            <div class="col-6">
+                                <small class="text-muted d-block">Email:</small>
+                                <small>{{ servicio.email_cliente }}</small>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Teléfono:</small>
+                                <span>{{ servicio.telefono_cliente }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex gap-2 mt-3 pt-2 border-top flex-wrap">
+                            <a href="{% url 'servicios_editar' servicio.id %}" class="btn btn-sm btn-primary flex-fill">
+                                <i class="fas fa-edit me-1"></i>Editar
+                            </a>
+                            <a href="{% url 'servicios_eliminar' servicio.id %}" class="btn btn-sm btn-danger flex-fill" onclick="return confirm('¿Estás seguro de que deseas eliminar esta cita?');">
+                                <i class="fas fa-trash me-1"></i>Eliminar
+                            </a>
+                            {% if servicio.estado != 'completado' %}
+                            <a href="{% url 'servicios_marcar_completado' servicio.id %}" class="btn btn-sm btn-success flex-fill" onclick="return confirm('Marcar esta cita como completada?');">
+                                <i class="fas fa-check me-1"></i>Completar
+                            </a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="card shadow-sm">
+                <div class="card-body text-center py-4">
+                    <i class="fas fa-calendar-check fa-2x text-muted mb-2"></i>
+                    <h4 class="alert-heading">Sin citas</h4>
+                    <p>
+                        {% if fecha_desde or fecha_hasta %}
+                            No hay citas de tratamientos registradas en el rango de fechas seleccionado.
+                        {% else %}
+                            No hay citas de tratamientos registradas.
+                        {% endif %}
+                    </p>
+                    <div class="d-flex flex-column flex-md-row gap-2 justify-content-center">
+                        {% if fecha_desde or fecha_hasta %}
+                            <a href="{% url 'servicios_lista' %}" class="btn btn-secondary">Ver todas las citas</a>
+                        {% endif %}
+                        <a href="{% url 'servicios_crear' %}" class="btn btn-success">
+                            <i class="fas fa-plus me-1"></i>Crear nueva cita
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="mt-3 mt-md-4">
+                <a href="{% url 'inicio' %}" class="btn btn-secondary w-100 w-md-auto">
+                    <i class="fas fa-arrow-left me-2"></i>Volver al Inicio
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function(){
+    const filtroRutTabla = document.getElementById('filtro_rut_tabla');
+    const tablaServicios = document.getElementById('tabla-servicios');
+    
+    // Filtrar tabla (desktop)
+    if (filtroRutTabla && tablaServicios) {
+        filtroRutTabla.addEventListener('input', function() {
+            const textoBusqueda = this.value.toLowerCase().trim().replace(/[.\-]/g, '');
+            const filas = tablaServicios.getElementsByTagName('tr');
+            let filasVisibles = 0;
+            
+            for (let i = 0; i < filas.length; i++) {
+                const fila = filas[i];
+                const rut = (fila.getAttribute('data-rut') || '').replace(/[.\-]/g, '');
+                const nombre = fila.getAttribute('data-nombre') || '';
+                
+                if (textoBusqueda === '' || rut.includes(textoBusqueda) || nombre.includes(textoBusqueda)) {
+                    fila.style.display = '';
+                    filasVisibles++;
+                } else {
+                    fila.style.display = 'none';
+                }
+            }
+            
+            // Mostrar mensaje si no hay resultados
+            const mensajeNoResultados = document.getElementById('mensaje-no-resultados-filtro');
+            if (filasVisibles === 0 && textoBusqueda !== '') {
+                if (!mensajeNoResultados) {
+                    const mensaje = document.createElement('div');
+                    mensaje.id = 'mensaje-no-resultados-filtro';
+                    mensaje.className = 'alert alert-info mt-3';
+                    mensaje.innerHTML = '<i class="fas fa-info-circle me-2"></i>No se encontraron citas con el RUT o nombre ingresado.';
+                    tablaServicios.parentElement.insertAdjacentElement('afterend', mensaje);
+                }
+            } else {
+                if (mensajeNoResultados) {
+                    mensajeNoResultados.remove();
+                }
+            }
+        });
+    }
+    
+    // Filtrar cards (móvil)
+    const cardsServicios = document.querySelectorAll('.servicio-card');
+    if (filtroRutTabla && cardsServicios.length > 0) {
+        filtroRutTabla.addEventListener('input', function() {
+            const textoBusqueda = this.value.toLowerCase().trim().replace(/[.\-]/g, '');
+            let cardsVisibles = 0;
+            
+            cardsServicios.forEach(function(card) {
+                const rut = (card.getAttribute('data-rut') || '').replace(/[.\-]/g, '');
+                const nombre = card.getAttribute('data-nombre') || '';
+                
+                if (textoBusqueda === '' || rut.includes(textoBusqueda) || nombre.includes(textoBusqueda)) {
+                    card.style.display = '';
+                    cardsVisibles++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            
+            // Mostrar mensaje si no hay resultados (móvil)
+            const mensajeNoResultadosMobile = document.getElementById('mensaje-no-resultados-filtro-mobile');
+            if (cardsVisibles === 0 && textoBusqueda !== '') {
+                if (!mensajeNoResultadosMobile) {
+                    const mensaje = document.createElement('div');
+                    mensaje.id = 'mensaje-no-resultados-filtro-mobile';
+                    mensaje.className = 'alert alert-info mt-3';
+                    mensaje.innerHTML = '<i class="fas fa-info-circle me-2"></i>No se encontraron citas con el RUT o nombre ingresado.';
+                    const contenedorCards = document.querySelector('.d-md-none');
+                    if (contenedorCards) {
+                        contenedorCards.insertAdjacentElement('afterend', mensaje);
+                    }
+                }
+            } else {
+                if (mensajeNoResultadosMobile) {
+                    mensajeNoResultadosMobile.remove();
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

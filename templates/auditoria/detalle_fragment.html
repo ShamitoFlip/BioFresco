@@ -1,0 +1,584 @@
+<!-- Page Header -->
+<div class="page-header">
+    <h1 class="page-title">Auditoría #{{ auditoria.id }}</h1>
+    <div class="d-flex gap-2">
+        <a href="{% url 'auditoria_revisiones' %}" class="btn btn-secondary ajax-link" data-url="{% url 'auditoria_revisiones' %}">
+            <i class="fas fa-arrow-left me-2"></i>Volver
+        </a>
+        {% if auditoria.estado == 'en_proceso' %}
+            <a href="{% url 'auditoria_completar' auditoria.id %}" class="btn btn-success" onclick="return confirm('¿Está seguro de completar esta auditoría?');">
+                <i class="fas fa-check me-2"></i>Completar Auditoría
+            </a>
+            <a href="{% url 'auditoria_cancelar' auditoria.id %}" class="btn btn-danger" onclick="return confirm('¿Está seguro de cancelar esta auditoría?');">
+                <i class="fas fa-times me-2"></i>Cancelar
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Información de la Auditoría -->
+<div class="card mb-4" style="border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    <div class="card-header" style="background: linear-gradient(135deg, #2e7d32 0%, #4caf50 100%); color: white; border: none;">
+        <h5 class="mb-0">
+            <i class="fas fa-info-circle me-2"></i>Información General
+        </h5>
+    </div>
+    <div class="card-body" style="background: #f8f9fa;">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="fas fa-calendar-alt me-2"></i>Fecha de Auditoría
+                    </div>
+                    <div class="info-value">{{ auditoria.fecha_auditoria|date:"d/m/Y" }}</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="fas fa-tag me-2"></i>Estado
+                    </div>
+                    <div class="info-value">
+                        {% if auditoria.estado == 'en_proceso' %}
+                            <span class="badge bg-info">En Proceso</span>
+                        {% elif auditoria.estado == 'completada' %}
+                            <span class="badge bg-success">Completada</span>
+                        {% else %}
+                            <span class="badge bg-danger">Cancelada</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="fas fa-user me-2"></i>Usuario
+                    </div>
+                    <div class="info-value">
+                        {% if auditoria.usuario %}
+                            {{ auditoria.usuario.get_full_name|default:auditoria.usuario.username }}
+                        {% else %}
+                            <span class="text-muted">Sin usuario</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="fas fa-clock me-2"></i>Fecha Creación
+                    </div>
+                    <div class="info-value">{{ auditoria.fecha_creacion|date:"d/m/Y H:i" }}</div>
+                </div>
+            </div>
+        </div>
+        {% if auditoria.observaciones_generales %}
+        <div class="row mt-3">
+            <div class="col-12">
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="fas fa-comment-alt me-2"></i>Observaciones Generales
+                    </div>
+                    <div class="info-value">{{ auditoria.observaciones_generales }}</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.info-item {
+    padding: 0.75rem;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+}
+.info-label {
+    font-size: 0.85rem;
+    color: #757575;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+.info-value {
+    font-size: 1rem;
+    color: #212121;
+    font-weight: 600;
+}
+</style>
+
+<!-- Estadísticas -->
+<div class="stats-container mb-4">
+    <div class="stat-card">
+        <div class="stat-icon bg-primary">
+            <i class="fas fa-boxes"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-label">Total Productos</div>
+            <div class="stat-value">{{ total_productos }}</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon bg-success">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-label">Revisados</div>
+            <div class="stat-value">{{ productos_revisados }}/{{ total_productos }}</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon bg-warning">
+            <i class="fas fa-clock"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-label">Pendientes</div>
+            <div class="stat-value">{{ productos_pendientes }}</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon bg-danger">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-label">Con Discrepancias</div>
+            <div class="stat-value">{{ productos_con_discrepancia }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Lista de Productos para Revisar (Tickeable) -->
+<div class="card mb-4" style="border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    <div class="card-header" style="background: linear-gradient(135deg, #1976d2 0%, #2196f3 100%); color: white; border: none;">
+        <h5 class="mb-0">
+            <i class="fas fa-clipboard-check me-2"></i>Lista de Productos para Revisar
+        </h5>
+    </div>
+    <div class="card-body" style="background: #f8f9fa; padding: 1.5rem;">
+        {% if auditoria.estado == 'en_proceso' %}
+        <div class="alert alert-info mb-3" style="border-left: 4px solid #2196f3; background: #e3f2fd;">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>Instrucciones:</strong> Revise físicamente cada producto y marque como revisado. Ingrese el conteo físico real y agregue observaciones si hay discrepancias.
+        </div>
+        {% endif %}
+        
+        <div class="data-table-container">
+            <table class="table-data">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">
+                            {% if auditoria.estado == 'en_proceso' %}
+                                <input type="checkbox" id="check-all" title="Marcar todos">
+                            {% else %}
+                                Estado
+                            {% endif %}
+                        </th>
+                        <th>Producto</th>
+                        <th>Cantidad Sistema</th>
+                        <th>Conteo Físico</th>
+                        <th>Diferencia</th>
+                        <th>Tipo Discrepancia</th>
+                        <th>Observaciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for detalle in detalles %}
+                    <tr class="{% if detalle.diferencia != 0 %}table-warning{% endif %} {% if detalle.revisado %}table-success{% endif %}" id="row-detalle-{{ detalle.id }}">
+                        <td>
+                            {% if auditoria.estado == 'en_proceso' %}
+                                <input type="checkbox" 
+                                       class="check-revisado" 
+                                       data-detalle-id="{{ detalle.id }}"
+                                       {% if detalle.revisado %}checked{% endif %}
+                                       title="Marcar como revisado">
+                            {% else %}
+                                {% if detalle.revisado %}
+                                    <i class="fas fa-check-circle text-success"></i>
+                                {% else %}
+                                    <i class="fas fa-clock text-warning"></i>
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                        <td>
+                            <strong>{{ detalle.producto.nombre }}</strong>
+                            {% if detalle.producto.zona %}
+                                <br><small class="text-muted">Zona: {{ detalle.producto.zona.nombre }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <strong class="text-primary">{{ detalle.cantidad_sistema }}</strong>
+                        </td>
+                        <td>
+                            {% if auditoria.estado == 'en_proceso' %}
+                                <input type="number" 
+                                       class="form-control form-control-sm conteo-fisico-input" 
+                                       data-detalle-id="{{ detalle.id }}"
+                                       value="{% if detalle.conteo_fisico %}{{ detalle.conteo_fisico }}{% endif %}"
+                                       min="0"
+                                       step="1"
+                                       placeholder="0"
+                                       style="width: 90px; text-align: center;">
+                            {% else %}
+                                {% if detalle.revisado %}
+                                    <strong class="text-success">{{ detalle.conteo_fisico }}</strong>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge diferencia-badge" 
+                                  id="diferencia-{{ detalle.id }}"
+                                  data-cantidad-sistema="{{ detalle.cantidad_sistema }}">
+                                {% if detalle.diferencia != 0 %}
+                                    <span class="{% if detalle.diferencia < 0 %}text-danger{% else %}text-warning{% endif %}">
+                                        {% if detalle.diferencia > 0 %}+{% endif %}{{ detalle.diferencia }}
+                                    </span>
+                                {% else %}
+                                    <span class="text-success">0</span>
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            {% if auditoria.estado == 'en_proceso' %}
+                                <select class="form-select form-select-sm tipo-discrepancia-select" 
+                                        data-detalle-id="{{ detalle.id }}"
+                                        style="width: 160px; font-size: 0.875rem;">
+                                    <option value="">-- Seleccione --</option>
+                                    <option value="sin_cambios" {% if detalle.tipo_discrepancia == 'sin_cambios' %}selected{% endif %}>Sin Cambios</option>
+                                    <option value="desaparecido" {% if detalle.tipo_discrepancia == 'desaparecido' %}selected{% endif %}>Desaparecido</option>
+                                    <option value="vencido" {% if detalle.tipo_discrepancia == 'vencido' %}selected{% endif %}>Vencido</option>
+                                    <option value="merma" {% if detalle.tipo_discrepancia == 'merma' %}selected{% endif %}>Merma/Deterioro</option>
+                                    <option value="sobrante" {% if detalle.tipo_discrepancia == 'sobrante' %}selected{% endif %}>Sobrante</option>
+                                    <option value="otro" {% if detalle.tipo_discrepancia == 'otro' %}selected{% endif %}>Otro</option>
+                                </select>
+                            {% else %}
+                                {% if detalle.tipo_discrepancia %}
+                                    {{ detalle.get_tipo_discrepancia_display }}
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if auditoria.estado == 'en_proceso' %}
+                                <input type="text" 
+                                       class="form-control form-control-sm observaciones-input" 
+                                       data-detalle-id="{{ detalle.id }}"
+                                       value="{{ detalle.observaciones|default:'' }}"
+                                       placeholder="Agregar observaciones..."
+                                       style="min-width: 250px; font-size: 0.875rem;">
+                            {% else %}
+                                {% if detalle.observaciones %}
+                                    <small>{{ detalle.observaciones|truncatewords:10 }}</small>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center" style="padding: 3rem; color: #757575;">
+                            <i class="fas fa-inbox fa-3x mb-3" style="opacity: 0.3;"></i>
+                            <p style="margin-bottom: 1rem; font-size: 1rem;">No hay productos en esta auditoría</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    'use strict';
+    
+    let saveTimeouts = {};
+    const DEBOUNCE_DELAY = 1000; // 1 segundo de delay antes de guardar
+    
+    // Función para obtener el token CSRF
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    // Función para actualizar la diferencia en tiempo real
+    function actualizarDiferencia(detalleId, conteoFisico) {
+        const badge = document.getElementById(`diferencia-${detalleId}`);
+        if (!badge) return;
+        
+        const cantidadSistema = parseInt(badge.dataset.cantidadSistema) || 0;
+        const conteo = parseInt(conteoFisico) || 0;
+        const diferencia = conteo - cantidadSistema;
+        
+        let badgeClass = 'badge';
+        let textClass = '';
+        let signo = '';
+        
+        if (diferencia < 0) {
+            badgeClass += ' bg-danger';
+            textClass = 'text-white';
+        } else if (diferencia > 0) {
+            badgeClass += ' bg-warning';
+            textClass = 'text-dark';
+            signo = '+';
+        } else {
+            badgeClass += ' bg-success';
+            textClass = 'text-white';
+        }
+        
+        badge.className = badgeClass + ' diferencia-badge';
+        badge.innerHTML = `<span class="${textClass}">${signo}${diferencia}</span>`;
+        
+        // Si la diferencia es 0, auto-seleccionar "Sin Cambios" en el select
+        if (diferencia === 0) {
+            const select = document.querySelector(`.tipo-discrepancia-select[data-detalle-id="${detalleId}"]`);
+            if (select && select.value === '') {
+                select.value = 'sin_cambios';
+            }
+        }
+    }
+    
+    // Función para guardar cambios vía AJAX
+    function guardarCambios(detalleId) {
+        const conteoInput = document.querySelector(`.conteo-fisico-input[data-detalle-id="${detalleId}"]`);
+        const tipoSelect = document.querySelector(`.tipo-discrepancia-select[data-detalle-id="${detalleId}"]`);
+        const observacionesInput = document.querySelector(`.observaciones-input[data-detalle-id="${detalleId}"]`);
+        
+        if (!conteoInput) return;
+        
+        const conteoFisico = conteoInput.value || 0;
+        const tipoDiscrepancia = tipoSelect ? tipoSelect.value : '';
+        const observaciones = observacionesInput ? observacionesInput.value : '';
+        
+        // Actualizar diferencia visualmente
+        actualizarDiferencia(detalleId, conteoFisico);
+        
+        // Preparar datos
+        const formData = new FormData();
+        formData.append('conteo_fisico', conteoFisico);
+        formData.append('tipo_discrepancia', tipoDiscrepancia);
+        formData.append('observaciones', observaciones);
+        
+        // Enviar petición AJAX
+        fetch(`/api/auditoria/actualizar-conteo/${detalleId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Actualizar fila visualmente
+                const row = document.getElementById(`row-detalle-${detalleId}`);
+                if (row) {
+                    if (data.diferencia != 0) {
+                        row.classList.remove('table-success');
+                        row.classList.add('table-warning');
+                    } else {
+                        row.classList.remove('table-warning');
+                        row.classList.add('table-success');
+                    }
+                }
+                
+                // Marcar checkbox como revisado si tiene conteo
+                const checkbox = document.querySelector(`.check-revisado[data-detalle-id="${detalleId}"]`);
+                if (checkbox && conteoFisico > 0) {
+                    checkbox.checked = true;
+                }
+                
+                // Actualizar estadísticas si es necesario
+                console.log('✅ Conteo actualizado:', data);
+            } else {
+                console.error('Error al guardar:', data.error);
+                alert('Error al guardar: ' + (data.error || 'Error desconocido'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al guardar los cambios');
+        });
+    }
+    
+    // Inicializar eventos cuando el DOM esté listo
+    function inicializar() {
+        // Marcar/desmarcar todos los checkboxes
+        const checkAll = document.getElementById('check-all');
+        if (checkAll) {
+            checkAll.addEventListener('change', function() {
+                const checkboxes = document.querySelectorAll('.check-revisado');
+                checkboxes.forEach(cb => {
+                    cb.checked = this.checked;
+                    if (this.checked) {
+                        marcarRevisado(cb.dataset.detalleId);
+                    }
+                });
+            });
+        }
+        
+        // Manejar checkbox individual
+        document.querySelectorAll('.check-revisado').forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                const detalleId = this.dataset.detalleId;
+                if (this.checked) {
+                    marcarRevisado(detalleId);
+                }
+            });
+        });
+        
+        // Manejar cambios en conteo físico
+        document.querySelectorAll('.conteo-fisico-input').forEach(input => {
+            input.addEventListener('input', function() {
+                const detalleId = this.dataset.detalleId;
+                const conteoFisico = this.value || 0;
+                
+                // Actualizar diferencia en tiempo real
+                actualizarDiferencia(detalleId, conteoFisico);
+                
+                // Guardar con debounce
+                clearTimeout(saveTimeouts[detalleId]);
+                saveTimeouts[detalleId] = setTimeout(() => {
+                    guardarCambios(detalleId);
+                }, DEBOUNCE_DELAY);
+            });
+            
+            input.addEventListener('blur', function() {
+                const detalleId = this.dataset.detalleId;
+                clearTimeout(saveTimeouts[detalleId]);
+                guardarCambios(detalleId);
+            });
+        });
+        
+        // Manejar cambios en tipo de discrepancia
+        document.querySelectorAll('.tipo-discrepancia-select').forEach(select => {
+            select.addEventListener('change', function() {
+                const detalleId = this.dataset.detalleId;
+                clearTimeout(saveTimeouts[detalleId]);
+                saveTimeouts[detalleId] = setTimeout(() => {
+                    guardarCambios(detalleId);
+                }, 500);
+            });
+        });
+        
+        // Manejar cambios en observaciones
+        document.querySelectorAll('.observaciones-input').forEach(input => {
+            input.addEventListener('blur', function() {
+                const detalleId = this.dataset.detalleId;
+                clearTimeout(saveTimeouts[detalleId]);
+                guardarCambios(detalleId);
+            });
+        });
+    }
+    
+    // Función para marcar como revisado
+    function marcarRevisado(detalleId) {
+        fetch(`/api/auditoria/marcar-revisado/${detalleId}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCookie('csrftoken'),
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const row = document.getElementById(`row-detalle-${detalleId}`);
+                if (row) {
+                    row.classList.add('table-success');
+                }
+                // Recargar para actualizar estadísticas
+                if (window.AdminAjax && typeof window.AdminAjax.loadContent === 'function') {
+                    window.AdminAjax.loadContent('{% url "auditoria_detalle" auditoria.id %}');
+                }
+            } else {
+                alert('Error al marcar como revisado: ' + (data.error || 'Error desconocido'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al marcar como revisado');
+        });
+    }
+    
+    // Inicializar cuando el DOM esté listo
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', inicializar);
+    } else {
+        inicializar();
+    }
+    
+    // Reinicializar después de carga AJAX
+    document.addEventListener('contentLoaded', inicializar);
+    if (typeof jQuery !== 'undefined') {
+        $(document).on('contentLoaded', inicializar);
+    }
+})();
+</script>
+
+<style>
+.stats-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: #757575;
+    margin-bottom: 0.25rem;
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #212121;
+}
+</style>
+

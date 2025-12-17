@@ -1,0 +1,70 @@
+{% extends 'base_admin.html' %}
+
+{% block titulo %}Editar Entrada - BioFresco{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Editar Entrada de Inventario</h1>
+</div>
+
+<div class="bg-white-admin rounded-admin shadow-admin p-4">
+    <form method="post">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="{{ form.producto.id_for_label }}" class="form-label">{{ form.producto.label }}</label>
+                {{ form.producto }}
+                {% if form.producto.errors %}
+                    <div class="text-danger small">{{ form.producto.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="{{ form.proveedor.id_for_label }}" class="form-label">{{ form.proveedor.label }}</label>
+                {{ form.proveedor }}
+                {% if form.proveedor.errors %}
+                    <div class="text-danger small">{{ form.proveedor.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="{{ form.cantidad.id_for_label }}" class="form-label">{{ form.cantidad.label }}</label>
+                {{ form.cantidad }}
+                {% if form.cantidad.errors %}
+                    <div class="text-danger small">{{ form.cantidad.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="{{ form.precio_unitario.id_for_label }}" class="form-label">{{ form.precio_unitario.label }}</label>
+                {{ form.precio_unitario }}
+                {% if form.precio_unitario.errors %}
+                    <div class="text-danger small">{{ form.precio_unitario.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+        <div class="mb-3">
+            <label for="{{ form.numero_factura.id_for_label }}" class="form-label">{{ form.numero_factura.label }}</label>
+            {{ form.numero_factura }}
+            {% if form.numero_factura.errors %}
+                <div class="text-danger small">{{ form.numero_factura.errors }}</div>
+            {% endif %}
+        </div>
+        <div class="mb-3">
+            <label for="{{ form.observaciones.id_for_label }}" class="form-label">{{ form.observaciones.label }}</label>
+            {{ form.observaciones }}
+            {% if form.observaciones.errors %}
+                <div class="text-danger small">{{ form.observaciones.errors }}</div>
+            {% endif %}
+        </div>
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary-admin">
+                <i class="fas fa-save me-2"></i>Guardar Cambios
+            </button>
+            <a href="{% url 'entradas_lista' %}" class="btn btn-secondary">
+                <i class="fas fa-times me-2"></i>Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+

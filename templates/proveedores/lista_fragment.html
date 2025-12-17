@@ -1,0 +1,895 @@
+<!-- Page Header -->
+<div class="page-header">
+    <h1 class="page-title">Gestión de Proveedores</h1>
+    {% if proveedores %}
+    <div class="d-flex gap-2">
+        <button type="button" class="btn btn-primary-admin" id="btn-crear-proveedor" onclick="openDrawerProveedorCrear()">
+            <i class="fas fa-plus me-2"></i>Proveedor nuevo
+        </button>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Search Container -->
+<div class="search-container-enhanced">
+    <div class="filter-toggle-header" id="filter-toggle-header-proveedores">
+        <div class="filter-title">
+            <i class="fas fa-filter"></i>
+            <span>Filtros de Búsqueda</span>
+        </div>
+        <div class="filter-actions">
+            <button type="button" class="btn-clear-filters" id="btn-limpiar-filtros-proveedores" title="Limpiar todos los filtros">
+                <i class="fas fa-redo"></i>
+                <span>Limpiar</span>
+            </button>
+            <button type="button" class="btn-toggle-filters" id="btn-toggle-filters-proveedores" title="Mostrar/Ocultar filtros">
+                <i class="fas fa-chevron-down toggle-icon"></i>
+            </button>
+        </div>
+    </div>
+    
+    <div id="filter-content-area-proveedores" class="filter-content-hidden">
+        <form method="GET" action="{% url 'proveedores_lista' %}" id="filtroProveedoresForm">
+        <div class="search-row-enhanced">
+            <div class="search-field-enhanced">
+                <div class="field-label">
+                    <i class="fas fa-building"></i>
+                    <span>Nombre</span>
+                </div>
+                <div class="input-wrapper">
+                    <i class="fas fa-search input-icon"></i>
+                    <input type="text" id="search-nombre-proveedor" name="nombre" value="{{ nombre_filtro|default:'' }}" placeholder="Buscar por nombre..." class="form-control-enhanced" autocomplete="off">
+                </div>
+            </div>
+            
+            <div class="search-field-enhanced">
+                <div class="field-label">
+                    <i class="fas fa-user"></i>
+                    <span>Contacto</span>
+                </div>
+                <div class="input-wrapper">
+                    <i class="fas fa-search input-icon"></i>
+                    <input type="text" id="search-contacto" name="contacto" value="{{ contacto_filtro|default:'' }}" placeholder="Buscar por contacto..." class="form-control-enhanced" autocomplete="off">
+                </div>
+            </div>
+            
+            <div class="search-field-enhanced">
+                <div class="field-label">
+                    <i class="fas fa-phone"></i>
+                    <span>Teléfono</span>
+                </div>
+                <div class="input-wrapper">
+                    <i class="fas fa-phone input-icon"></i>
+                    <input type="text" id="search-telefono-proveedor" name="telefono" value="{{ telefono_filtro|default:'' }}" placeholder="Buscar por teléfono..." class="form-control-enhanced" autocomplete="off">
+                </div>
+            </div>
+            
+            <div class="search-field-enhanced">
+                <div class="field-label">
+                    <i class="fas fa-envelope"></i>
+                    <span>Email</span>
+                </div>
+                <div class="input-wrapper">
+                    <i class="fas fa-envelope input-icon"></i>
+                    <input type="text" id="search-email-proveedor" name="email" value="{{ email_filtro|default:'' }}" placeholder="Buscar por email..." class="form-control-enhanced" autocomplete="off">
+                </div>
+            </div>
+            
+            <div class="search-field-enhanced">
+                <div class="field-label">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Ciudad</span>
+                </div>
+                <div class="input-wrapper">
+                    <i class="fas fa-map-marker-alt input-icon"></i>
+                    <input type="text" id="search-ciudad" name="ciudad" value="{{ ciudad_filtro|default:'' }}" placeholder="Buscar por ciudad..." class="form-control-enhanced" autocomplete="off">
+                </div>
+            </div>
+        </div>
+        </form>
+        
+        <div class="filter-footer-enhanced">
+            <div class="results-info-enhanced">
+                <div class="results-icon">
+                    <i class="fas fa-truck"></i>
+                </div>
+                <div class="results-content">
+                    <span class="results-label">Resultados encontrados:</span>
+                    <span id="resultados-text-proveedores" class="results-number">{{ proveedores|length }} proveedor{{ proveedores|length|pluralize:"es" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="loading-indicator-proveedores" class="loading-indicator-enhanced" style="display: none;">
+        <div class="spinner-wrapper">
+            <div class="spinner"></div>
+        </div>
+        <span class="loading-text">Filtrando resultados...</span>
+    </div>
+</div>
+
+<!-- Data Table Container -->
+<div class="data-table-container">
+    <table class="table-data">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Contacto</th>
+                <th>Teléfono</th>
+                <th>Email</th>
+                <th>Ciudad</th>
+                <th>Fecha Registro</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for proveedor in proveedores %}
+            <tr>
+                <td>{{ proveedor.id }}</td>
+                <td><strong>{{ proveedor.nombre }}</strong></td>
+                <td>{{ proveedor.contacto|default:"-" }}</td>
+                <td>{{ proveedor.telefono|default:"-" }}</td>
+                <td>{{ proveedor.email|default:"-" }}</td>
+                <td>{{ proveedor.ciudad|default:"-" }}</td>
+                <td><small>{{ proveedor.fecha_registro|date:"d/m/Y" }}</small></td>
+                <td>
+                    <button type="button" class="btn btn-action btn-edit btn-editar-proveedor" 
+                            data-proveedor-id="{{ proveedor.id }}" 
+                            onclick="openDrawerProveedorEditar({{ proveedor.id }})"
+                            title="Editar">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button type="button" class="btn btn-action btn-delete" title="Eliminar" onclick="confirmarEliminarProveedor({{ proveedor.id }}, '{{ proveedor.nombre }}')">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="8" class="text-center" style="padding: 3rem; color: #757575;">
+                    <i class="fas fa-inbox fa-3x mb-3" style="opacity: 0.3;"></i>
+                    <p style="margin-bottom: 1rem; font-size: 1rem;">No hay proveedores registrados</p>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button type="button" class="btn btn-primary-admin mt-3" id="btn-crear-proveedor-empty" onclick="openDrawerProveedorCrear()">
+                            <i class="fas fa-plus me-2"></i>Crear Primer Proveedor
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+    // Sistema completo de filtrado dinámico para proveedores
+    (function() {
+        'use strict';
+        
+        let searchTimeout;
+        const DEBOUNCE_DELAY = 500;
+        
+        // Función para inicializar el toggle de filtros
+        function inicializarToggleFiltros() {
+            const toggleHeader = document.getElementById('filter-toggle-header-proveedores');
+            const filterContent = document.getElementById('filter-content-area-proveedores');
+            const toggleBtn = document.getElementById('btn-toggle-filters-proveedores');
+            
+            if (!toggleHeader || !filterContent) {
+                return false;
+            }
+            
+            // Remover listeners anteriores si existen
+            if (toggleHeader._toggleHandler) {
+                toggleHeader.removeEventListener('click', toggleHeader._toggleHandler);
+            }
+            if (toggleBtn && toggleBtn._toggleHandler) {
+                toggleBtn.removeEventListener('click', toggleBtn._toggleHandler);
+            }
+            
+            toggleHeader.style.display = 'flex';
+            toggleHeader.style.visibility = 'visible';
+            
+            // Restaurar estado desde localStorage (por defecto oculto)
+            const savedState = localStorage.getItem('filtros-proveedores-visible');
+            const isVisible = savedState === 'true';
+            
+            if (!isVisible) {
+                filterContent.classList.remove('filter-content-visible');
+                filterContent.classList.add('filter-content-hidden');
+                toggleHeader.classList.add('collapsed');
+                if (toggleBtn) {
+                    const chevron = toggleBtn.querySelector('.toggle-icon');
+                    if (chevron) {
+                        chevron.classList.remove('fa-chevron-down');
+                        chevron.classList.add('fa-chevron-up');
+                    }
+                }
+            } else {
+                filterContent.classList.remove('filter-content-hidden');
+                filterContent.classList.add('filter-content-visible');
+                toggleHeader.classList.remove('collapsed');
+                if (toggleBtn) {
+                    const chevron = toggleBtn.querySelector('.toggle-icon');
+                    if (chevron) {
+                        chevron.classList.remove('fa-chevron-up');
+                        chevron.classList.add('fa-chevron-down');
+                    }
+                }
+            }
+            
+            function toggleFilters() {
+                const isVisible = filterContent.classList.contains('filter-content-visible');
+                
+                if (isVisible) {
+                    filterContent.classList.remove('filter-content-visible');
+                    filterContent.classList.add('filter-content-hidden');
+                    toggleHeader.classList.add('collapsed');
+                    localStorage.setItem('filtros-proveedores-visible', 'false');
+                    if (toggleBtn) {
+                        const chevron = toggleBtn.querySelector('.toggle-icon');
+                        if (chevron) {
+                            chevron.classList.remove('fa-chevron-down');
+                            chevron.classList.add('fa-chevron-up');
+                        }
+                    }
+                } else {
+                    filterContent.classList.remove('filter-content-hidden');
+                    filterContent.classList.add('filter-content-visible');
+                    toggleHeader.classList.remove('collapsed');
+                    localStorage.setItem('filtros-proveedores-visible', 'true');
+                    if (toggleBtn) {
+                        const chevron = toggleBtn.querySelector('.toggle-icon');
+                        if (chevron) {
+                            chevron.classList.remove('fa-chevron-up');
+                            chevron.classList.add('fa-chevron-down');
+                        }
+                    }
+                }
+            }
+            
+            // Handler para el header
+            const headerClickHandler = function(e) {
+                if (e.target.closest('.btn-clear-filters') || e.target.closest('.btn-toggle-filters')) {
+                    return;
+                }
+                toggleFilters();
+            };
+            
+            toggleHeader._toggleHandler = headerClickHandler;
+            toggleHeader.addEventListener('click', headerClickHandler);
+            
+            // Handler para el botón toggle
+            if (toggleBtn) {
+                const btnClickHandler = function(e) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    toggleFilters();
+                };
+                
+                toggleBtn._toggleHandler = btnClickHandler;
+                toggleBtn.addEventListener('click', btnClickHandler);
+            }
+            
+            return true;
+        }
+        
+        // Función para inicializar el filtrado dinámico
+        function inicializarFiltrado() {
+            const filtroForm = document.getElementById('filtroProveedoresForm');
+            const searchNombre = filtroForm ? filtroForm.querySelector('input[name="nombre"]') : null;
+            const searchContacto = filtroForm ? filtroForm.querySelector('input[name="contacto"]') : null;
+            const searchTelefono = filtroForm ? filtroForm.querySelector('input[name="telefono"]') : null;
+            const searchEmail = filtroForm ? filtroForm.querySelector('input[name="email"]') : null;
+            const searchCiudad = filtroForm ? filtroForm.querySelector('input[name="ciudad"]') : null;
+            const btnLimpiar = document.getElementById('btn-limpiar-filtros-proveedores');
+            
+            if (!filtroForm) {
+                console.log('⚠️ Formulario de filtros no encontrado');
+                return false;
+            }
+            
+            // Remover listeners anteriores si existen
+            if (searchNombre && searchNombre._inputHandler) {
+                searchNombre.removeEventListener('input', searchNombre._inputHandler);
+                searchNombre._inputHandler = null;
+            }
+            if (searchContacto && searchContacto._inputHandler) {
+                searchContacto.removeEventListener('input', searchContacto._inputHandler);
+                searchContacto._inputHandler = null;
+            }
+            if (searchTelefono && searchTelefono._inputHandler) {
+                searchTelefono.removeEventListener('input', searchTelefono._inputHandler);
+                searchTelefono._inputHandler = null;
+            }
+            if (searchEmail && searchEmail._inputHandler) {
+                searchEmail.removeEventListener('input', searchEmail._inputHandler);
+                searchEmail._inputHandler = null;
+            }
+            if (searchCiudad && searchCiudad._inputHandler) {
+                searchCiudad.removeEventListener('input', searchCiudad._inputHandler);
+                searchCiudad._inputHandler = null;
+            }
+            if (btnLimpiar && btnLimpiar._clearHandler) {
+                btnLimpiar.removeEventListener('click', btnLimpiar._clearHandler);
+                btnLimpiar._clearHandler = null;
+            }
+            if (filtroForm._submitHandler) {
+                filtroForm.removeEventListener('submit', filtroForm._submitHandler);
+                filtroForm._submitHandler = null;
+            }
+            
+            function loadDataViaAjax() {
+                if (!filtroForm) {
+                    console.error('❌ Formulario no disponible para filtrar');
+                    return;
+                }
+                
+                const formData = new FormData(filtroForm);
+                const urlParams = new URLSearchParams();
+                
+                for (const [key, value] of formData.entries()) {
+                    if (value) {
+                        urlParams.append(key, value);
+                    }
+                }
+                
+                const url = filtroForm.action + (urlParams.toString() ? '?' + urlParams.toString() : '');
+                
+                const loadingIndicator = document.getElementById('loading-indicator-proveedores');
+                if (loadingIndicator) {
+                    loadingIndicator.style.display = 'block';
+                }
+                
+                console.log('🔍 Filtrando proveedores:', url);
+                
+                fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    const contentArea = document.getElementById('main-content-area');
+                    if (contentArea) {
+                        contentArea.innerHTML = html;
+                        console.log('✅ Contenido actualizado');
+                        
+                        // Disparar evento contentLoaded
+                        try {
+                            if (typeof jQuery !== 'undefined' && typeof $ !== 'undefined') {
+                                $(document).trigger('contentLoaded');
+                            } else {
+                                const event = new Event('contentLoaded');
+                                document.dispatchEvent(event);
+                            }
+                        } catch (e) {
+                            const event = new Event('contentLoaded');
+                            document.dispatchEvent(event);
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ Error al filtrar:', error);
+                })
+                .finally(() => {
+                    const loadingIndicator = document.getElementById('loading-indicator-proveedores');
+                    if (loadingIndicator) {
+                        loadingIndicator.style.display = 'none';
+                    }
+                });
+            }
+            
+            function debounceFilter() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(loadDataViaAjax, DEBOUNCE_DELAY);
+            }
+            
+            // Agregar listeners
+            if (searchNombre) {
+                searchNombre._inputHandler = debounceFilter;
+                searchNombre.addEventListener('input', debounceFilter);
+                console.log('✅ Listener de nombre agregado');
+            }
+            
+            if (searchContacto) {
+                searchContacto._inputHandler = debounceFilter;
+                searchContacto.addEventListener('input', debounceFilter);
+                console.log('✅ Listener de contacto agregado');
+            }
+            
+            if (searchTelefono) {
+                searchTelefono._inputHandler = debounceFilter;
+                searchTelefono.addEventListener('input', debounceFilter);
+                console.log('✅ Listener de teléfono agregado');
+            }
+            
+            if (searchEmail) {
+                searchEmail._inputHandler = debounceFilter;
+                searchEmail.addEventListener('input', debounceFilter);
+                console.log('✅ Listener de email agregado');
+            }
+            
+            if (searchCiudad) {
+                searchCiudad._inputHandler = debounceFilter;
+                searchCiudad.addEventListener('input', debounceFilter);
+                console.log('✅ Listener de ciudad agregado');
+            }
+            
+            if (btnLimpiar) {
+                const clearHandler = function(e) {
+                    e.preventDefault();
+                    if (searchNombre) searchNombre.value = '';
+                    if (searchContacto) searchContacto.value = '';
+                    if (searchTelefono) searchTelefono.value = '';
+                    if (searchEmail) searchEmail.value = '';
+                    if (searchCiudad) searchCiudad.value = '';
+                    loadDataViaAjax();
+                };
+                btnLimpiar._clearHandler = clearHandler;
+                btnLimpiar.addEventListener('click', clearHandler);
+                console.log('✅ Listener de limpiar agregado');
+            }
+            
+            if (filtroForm) {
+                const submitHandler = function(e) {
+                    e.preventDefault();
+                    loadDataViaAjax();
+                };
+                filtroForm._submitHandler = submitHandler;
+                filtroForm.addEventListener('submit', submitHandler);
+                console.log('✅ Listener de submit agregado');
+            }
+            
+            console.log('✅ Filtrado inicializado correctamente');
+            return true;
+        }
+        
+        // Variable para evitar múltiples inicializaciones simultáneas
+        let inicializando = false;
+        
+        // Función principal de inicialización con reintentos
+        function inicializarTodo(intentos) {
+            if (inicializando) {
+                console.log('⏸️ Inicialización ya en curso, omitiendo...');
+                return false;
+            }
+            
+            intentos = intentos || 0;
+            const maxIntentos = 5;
+            
+            inicializando = true;
+            
+            try {
+                const toggleOk = inicializarToggleFiltros();
+                const filtroOk = inicializarFiltrado();
+                
+                if (!toggleOk || !filtroOk) {
+                    if (intentos < maxIntentos) {
+                        console.log(`⏳ Reintentando inicialización (${intentos + 1}/${maxIntentos})...`);
+                        inicializando = false;
+                        setTimeout(function() {
+                            inicializarTodo(intentos + 1);
+                        }, 200);
+                        return false;
+                    } else {
+                        console.warn('⚠️ No se pudo inicializar completamente después de', maxIntentos, 'intentos');
+                        inicializando = false;
+                        return false;
+                    }
+                }
+                
+                console.log('✅ Inicialización completa exitosa');
+                inicializando = false;
+                return true;
+            } catch (error) {
+                console.error('❌ Error durante inicialización:', error);
+                inicializando = false;
+                return false;
+            }
+        }
+        
+        // Función para inicializar de forma segura
+        function inicializarSeguro() {
+            if (!inicializando) {
+                setTimeout(function() {
+                    inicializarTodo();
+                }, 150);
+            }
+        }
+        
+        // Inicializar cuando el DOM esté listo
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', inicializarSeguro);
+        } else {
+            inicializarSeguro();
+        }
+        
+        // Reinicializar después de cargar contenido vía AJAX (con debounce)
+        let reinicializarTimeout;
+        function reinicializarDespuesDeCarga() {
+            clearTimeout(reinicializarTimeout);
+            reinicializarTimeout = setTimeout(function() {
+                console.log('📥 Reinicializando filtros después de recarga...');
+                inicializarSeguro();
+            }, 300);
+        }
+        
+        document.addEventListener('contentLoaded', reinicializarDespuesDeCarga);
+        
+        // También usar jQuery si está disponible
+        try {
+            if (typeof jQuery !== 'undefined' && typeof $ !== 'undefined') {
+                $(document).on('contentLoaded', reinicializarDespuesDeCarga);
+            }
+        } catch (e) {
+            // jQuery no disponible, continuar sin él
+        }
+        
+        // También ejecutar después de delays como respaldo
+        setTimeout(inicializarSeguro, 300);
+        setTimeout(inicializarSeguro, 600);
+    })();
+</script>
+
+<!-- Drawer para Crear Proveedor -->
+<div class="drawer-overlay" id="drawerOverlayProveedorCrear" onclick="closeDrawerProveedorCrear()"></div>
+<div class="drawer" id="drawerProveedorCrear">
+    <div class="drawer-header">
+        <h5 class="drawer-title">
+            <i class="fas fa-truck me-2"></i>Nuevo Proveedor
+        </h5>
+        <button type="button" class="drawer-close" onclick="closeDrawerProveedorCrear()" aria-label="Cerrar">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <div class="drawer-body" id="drawerProveedorCrearBody">
+        <div class="text-center py-4">
+            <div class="spinner-border text-success" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-3 text-muted">Cargando formulario...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Drawer para Editar Proveedor -->
+<div class="drawer-overlay" id="drawerOverlayProveedorEditar" onclick="closeDrawerProveedorEditar()"></div>
+<div class="drawer" id="drawerProveedorEditar">
+    <div class="drawer-header">
+        <h5 class="drawer-title">
+            <i class="fas fa-edit me-2"></i>Editar Proveedor
+        </h5>
+        <button type="button" class="drawer-close" onclick="closeDrawerProveedorEditar()" aria-label="Cerrar">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <div class="drawer-body" id="drawerProveedorEditarBody">
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-3 text-muted">Cargando formulario...</p>
+        </div>
+    </div>
+</div>
+
+<script>
+// Funciones para abrir y cerrar drawer de crear proveedor
+window.openDrawerProveedorCrear = function() {
+    const drawer = document.getElementById('drawerProveedorCrear');
+    const overlay = document.getElementById('drawerOverlayProveedorCrear');
+    const drawerBody = document.getElementById('drawerProveedorCrearBody');
+    
+    if (drawer && overlay) {
+        if (drawerBody.innerHTML.includes('Cargando formulario')) {
+            loadDrawerProveedorCrearForm();
+        }
+        
+        overlay.classList.add('active');
+        drawer.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+};
+
+window.closeDrawerProveedorCrear = function() {
+    const drawer = document.getElementById('drawerProveedorCrear');
+    const overlay = document.getElementById('drawerOverlayProveedorCrear');
+    
+    if (drawer && overlay) {
+        overlay.classList.remove('active');
+        drawer.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+};
+
+// Funciones para abrir y cerrar drawer de editar proveedor
+window.openDrawerProveedorEditar = function(proveedorId) {
+    const drawer = document.getElementById('drawerProveedorEditar');
+    const overlay = document.getElementById('drawerOverlayProveedorEditar');
+    
+    if (drawer && overlay && proveedorId) {
+        drawer.setAttribute('data-proveedor-id', proveedorId);
+        loadDrawerProveedorEditarForm(proveedorId);
+        
+        overlay.classList.add('active');
+        drawer.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+};
+
+window.closeDrawerProveedorEditar = function() {
+    const drawer = document.getElementById('drawerProveedorEditar');
+    const overlay = document.getElementById('drawerOverlayProveedorEditar');
+    
+    if (drawer && overlay) {
+        overlay.classList.remove('active');
+        drawer.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+};
+
+// Cargar formulario en el drawer
+function loadDrawerProveedorCrearForm() {
+    const drawerBody = document.getElementById('drawerProveedorCrearBody');
+    
+    if (drawerBody) {
+        fetch('{% url "proveedores_crear" %}', {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.text())
+        .then(html => {
+            drawerBody.innerHTML = html;
+            initializeProveedorCrearForm();
+        })
+        .catch(error => {
+            console.error('Error al cargar formulario:', error);
+            drawerBody.innerHTML = '<div class="alert alert-danger">Error al cargar el formulario. Por favor, intenta nuevamente.</div>';
+        });
+    }
+}
+
+// Cargar formulario de editar
+function loadDrawerProveedorEditarForm(proveedorId) {
+    const drawerBody = document.getElementById('drawerProveedorEditarBody');
+    
+    if (drawerBody && proveedorId) {
+        drawerBody.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div><p class="mt-3 text-muted">Cargando formulario...</p></div>';
+        
+        fetch('{% url "proveedores_editar" 0 %}'.replace('0', proveedorId), {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error al cargar el formulario');
+            }
+            return response.text();
+        })
+        .then(html => {
+            drawerBody.innerHTML = html;
+            initializeProveedorEditarForm(proveedorId);
+        })
+        .catch(error => {
+            console.error('Error al cargar formulario:', error);
+            drawerBody.innerHTML = '<div class="alert alert-danger">Error al cargar el formulario. Por favor, intenta nuevamente.</div>';
+        });
+    }
+}
+
+// Manejar envío del formulario de crear
+function initializeProveedorCrearForm() {
+    const form = document.getElementById('proveedor-crear-form');
+    if (form) {
+        const cancelBtn = form.querySelector('button[data-bs-dismiss="modal"]');
+        if (cancelBtn) {
+            cancelBtn.setAttribute('onclick', 'closeDrawerProveedorCrear(); return false;');
+            cancelBtn.removeAttribute('data-bs-dismiss');
+        }
+        
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(form);
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Guardando...';
+            
+            fetch('{% url "proveedores_crear" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    return response.json();
+                } else {
+                    return response.text().then(html => ({ html: html, isHtml: true }));
+                }
+            })
+            .then(data => {
+                if (data.success) {
+                    closeDrawerProveedorCrear();
+                    
+                    const proveedoresUrl = '{% url "proveedores_lista" %}';
+                    fetch(proveedoresUrl, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.text())
+                    .then(html => {
+                        const contentArea = document.getElementById('main-content-area');
+                        if (contentArea) {
+                            contentArea.innerHTML = html;
+                            const alertDiv = document.createElement('div');
+                            alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                            alertDiv.innerHTML = '<i class="fas fa-check-circle me-2"></i>' + data.message + '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                            contentArea.insertBefore(alertDiv, contentArea.firstChild);
+                        }
+                    });
+                } else if (data.isHtml) {
+                    const drawerBody = document.getElementById('drawerProveedorCrearBody');
+                    if (drawerBody) {
+                        drawerBody.innerHTML = data.html;
+                        initializeProveedorCrearForm();
+                    }
+                } else {
+                    alert('Error al crear el proveedor. Por favor, intenta nuevamente.');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al crear el proveedor. Por favor, intenta nuevamente.');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            });
+        });
+    }
+}
+
+// Manejar envío del formulario de edición
+function initializeProveedorEditarForm(proveedorId) {
+    const form = document.getElementById('proveedor-editar-form');
+    const drawer = document.getElementById('drawerProveedorEditar');
+    
+    if (form) {
+        const id = proveedorId || drawer.getAttribute('data-proveedor-id');
+        
+        if (!id) {
+            console.error('No se pudo obtener el ID del proveedor');
+            return;
+        }
+        
+        const cancelBtn = form.querySelector('button[data-bs-dismiss="modal"]');
+        if (cancelBtn) {
+            cancelBtn.setAttribute('onclick', 'closeDrawerProveedorEditar(); return false;');
+            cancelBtn.removeAttribute('data-bs-dismiss');
+        }
+        
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(form);
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Actualizando...';
+            
+            const url = '{% url "proveedores_editar" 0 %}'.replace('0', id);
+            
+            fetch(url, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    return response.json();
+                } else {
+                    return response.text().then(html => ({ html: html, isHtml: true }));
+                }
+            })
+            .then(data => {
+                if (data.success) {
+                    closeDrawerProveedorEditar();
+                    
+                    const proveedoresUrl = '{% url "proveedores_lista" %}';
+                    fetch(proveedoresUrl, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.text())
+                    .then(html => {
+                        const contentArea = document.getElementById('main-content-area');
+                        if (contentArea) {
+                            contentArea.innerHTML = html;
+                            const alertDiv = document.createElement('div');
+                            alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                            alertDiv.innerHTML = '<i class="fas fa-check-circle me-2"></i>' + data.message + '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                            contentArea.insertBefore(alertDiv, contentArea.firstChild);
+                        }
+                    });
+                } else if (data.isHtml) {
+                    const drawerBody = document.getElementById('drawerProveedorEditarBody');
+                    if (drawerBody) {
+                        drawerBody.innerHTML = data.html;
+                        initializeProveedorEditarForm(id);
+                    }
+                } else if (data.errors) {
+                    let errorHtml = '<div class="alert alert-danger"><ul class="mb-0">';
+                    for (const field in data.errors) {
+                        data.errors[field].forEach(error => {
+                            errorHtml += '<li>' + error + '</li>';
+                        });
+                    }
+                    errorHtml += '</ul></div>';
+                    const drawerBody = document.getElementById('drawerProveedorEditarBody');
+                    if (drawerBody) {
+                        drawerBody.insertAdjacentHTML('afterbegin', errorHtml);
+                    }
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                } else {
+                    alert('Error al actualizar el proveedor. Por favor, intenta nuevamente.');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al actualizar el proveedor. Por favor, intenta nuevamente.');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            });
+        });
+    }
+}
+
+// Cerrar drawer con tecla ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const drawerCrear = document.getElementById('drawerProveedorCrear');
+        const drawerEditar = document.getElementById('drawerProveedorEditar');
+        if (drawerCrear && drawerCrear.classList.contains('active')) {
+            closeDrawerProveedorCrear();
+        }
+        if (drawerEditar && drawerEditar.classList.contains('active')) {
+            closeDrawerProveedorEditar();
+        }
+    }
+});
+
+// Función para confirmar eliminación de proveedor
+function confirmarEliminarProveedor(id, nombre) {
+    if (typeof showConfirmModal === 'function') {
+        showConfirmModal(
+            `¿Estás seguro de eliminar el proveedor "${nombre}"? Esta acción no se puede deshacer.`,
+            'Eliminar Proveedor',
+            function() {
+                window.location.href = `/proveedores/eliminar/${id}/`;
+            }
+        );
+    } else {
+        // Fallback si la función no está disponible
+        if (confirm(`¿Estás seguro de eliminar el proveedor "${nombre}"?`)) {
+            window.location.href = `/proveedores/eliminar/${id}/`;
+        }
+    }
+}
+</script>

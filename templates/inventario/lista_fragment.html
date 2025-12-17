@@ -1,0 +1,2149 @@
+<!-- Page Header -->
+<div class="page-header">
+    <h1 class="page-title">Gestión de Inventario</h1>
+    {% if productos %}
+    <div class="d-flex gap-2">
+        <button type="button" class="btn btn-primary-admin" id="btn-crear-producto" onclick="openDrawerProductoCrear()">
+            <i class="fas fa-plus me-2"></i>Nuevo Producto
+        </button>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Estadísticas -->
+<div class="stats-container mb-4">
+    <div class="stat-card">
+        <div class="stat-icon bg-primary">
+            <i class="fas fa-boxes"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-label">Total Productos</div>
+            <div class="stat-value">{{ total_productos }}</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon bg-success">
+            <i class="fas fa-cube"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-label">Productos Propios</div>
+            <div class="stat-value">{{ productos_propios }}</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon bg-primary">
+            <i class="fas fa-truck"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-label">Productos de Proveedor</div>
+            <div class="stat-value">{{ productos_proveedor }}</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon bg-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-label">Bajo Stock</div>
+            <div class="stat-value">{{ productos_bajo_stock }}</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon bg-danger">
+            <i class="fas fa-ban"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-label">Productos Agotados</div>
+            <div class="stat-value">{{ productos_agotados }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Search Container -->
+<div class="search-container-enhanced">
+    <div class="filter-toggle-header" id="filter-toggle-header-productos">
+        <div class="filter-title">
+            <i class="fas fa-filter"></i>
+            <span>Filtros de Búsqueda</span>
+        </div>
+        <div class="filter-actions">
+            <button type="button" class="btn-clear-filters" id="btn-limpiar-filtros-productos" title="Limpiar todos los filtros">
+                <i class="fas fa-redo"></i>
+                <span>Limpiar</span>
+            </button>
+            <button type="button" class="btn-toggle-filters" id="btn-toggle-filters-productos" title="Mostrar/Ocultar filtros">
+                <i class="fas fa-chevron-down toggle-icon"></i>
+            </button>
+        </div>
+    </div>
+    
+    <div id="filter-content-area-productos" class="filter-content-hidden">
+        <form method="GET" action="{% url 'inventario_lista' %}" id="filtroProductosForm">
+            <div class="search-row-enhanced" style="grid-template-columns: repeat(5, 1fr);">
+                <div class="search-field-enhanced">
+                    <div class="field-label">
+                        <i class="fas fa-box"></i>
+                        <span>Nombre Producto</span>
+                    </div>
+                    <div class="input-wrapper">
+                        <i class="fas fa-search input-icon"></i>
+                        <input type="text" id="search-nombre-producto" name="nombre" value="{{ nombre_filtro }}" placeholder="Buscar por nombre..." class="form-control-enhanced" autocomplete="off">
+                    </div>
+                </div>
+                
+                <div class="search-field-enhanced">
+                    <div class="field-label">
+                        <i class="fas fa-tag"></i>
+                        <span>Tipo</span>
+                    </div>
+                    <div class="input-wrapper">
+                        <i class="fas fa-tag input-icon"></i>
+                        <select id="search-tipo" name="tipo" class="form-control-enhanced">
+                            <option value="">Todos los tipos</option>
+                            <option value="propio" {% if tipo_filtro == 'propio' %}selected{% endif %}>Producto Propio</option>
+                            <option value="proveedor" {% if tipo_filtro == 'proveedor' %}selected{% endif %}>Producto de Proveedor</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="search-field-enhanced">
+                    <div class="field-label">
+                        <i class="fas fa-layer-group"></i>
+                        <span>Categoría</span>
+                    </div>
+                    <div class="input-wrapper">
+                        <i class="fas fa-layer-group input-icon"></i>
+                        <select id="search-categoria" name="categoria" class="form-control-enhanced">
+                            <option value="">Todas las categorías</option>
+                            <option value="frutas" {% if categoria_filtro == 'frutas' %}selected{% endif %}>Frutas</option>
+                            <option value="verduras" {% if categoria_filtro == 'verduras' %}selected{% endif %}>Verduras</option>
+                            <option value="frutos_secos" {% if categoria_filtro == 'frutos_secos' %}selected{% endif %}>Frutos Secos</option>
+                            <option value="preelaborados" {% if categoria_filtro == 'preelaborados' %}selected{% endif %}>Preelaborados</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="search-field-enhanced">
+                    <div class="field-label">
+                        <i class="fas fa-info-circle"></i>
+                        <span>Estado</span>
+                    </div>
+                    <div class="input-wrapper">
+                        <i class="fas fa-info-circle input-icon"></i>
+                        <select id="search-estado" name="estado" class="form-control-enhanced">
+                            <option value="">Todos</option>
+                            <option value="activo" {% if estado_filtro == 'activo' %}selected{% endif %}>Activo</option>
+                            <option value="bajo_stock" {% if estado_filtro == 'bajo_stock' %}selected{% endif %}>Bajo Stock</option>
+                            <option value="agotado" {% if estado_filtro == 'agotado' %}selected{% endif %}>Agotado</option>
+                            <option value="inactivo" {% if estado_filtro == 'inactivo' %}selected{% endif %}>Inactivo</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="search-field-enhanced">
+                    <div class="field-label">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Zona</span>
+                    </div>
+                    <div class="input-wrapper">
+                        <i class="fas fa-map-marker-alt input-icon"></i>
+                        <select id="search-zona" name="zona" class="form-control-enhanced">
+                            <option value="">Todas las zonas</option>
+                            {% for zona in zonas %}
+                                <option value="{{ zona.id }}" {% if zona_filtro == zona.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ zona.nombre }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </form>
+        
+        <div class="filter-footer-enhanced">
+            <div class="results-info-enhanced">
+                <div class="results-icon">
+                    <i class="fas fa-box"></i>
+                </div>
+                <div class="results-content">
+                    <span class="results-label">Resultados encontrados:</span>
+                    <span id="resultados-text-productos" class="results-number">{{ productos|length }} producto{{ productos|length|pluralize:"s" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="loading-indicator-productos" class="loading-indicator-enhanced" style="display: none;">
+        <div class="spinner-wrapper">
+            <div class="spinner"></div>
+        </div>
+        <span class="loading-text">Filtrando resultados...</span>
+    </div>
+</div>
+
+<!-- Modal de Confirmación -->
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" id="confirmModalHeader" style="background: linear-gradient(135deg, #1976d2 0%, #2196f3 100%); color: white;">
+                <h5 class="modal-title" id="confirmModalLabel">
+                    <i class="fas fa-question-circle me-2"></i>Confirmar Acción
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmModalMessage" style="font-size: 1.1rem; margin: 0;"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="confirmModalCancelBtn">
+                    <i class="fas fa-times me-2"></i>Cancelar
+                </button>
+                <button type="button" class="btn btn-primary" id="confirmModalBtn">
+                    <i class="fas fa-check me-2"></i>Confirmar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Alerta/Información -->
+<div class="modal fade" id="alertModal" tabindex="-1" aria-labelledby="alertModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header" id="alertModalHeader" style="background: linear-gradient(135deg, #1976d2 0%, #2196f3 100%); color: white;">
+                <h5 class="modal-title" id="alertModalLabel">
+                    <i class="fas fa-info-circle me-2"></i>Información
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="alertModalMessage" style="font-size: 1.1rem; margin: 0;"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                    <i class="fas fa-check me-2"></i>Aceptar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Data Table Container -->
+<div class="data-table-container">
+    <table class="table-data">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Tipo</th>
+                <th>Categoría</th>
+                <th>Cantidad</th>
+                <th>Stock Mínimo</th>
+                <th>Precio</th>
+                <th>Zona</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for producto in productos %}
+            <tr>
+                <td>{{ producto.id }}</td>
+                <td><strong>{{ producto.nombre }}</strong></td>
+                <td>
+                    {% if producto.tipo_producto == 'propio' %}
+                        <span class="badge bg-success">Propio</span>
+                    {% else %}
+                        <span class="badge bg-primary">Proveedor</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if producto.categoria %}
+                        {% if producto.categoria == 'frutas' %}
+                            <span class="badge bg-warning text-dark">Frutas</span>
+                        {% elif producto.categoria == 'verduras' %}
+                            <span class="badge bg-success">Verduras</span>
+                        {% elif producto.categoria == 'frutos_secos' %}
+                            <span class="badge bg-secondary">Frutos Secos</span>
+                        {% elif producto.categoria == 'preelaborados' %}
+                            <span class="badge bg-info">Preelaborados</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="text-muted">-</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="{% if producto.esta_bajo_stock %}text-danger fw-bold{% endif %}">
+                        {{ producto.cantidad }} {{ producto.unidad_medida|default:'' }}
+                    </span>
+                </td>
+                <td>{{ producto.stock_minimo }} {{ producto.unidad_medida|default:'' }}</td>
+                <td>
+                    {% if producto.precio %}
+                        ${{ producto.precio|floatformat:0 }}
+                    {% else %}
+                        <span class="text-muted">-</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if producto.zona %}
+                        <span class="badge bg-info">{{ producto.zona.nombre }}</span>
+                    {% else %}
+                        <span class="text-muted">-</span>
+                    {% endif %}
+                </td>
+                <td id="badge-estado-{{ producto.id }}">
+                    {% if producto.activo %}
+                        {% if producto.cantidad == 0 %}
+                            <span class="badge bg-danger">Agotado</span>
+                        {% elif producto.esta_bajo_stock %}
+                            <span class="badge bg-warning">Bajo Stock</span>
+                        {% else %}
+                        <span class="badge bg-success">Activo</span>
+                        {% endif %}
+                    {% else %}
+                        <span class="badge bg-secondary">Inactivo</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <button type="button" class="btn btn-action btn-edit btn-editar-producto" 
+                            data-producto-id="{{ producto.id }}" 
+                            onclick="openDrawerProductoEditar(this.dataset.productoId);"
+                            title="Editar">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button type="button" 
+                            class="btn btn-action {% if producto.activo %}btn-warning{% else %}btn-success{% endif %}" 
+                            title="{% if producto.activo %}Suspender{% else %}Activar{% endif %}" 
+                            onclick="toggleEstadoProducto({{ producto.id }}, '{{ producto.nombre|escapejs }}', {% if producto.activo %}true{% else %}false{% endif %})"
+                            id="btn-toggle-estado-{{ producto.id }}"
+                            data-producto-nombre="{{ producto.nombre|escapejs }}">
+                        <i class="fas {% if producto.activo %}fa-ban{% else %}fa-check{% endif %}"></i>
+                    </button>
+                    <button type="button" 
+                            class="btn btn-action btn-delete" 
+                            title="Eliminar" 
+                            onclick="if(typeof eliminarProducto === 'function') { eliminarProducto({{ producto.id }}, '{{ producto.nombre|escapejs }}'); } else { console.error('Función eliminarProducto no disponible'); return false; }">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="10" class="text-center" style="padding: 3rem; color: #757575;">
+                    <i class="fas fa-inbox fa-3x mb-3" style="opacity: 0.3;"></i>
+                    <p style="margin-bottom: 1rem; font-size: 1rem;">No hay productos en el inventario</p>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button type="button" class="btn btn-primary-admin mt-3" id="btn-crear-producto-empty" onclick="openDrawerProductoCrear()">
+                            <i class="fas fa-plus me-2"></i>Nuevo Producto
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Paginación -->
+{% if productos.has_other_pages %}
+<div class="pagination-wrapper-historial" style="display: flex !important; justify-content: center !important; align-items: center !important; gap: 12px !important; flex-wrap: wrap !important; margin-top: 10px !important; margin-bottom: 10px !important; padding: 0 !important; width: 100% !important;">
+    {% if productos.has_previous %}
+        <a href="?page=1{% if tipo_filtro %}&tipo={{ tipo_filtro }}{% endif %}{% if nombre_filtro %}&nombre={{ nombre_filtro }}{% endif %}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}{% if categoria_filtro %}&categoria={{ categoria_filtro }}{% endif %}{% if zona_filtro %}&zona={{ zona_filtro }}{% endif %}" 
+           class="pagination-btn pagination-btn-nav ajax-link" 
+           data-url="{% url 'inventario_lista' %}?page=1{% if tipo_filtro %}&tipo={{ tipo_filtro }}{% endif %}{% if nombre_filtro %}&nombre={{ nombre_filtro }}{% endif %}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}{% if categoria_filtro %}&categoria={{ categoria_filtro }}{% endif %}{% if zona_filtro %}&zona={{ zona_filtro }}{% endif %}" 
+           style="display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 8px !important; padding: 0.75rem 1.5rem !important; border-radius: 12px !important; font-weight: 600 !important; font-size: 0.9rem !important; text-decoration: none !important; transition: all 0.2s ease !important; border: none !important; cursor: pointer !important; white-space: nowrap !important; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08) !important; background: linear-gradient(135deg, #757575 0%, #9e9e9e 100%) !important; color: #ffffff !important;">
+            <i class="fas fa-angle-double-left"></i> Primera
+        </a>
+        <a href="?page={{ productos.previous_page_number }}{% if tipo_filtro %}&tipo={{ tipo_filtro }}{% endif %}{% if nombre_filtro %}&nombre={{ nombre_filtro }}{% endif %}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}{% if categoria_filtro %}&categoria={{ categoria_filtro }}{% endif %}{% if zona_filtro %}&zona={{ zona_filtro }}{% endif %}" 
+           class="pagination-btn pagination-btn-nav ajax-link" 
+           data-url="{% url 'inventario_lista' %}?page={{ productos.previous_page_number }}{% if tipo_filtro %}&tipo={{ tipo_filtro }}{% endif %}{% if nombre_filtro %}&nombre={{ nombre_filtro }}{% endif %}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}{% if categoria_filtro %}&categoria={{ categoria_filtro }}{% endif %}{% if zona_filtro %}&zona={{ zona_filtro }}{% endif %}" 
+           style="display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 8px !important; padding: 0.75rem 1.5rem !important; border-radius: 12px !important; font-weight: 600 !important; font-size: 0.9rem !important; text-decoration: none !important; transition: all 0.2s ease !important; border: none !important; cursor: pointer !important; white-space: nowrap !important; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08) !important; background: linear-gradient(135deg, #757575 0%, #9e9e9e 100%) !important; color: #ffffff !important;">
+            <i class="fas fa-angle-left"></i> Anterior
+        </a>
+    {% endif %}
+
+    <span class="pagination-info-historial" style="display: inline-flex !important; align-items: center !important; justify-content: center !important; padding: 0.75rem 1.5rem !important; background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%) !important; border: 2px solid #e0e0e0 !important; border-radius: 12px !important; font-weight: 600 !important; font-size: 0.9rem !important; color: #212121 !important; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08) !important; min-width: 140px !important; text-align: center !important;">
+        Página {{ productos.number }} de {{ productos.paginator.num_pages }}
+    </span>
+
+    {% if productos.has_next %}
+        <a href="?page={{ productos.next_page_number }}{% if tipo_filtro %}&tipo={{ tipo_filtro }}{% endif %}{% if nombre_filtro %}&nombre={{ nombre_filtro }}{% endif %}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}{% if categoria_filtro %}&categoria={{ categoria_filtro }}{% endif %}{% if zona_filtro %}&zona={{ zona_filtro }}{% endif %}" 
+           class="pagination-btn pagination-btn-nav ajax-link" 
+           data-url="{% url 'inventario_lista' %}?page={{ productos.next_page_number }}{% if tipo_filtro %}&tipo={{ tipo_filtro }}{% endif %}{% if nombre_filtro %}&nombre={{ nombre_filtro }}{% endif %}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}{% if categoria_filtro %}&categoria={{ categoria_filtro }}{% endif %}{% if zona_filtro %}&zona={{ zona_filtro }}{% endif %}" 
+           style="display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 8px !important; padding: 0.75rem 1.5rem !important; border-radius: 12px !important; font-weight: 600 !important; font-size: 0.9rem !important; text-decoration: none !important; transition: all 0.2s ease !important; border: none !important; cursor: pointer !important; white-space: nowrap !important; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08) !important; background: linear-gradient(135deg, #757575 0%, #9e9e9e 100%) !important; color: #ffffff !important;">
+            Siguiente <i class="fas fa-angle-right"></i>
+        </a>
+        <a href="?page={{ productos.paginator.num_pages }}{% if tipo_filtro %}&tipo={{ tipo_filtro }}{% endif %}{% if nombre_filtro %}&nombre={{ nombre_filtro }}{% endif %}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}{% if categoria_filtro %}&categoria={{ categoria_filtro }}{% endif %}{% if zona_filtro %}&zona={{ zona_filtro }}{% endif %}" 
+           class="pagination-btn pagination-btn-nav ajax-link" 
+           data-url="{% url 'inventario_lista' %}?page={{ productos.paginator.num_pages }}{% if tipo_filtro %}&tipo={{ tipo_filtro }}{% endif %}{% if nombre_filtro %}&nombre={{ nombre_filtro }}{% endif %}{% if estado_filtro %}&estado={{ estado_filtro }}{% endif %}{% if categoria_filtro %}&categoria={{ categoria_filtro }}{% endif %}{% if zona_filtro %}&zona={{ zona_filtro }}{% endif %}" 
+           style="display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 8px !important; padding: 0.75rem 1.5rem !important; border-radius: 12px !important; font-weight: 600 !important; font-size: 0.9rem !important; text-decoration: none !important; transition: all 0.2s ease !important; border: none !important; cursor: pointer !important; white-space: nowrap !important; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08) !important; background: linear-gradient(135deg, #757575 0%, #9e9e9e 100%) !important; color: #ffffff !important;">
+            Última <i class="fas fa-angle-double-right"></i>
+        </a>
+    {% endif %}
+</div>
+{% endif %}
+
+<style>
+.stats-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: #757575;
+    margin-bottom: 0.25rem;
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #212121;
+}
+</style>
+
+<script>
+    // Sistema de Modales Personalizado - Debe estar antes de cualquier uso
+    window.showConfirmModal = function(message, onConfirm, onCancel, type = 'info') {
+        const modal = document.getElementById('confirmModal');
+        const messageEl = document.getElementById('confirmModalMessage');
+        const confirmBtn = document.getElementById('confirmModalBtn');
+        const cancelBtn = document.getElementById('confirmModalCancelBtn');
+        const headerEl = document.getElementById('confirmModalHeader');
+        const labelEl = document.getElementById('confirmModalLabel');
+        
+        if (!modal || !messageEl || !confirmBtn) {
+            // Fallback a confirm nativo si no hay Bootstrap o elementos
+            console.warn('Modal de confirmación no encontrado, usando confirm nativo');
+            if (confirm(message)) {
+                if (onConfirm) onConfirm();
+            } else {
+                if (onCancel) onCancel();
+            }
+            return;
+        }
+        
+        messageEl.textContent = message;
+        
+        // Configurar colores según el tipo
+        const colors = {
+            'delete': { 
+                bg: 'linear-gradient(135deg, #d32f2f 0%, #f44336 100%)', 
+                icon: 'fa-exclamation-triangle', 
+                title: 'Confirmar Eliminación',
+                btnClass: 'btn-danger'
+            },
+            'suspend': { 
+                bg: 'linear-gradient(135deg, #f57c00 0%, #ff9800 100%)', 
+                icon: 'fa-exclamation-triangle', 
+                title: 'Confirmar Suspensión',
+                btnClass: 'btn-warning'
+            },
+            'activate': { 
+                bg: 'linear-gradient(135deg, #388e3c 0%, #4caf50 100%)', 
+                icon: 'fa-check-circle', 
+                title: 'Confirmar Activación',
+                btnClass: 'btn-success'
+            },
+            'info': { 
+                bg: 'linear-gradient(135deg, #1976d2 0%, #2196f3 100%)', 
+                icon: 'fa-question-circle', 
+                title: 'Confirmar Acción',
+                btnClass: 'btn-primary'
+            }
+        };
+        
+        const config = colors[type] || colors['info'];
+        
+        // Aplicar estilos al header
+        if (headerEl) {
+            headerEl.style.background = config.bg;
+        }
+        
+        // Aplicar estilos al título
+        if (labelEl) {
+            labelEl.innerHTML = `<i class="fas ${config.icon} me-2"></i>${config.title}`;
+        }
+        
+        // Aplicar estilos al botón de confirmar
+        confirmBtn.className = `btn ${config.btnClass}`;
+        
+        // Remover listeners anteriores y agregar nuevo listener
+        const oldConfirmBtn = confirmBtn;
+        const newConfirmBtn = oldConfirmBtn.cloneNode(true);
+        oldConfirmBtn.parentNode.replaceChild(newConfirmBtn, oldConfirmBtn);
+        
+        // Agregar listener al nuevo botón
+        newConfirmBtn.addEventListener('click', function() {
+            const bsModal = bootstrap.Modal.getInstance(modal);
+            if (bsModal) {
+                bsModal.hide();
+            }
+            if (onConfirm) onConfirm();
+        });
+        
+        // Mostrar modal
+        let bsModal = bootstrap.Modal.getInstance(modal);
+        if (!bsModal) {
+            bsModal = new bootstrap.Modal(modal);
+        }
+        bsModal.show();
+        
+        // Si se cancela
+        const cancelHandler = function() {
+            if (onCancel) onCancel();
+            modal.removeEventListener('hidden.bs.modal', cancelHandler);
+        };
+        modal.addEventListener('hidden.bs.modal', cancelHandler, { once: true });
+    };
+
+    window.showAlertModal = function(message, type = 'info') {
+        const modal = document.getElementById('alertModal');
+        const messageEl = document.getElementById('alertModalMessage');
+        const headerEl = document.getElementById('alertModalHeader');
+        const labelEl = document.getElementById('alertModalLabel');
+        
+        if (!modal || !messageEl) {
+            // Fallback a alert nativo si no hay Bootstrap o elementos
+            console.warn('Modal de alerta no encontrado, usando alert nativo');
+            alert(message);
+            return;
+        }
+        
+        messageEl.textContent = message;
+        
+        // Configurar colores según el tipo
+        const colors = {
+            'success': { bg: 'linear-gradient(135deg, #4caf50 0%, #66bb6a 100%)', icon: 'fa-check-circle', title: 'Éxito' },
+            'error': { bg: 'linear-gradient(135deg, #f44336 0%, #e57373 100%)', icon: 'fa-exclamation-circle', title: 'Error' },
+            'warning': { bg: 'linear-gradient(135deg, #ff9800 0%, #ffb74d 100%)', icon: 'fa-exclamation-triangle', title: 'Advertencia' },
+            'info': { bg: 'linear-gradient(135deg, #1976d2 0%, #2196f3 100%)', icon: 'fa-info-circle', title: 'Información' }
+        };
+        
+        const config = colors[type] || colors['info'];
+        if (headerEl) {
+            headerEl.style.background = config.bg;
+        }
+        if (labelEl) {
+            labelEl.innerHTML = `<i class="fas ${config.icon} me-2"></i>${config.title}`;
+        }
+        
+        // Mostrar modal
+        let bsModal = bootstrap.Modal.getInstance(modal);
+        if (!bsModal) {
+            bsModal = new bootstrap.Modal(modal);
+        }
+        bsModal.show();
+    };
+
+    // Sistema completo de filtrado dinámico
+    (function() {
+        'use strict';
+        
+        let searchTimeout;
+        const DEBOUNCE_DELAY = 500; // 500ms de delay para mejor rendimiento
+        
+        // Función para inicializar el toggle de filtros
+        function inicializarToggleFiltros() {
+        const toggleHeader = document.getElementById('filter-toggle-header-productos');
+        const filterContent = document.getElementById('filter-content-area-productos');
+        const toggleBtn = document.getElementById('btn-toggle-filters-productos');
+        
+            if (!toggleHeader || !filterContent) {
+                return false;
+            }
+            
+            // Remover listeners anteriores si existen
+            if (toggleHeader._toggleHandler) {
+                toggleHeader.removeEventListener('click', toggleHeader._toggleHandler);
+            }
+            if (toggleBtn && toggleBtn._toggleHandler) {
+                toggleBtn.removeEventListener('click', toggleBtn._toggleHandler);
+            }
+            
+            toggleHeader.style.display = 'flex';
+            toggleHeader.style.visibility = 'visible';
+            
+            // Restaurar estado desde localStorage (por defecto oculto)
+            const savedState = localStorage.getItem('filtros-productos-visible');
+            const isVisible = savedState === 'true';
+            
+            if (!isVisible) {
+                filterContent.classList.remove('filter-content-visible');
+                filterContent.classList.add('filter-content-hidden');
+                toggleHeader.classList.add('collapsed');
+                if (toggleBtn) {
+                    const chevron = toggleBtn.querySelector('.toggle-icon');
+                    if (chevron) {
+                        chevron.classList.remove('fa-chevron-down');
+                        chevron.classList.add('fa-chevron-up');
+                    }
+                }
+            } else {
+                filterContent.classList.remove('filter-content-hidden');
+                filterContent.classList.add('filter-content-visible');
+                toggleHeader.classList.remove('collapsed');
+                if (toggleBtn) {
+                    const chevron = toggleBtn.querySelector('.toggle-icon');
+                    if (chevron) {
+                        chevron.classList.remove('fa-chevron-up');
+                        chevron.classList.add('fa-chevron-down');
+                    }
+                }
+            }
+            
+            function toggleFilters() {
+                const isVisible = filterContent.classList.contains('filter-content-visible');
+                
+                if (isVisible) {
+                    filterContent.classList.remove('filter-content-visible');
+                    filterContent.classList.add('filter-content-hidden');
+                    toggleHeader.classList.add('collapsed');
+                    localStorage.setItem('filtros-productos-visible', 'false');
+                    if (toggleBtn) {
+                        const chevron = toggleBtn.querySelector('.toggle-icon');
+                        if (chevron) {
+                            chevron.classList.remove('fa-chevron-down');
+                            chevron.classList.add('fa-chevron-up');
+                        }
+                    }
+                } else {
+                    filterContent.classList.remove('filter-content-hidden');
+                    filterContent.classList.add('filter-content-visible');
+                    toggleHeader.classList.remove('collapsed');
+                    localStorage.setItem('filtros-productos-visible', 'true');
+                    if (toggleBtn) {
+                        const chevron = toggleBtn.querySelector('.toggle-icon');
+                        if (chevron) {
+                            chevron.classList.remove('fa-chevron-up');
+                            chevron.classList.add('fa-chevron-down');
+                        }
+                    }
+                }
+            }
+            
+            // Handler para el header
+            const headerClickHandler = function(e) {
+                if (e.target.closest('.btn-clear-filters') || e.target.closest('.btn-toggle-filters')) {
+                    return;
+                }
+                toggleFilters();
+            };
+            
+            toggleHeader._toggleHandler = headerClickHandler;
+            toggleHeader.addEventListener('click', headerClickHandler);
+            
+            // Handler para el botón toggle
+            if (toggleBtn) {
+                const btnClickHandler = function(e) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    toggleFilters();
+                };
+                
+                toggleBtn._toggleHandler = btnClickHandler;
+                toggleBtn.addEventListener('click', btnClickHandler);
+            }
+            
+            return true;
+        }
+
+        // Función para inicializar el filtrado dinámico
+        function inicializarFiltrado() {
+        const searchNombre = document.getElementById('search-nombre-producto');
+        const searchTipo = document.getElementById('search-tipo');
+        const searchCategoria = document.getElementById('search-categoria');
+        const searchEstado = document.getElementById('search-estado');
+        const searchZona = document.getElementById('search-zona');
+        const btnLimpiar = document.getElementById('btn-limpiar-filtros-productos');
+        const filtroForm = document.getElementById('filtroProductosForm');
+            
+            if (!filtroForm) {
+                console.log('⚠️ Formulario de filtros no encontrado');
+                return false;
+            }
+            
+            // Remover listeners anteriores si existen
+            if (searchNombre && searchNombre._debounceHandler) {
+                searchNombre.removeEventListener('input', searchNombre._debounceHandler);
+                searchNombre._debounceHandler = null;
+            }
+            if (searchTipo && searchTipo._changeHandler) {
+                searchTipo.removeEventListener('change', searchTipo._changeHandler);
+                searchTipo._changeHandler = null;
+            }
+            if (searchCategoria && searchCategoria._changeHandler) {
+                searchCategoria.removeEventListener('change', searchCategoria._changeHandler);
+                searchCategoria._changeHandler = null;
+            }
+            if (searchEstado && searchEstado._changeHandler) {
+                searchEstado.removeEventListener('change', searchEstado._changeHandler);
+                searchEstado._changeHandler = null;
+            }
+            if (searchZona && searchZona._changeHandler) {
+                searchZona.removeEventListener('change', searchZona._changeHandler);
+                searchZona._changeHandler = null;
+            }
+            if (btnLimpiar && btnLimpiar._clearHandler) {
+                btnLimpiar.removeEventListener('click', btnLimpiar._clearHandler);
+                btnLimpiar._clearHandler = null;
+            }
+            if (filtroForm._submitHandler) {
+                filtroForm.removeEventListener('submit', filtroForm._submitHandler);
+                filtroForm._submitHandler = null;
+            }
+        
+        function loadDataViaAjax() {
+                if (!filtroForm) {
+                    console.error('❌ Formulario no disponible para filtrar');
+                    return;
+                }
+                
+                const formData = new FormData(filtroForm);
+                const urlParams = new URLSearchParams();
+                
+                for (const [key, value] of formData.entries()) {
+                    if (value) {
+                        urlParams.append(key, value);
+                    }
+                }
+                
+                const url = filtroForm.action + (urlParams.toString() ? '?' + urlParams.toString() : '');
+                
+                const loadingIndicator = document.getElementById('loading-indicator-productos');
+                if (loadingIndicator) {
+                    loadingIndicator.style.display = 'block';
+                }
+                
+                console.log('🔍 Filtrando productos:', url);
+                
+                fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    const contentArea = document.getElementById('main-content-area');
+                    if (contentArea) {
+                        contentArea.innerHTML = html;
+                        console.log('✅ Contenido actualizado');
+                        
+                        // Disparar evento contentLoaded primero
+                        try {
+                            if (typeof jQuery !== 'undefined' && typeof $ !== 'undefined') {
+                                $(document).trigger('contentLoaded');
+                            } else {
+                                const event = new Event('contentLoaded');
+                                document.dispatchEvent(event);
+                            }
+                        } catch (e) {
+                            const event = new Event('contentLoaded');
+                            document.dispatchEvent(event);
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('❌ Error al filtrar:', error);
+                })
+                .finally(() => {
+                    const loadingIndicator = document.getElementById('loading-indicator-productos');
+                    if (loadingIndicator) {
+                        loadingIndicator.style.display = 'none';
+                    }
+                });
+        }
+        
+        function debounceFilter() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(loadDataViaAjax, DEBOUNCE_DELAY);
+        }
+        
+            // Agregar listeners con referencias guardadas
+            if (searchNombre) {
+                searchNombre._debounceHandler = debounceFilter;
+                searchNombre.addEventListener('input', debounceFilter);
+                console.log('✅ Listener de nombre agregado');
+            }
+            
+            if (searchTipo) {
+                searchTipo._changeHandler = loadDataViaAjax;
+                searchTipo.addEventListener('change', loadDataViaAjax);
+                console.log('✅ Listener de tipo agregado');
+            }
+            
+            if (searchCategoria) {
+                searchCategoria._changeHandler = loadDataViaAjax;
+                searchCategoria.addEventListener('change', loadDataViaAjax);
+                console.log('✅ Listener de categoría agregado');
+            }
+            
+            if (searchEstado) {
+                searchEstado._changeHandler = loadDataViaAjax;
+                searchEstado.addEventListener('change', loadDataViaAjax);
+                console.log('✅ Listener de estado agregado');
+            }
+            
+            if (searchZona) {
+                searchZona._changeHandler = loadDataViaAjax;
+                searchZona.addEventListener('change', loadDataViaAjax);
+                console.log('✅ Listener de zona agregado');
+            }
+        
+        if (btnLimpiar) {
+                const clearHandler = function(e) {
+                e.preventDefault();
+                if (searchNombre) searchNombre.value = '';
+                if (searchTipo) searchTipo.value = '';
+                if (searchCategoria) searchCategoria.value = '';
+                if (searchEstado) searchEstado.value = '';
+                if (searchZona) searchZona.value = '';
+                loadDataViaAjax();
+                };
+                btnLimpiar._clearHandler = clearHandler;
+                btnLimpiar.addEventListener('click', clearHandler);
+                console.log('✅ Listener de limpiar agregado');
+        }
+        
+        if (filtroForm) {
+                const submitHandler = function(e) {
+                e.preventDefault();
+                loadDataViaAjax();
+                };
+                filtroForm._submitHandler = submitHandler;
+                filtroForm.addEventListener('submit', submitHandler);
+                console.log('✅ Listener de submit agregado');
+            }
+            
+            console.log('✅ Filtrado inicializado correctamente');
+            return true;
+        }
+        
+        // Variable para evitar múltiples inicializaciones simultáneas
+        let inicializando = false;
+        
+        // Función principal de inicialización con reintentos
+        function inicializarTodo(intentos) {
+            // Evitar múltiples inicializaciones simultáneas
+            if (inicializando) {
+                console.log('⏸️ Inicialización ya en curso, omitiendo...');
+                return false;
+            }
+            
+            intentos = intentos || 0;
+            const maxIntentos = 5;
+            
+            inicializando = true;
+            
+            try {
+                const toggleOk = inicializarToggleFiltros();
+                const filtroOk = inicializarFiltrado();
+                    
+                if (!toggleOk || !filtroOk) {
+                    if (intentos < maxIntentos) {
+                        console.log(`⏳ Reintentando inicialización (${intentos + 1}/${maxIntentos})...`);
+                        inicializando = false;
+                        setTimeout(function() {
+                            inicializarTodo(intentos + 1);
+                        }, 200);
+                        return false;
+                    } else {
+                        console.warn('⚠️ No se pudo inicializar completamente después de', maxIntentos, 'intentos');
+                        inicializando = false;
+                        return false;
+                    }
+                }
+                
+                console.log('✅ Inicialización completa exitosa');
+                inicializando = false;
+                return true;
+            } catch (error) {
+                console.error('❌ Error durante inicialización:', error);
+                inicializando = false;
+                return false;
+            }
+        }
+        
+        // Función para inicializar de forma segura
+        function inicializarSeguro() {
+            if (!inicializando) {
+                setTimeout(function() {
+                    inicializarTodo();
+                }, 150);
+        }
+    }
+    
+        // Inicializar cuando el DOM esté listo
+    if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', inicializarSeguro);
+    } else {
+            inicializarSeguro();
+        }
+        
+        // Reinicializar después de cargar contenido vía AJAX (con debounce)
+        let reinicializarTimeout;
+        function reinicializarDespuesDeCarga() {
+            clearTimeout(reinicializarTimeout);
+            reinicializarTimeout = setTimeout(function() {
+                console.log('📥 Reinicializando filtros después de recarga...');
+                inicializarSeguro();
+            }, 300);
+        }
+        
+        document.addEventListener('contentLoaded', reinicializarDespuesDeCarga);
+        
+        // También usar jQuery si está disponible
+        try {
+            if (typeof jQuery !== 'undefined' && typeof $ !== 'undefined') {
+                $(document).on('contentLoaded', reinicializarDespuesDeCarga);
+            }
+        } catch (e) {
+            // jQuery no disponible, continuar sin él
+    }
+    
+        // También ejecutar después de delays como respaldo
+        setTimeout(inicializarSeguro, 300);
+        setTimeout(inicializarSeguro, 600);
+    })();
+</script>
+
+<!-- Drawer para Crear Producto -->
+<div class="drawer-overlay" id="drawerOverlayProductoCrear" onclick="closeDrawerProductoCrear()"></div>
+<div class="drawer" id="drawerProductoCrear">
+    <div class="drawer-header">
+        <h5 class="drawer-title">
+            <i class="fas fa-box me-2"></i>Nuevo Producto
+        </h5>
+        <button type="button" class="drawer-close" onclick="closeDrawerProductoCrear()" aria-label="Cerrar">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <div class="drawer-body" id="drawerProductoCrearBody">
+        <div class="text-center py-4">
+            <div class="spinner-border text-success" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-3 text-muted">Cargando formulario...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Drawer para Editar Producto -->
+<div class="drawer-overlay" id="drawerOverlayProductoEditar" onclick="closeDrawerProductoEditar()"></div>
+<div class="drawer" id="drawerProductoEditar">
+    <div class="drawer-header">
+        <h5 class="drawer-title">
+            <i class="fas fa-edit me-2"></i>Editar Producto
+        </h5>
+        <button type="button" class="drawer-close" onclick="closeDrawerProductoEditar()" aria-label="Cerrar">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <div class="drawer-body" id="drawerProductoEditarBody">
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-3 text-muted">Cargando formulario...</p>
+        </div>
+    </div>
+</div>
+
+<script>
+// Funciones para abrir y cerrar drawer de crear producto
+window.openDrawerProductoCrear = function(tipoProducto) {
+    const drawer = document.getElementById('drawerProductoCrear');
+    const overlay = document.getElementById('drawerOverlayProductoCrear');
+    const drawerBody = document.getElementById('drawerProductoCrearBody');
+    
+    if (drawer && overlay) {
+        // Guardar el tipo de producto para usarlo después
+        const tipoAnterior = drawer.getAttribute('data-tipo-producto');
+        const tipoNuevo = tipoProducto || 'propio';
+        drawer.setAttribute('data-tipo-producto', tipoNuevo);
+        
+        console.log('Abriendo drawer con tipo:', tipoNuevo, 'Tipo anterior:', tipoAnterior);
+        
+        // Siempre recargar el formulario si:
+        // 1. El drawer está vacío o tiene "Cargando formulario"
+        // 2. El tipo de producto cambió
+        // 3. Se especifica explícitamente un tipo de producto
+        const debeRecargar = !drawerBody || 
+            drawerBody.innerHTML.trim() === '' || 
+            drawerBody.innerHTML.includes('Cargando formulario') ||
+            tipoAnterior !== tipoNuevo ||
+            tipoProducto;
+        
+        if (debeRecargar) {
+            console.log('Recargando formulario...');
+            loadDrawerProductoCrearForm(tipoNuevo);
+        } else {
+            console.log('Formulario ya cargado, solo cambiando tipo...');
+            // Si el formulario ya está cargado, solo cambiar el tipo
+            initializeProductoCrearForm(tipoNuevo);
+        }
+        
+        overlay.classList.add('active');
+        drawer.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+};
+
+window.closeDrawerProductoCrear = function() {
+    const drawer = document.getElementById('drawerProductoCrear');
+    const overlay = document.getElementById('drawerOverlayProductoCrear');
+    
+    if (drawer && overlay) {
+        overlay.classList.remove('active');
+        drawer.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+};
+
+// Funciones para abrir y cerrar drawer de editar producto
+window.openDrawerProductoEditar = function(productoId) {
+    const drawer = document.getElementById('drawerProductoEditar');
+    const overlay = document.getElementById('drawerOverlayProductoEditar');
+    
+    if (drawer && overlay && productoId) {
+        drawer.setAttribute('data-producto-id', productoId);
+        loadDrawerProductoEditarForm(productoId);
+        
+        overlay.classList.add('active');
+        drawer.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+};
+
+window.closeDrawerProductoEditar = function() {
+    const drawer = document.getElementById('drawerProductoEditar');
+    const overlay = document.getElementById('drawerOverlayProductoEditar');
+    
+    if (drawer && overlay) {
+        overlay.classList.remove('active');
+        drawer.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+};
+
+// Cargar formulario en el drawer
+function loadDrawerProductoCrearForm(tipoProducto) {
+    const drawerBody = document.getElementById('drawerProductoCrearBody');
+    const drawer = document.getElementById('drawerProductoCrear');
+    
+    if (drawerBody) {
+        // Si no se pasa tipoProducto, intentar obtenerlo del drawer
+        if (!tipoProducto && drawer) {
+            tipoProducto = drawer.getAttribute('data-tipo-producto') || 'propio';
+        }
+        
+        // Mostrar loading
+        drawerBody.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-success" role="status"><span class="visually-hidden">Cargando...</span></div><p class="mt-3 text-muted">Cargando formulario...</p></div>';
+        
+        const url = '{% url "inventario_crear" %}' + (tipoProducto ? '?tipo_producto=' + tipoProducto : '');
+        
+        console.log('Cargando formulario desde:', url, 'Tipo:', tipoProducto);
+        
+        fetch(url, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.text())
+        .then(html => {
+            drawerBody.innerHTML = html;
+            console.log('Formulario cargado, ejecutando scripts manualmente...');
+            
+            // Extraer y ejecutar scripts inline manualmente (los scripts no se ejecutan automáticamente con innerHTML)
+            const scripts = drawerBody.querySelectorAll('script');
+            scripts.forEach(function(oldScript) {
+                const newScript = document.createElement('script');
+                Array.from(oldScript.attributes).forEach(attr => {
+                    newScript.setAttribute(attr.name, attr.value);
+                });
+                newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                oldScript.parentNode.replaceChild(newScript, oldScript);
+            });
+            
+            console.log(`✅ ${scripts.length} script(s) ejecutado(s) manualmente`);
+            
+            // Esperar un poco para que los scripts se ejecuten
+            setTimeout(function() {
+                console.log('Inicializando con tipo:', tipoProducto);
+                initializeProductoCrearForm(tipoProducto);
+            }, 300);
+        })
+        .catch(error => {
+            console.error('Error al cargar formulario:', error);
+            drawerBody.innerHTML = '<div class="alert alert-danger">Error al cargar el formulario. Por favor, intenta nuevamente.</div>';
+        });
+    }
+}
+
+// Cargar formulario de editar
+function loadDrawerProductoEditarForm(productoId) {
+    const drawerBody = document.getElementById('drawerProductoEditarBody');
+    
+    if (drawerBody && productoId) {
+        drawerBody.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div><p class="mt-3 text-muted">Cargando formulario...</p></div>';
+        
+        fetch('{% url "inventario_editar" 0 %}'.replace('0', productoId), {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error al cargar el formulario');
+            }
+            return response.text();
+        })
+        .then(html => {
+            drawerBody.innerHTML = html;
+            console.log('Formulario cargado, ejecutando scripts manualmente...');
+            
+            // Ejecutar scripts manualmente (similar a crear)
+            const scripts = drawerBody.querySelectorAll('script');
+            scripts.forEach(function(oldScript) {
+                const newScript = document.createElement('script');
+                Array.from(oldScript.attributes).forEach(attr => {
+                    newScript.setAttribute(attr.name, attr.value);
+                });
+                newScript.appendChild(document.createTextNode(oldScript.innerHTML));
+                oldScript.parentNode.replaceChild(newScript, oldScript);
+            });
+            console.log('✅ ' + scripts.length + ' script(s) ejecutado(s) manualmente');
+            
+            // Inicializar el formulario después de un pequeño delay
+            setTimeout(function() {
+            initializeProductoEditarForm(productoId);
+            }, 100);
+        })
+        .catch(error => {
+            console.error('Error al cargar formulario:', error);
+            drawerBody.innerHTML = '<div class="alert alert-danger">Error al cargar el formulario. Por favor, intenta nuevamente.</div>';
+        });
+    }
+}
+
+// Manejar envío del formulario de crear
+function initializeProductoCrearForm(tipoProducto) {
+    const form = document.getElementById('producto-crear-form');
+    const drawer = document.getElementById('drawerProductoCrear');
+    
+    if (form) {
+        // Si no se pasa tipoProducto, intentar obtenerlo del drawer
+        if (!tipoProducto && drawer) {
+            tipoProducto = drawer.getAttribute('data-tipo-producto') || 'propio';
+        }
+        
+        console.log('🔧 initializeProductoCrearForm llamado con tipo:', tipoProducto);
+        
+        // Si hay tipoProducto, seleccionar el radio button correspondiente
+        if (tipoProducto) {
+            // Intentar múltiples veces para asegurar que los elementos estén disponibles
+            function intentarCambiarFormulario(intentos) {
+                const radioPropio = document.getElementById('tipo_propio');
+                const radioProveedor = document.getElementById('tipo_proveedor');
+                const formularioPropio = document.getElementById('formulario-propio');
+                const formularioProveedor = document.getElementById('formulario-proveedor');
+                
+                console.log('🔍 Intentando cambiar formulario, intento:', intentos, {
+                    radioPropio: !!radioPropio,
+                    radioProveedor: !!radioProveedor,
+                    formularioPropio: !!formularioPropio,
+                    formularioProveedor: !!formularioProveedor
+                });
+                
+                if (radioPropio && radioProveedor && formularioPropio && formularioProveedor) {
+                    console.log('✅ Todos los elementos encontrados, cambiando formulario a:', tipoProducto);
+                    
+                    if (tipoProducto === 'propio') {
+                        radioPropio.checked = true;
+                        radioProveedor.checked = false;
+                        console.log('✅ Radio propio seleccionado');
+                    } else if (tipoProducto === 'proveedor') {
+                        radioProveedor.checked = true;
+                        radioPropio.checked = false;
+                        console.log('✅ Radio proveedor seleccionado');
+                    }
+                    
+                    // Forzar el cambio manualmente primero para que el formulario sea visible
+                    // Esto asegura que el formulario esté visible incluso si la función no está disponible
+                    if (tipoProducto === 'proveedor') {
+                        formularioPropio.style.display = 'none';
+                        formularioPropio.style.visibility = 'hidden';
+                        formularioProveedor.style.display = 'block';
+                        formularioProveedor.style.visibility = 'visible';
+                        console.log('✅ Formulario proveedor forzado manualmente (para que sea visible)');
+                        
+                        // Habilitar campos de proveedor manualmente
+                        const camposProveedor = formularioProveedor.querySelectorAll('input, select, textarea');
+                        camposProveedor.forEach(campo => {
+                            if (campo.id !== 'id_costo_promedio_actual_proveedor') {
+                                campo.disabled = false;
+                                if (campo.hasAttribute('data-required')) {
+                                    campo.setAttribute('required', 'required');
+                                }
+                            }
+                        });
+                        
+                        // Deshabilitar campos propios
+                        const camposPropios = formularioPropio.querySelectorAll('input, select, textarea');
+                        camposPropios.forEach(campo => {
+                            campo.disabled = true;
+                            campo.removeAttribute('required');
+                        });
+                        
+                        // Inicializar el script de proveedor manualmente después de que el formulario sea visible
+                        setTimeout(function() {
+                            console.log('🔄 Intentando inicializar script de proveedor manualmente...');
+                            if (typeof window.inicializarScriptProveedor === 'function') {
+                                console.log('✅ Llamando a inicializarScriptProveedor...');
+                                window.inicializarScriptProveedor();
+                            } else {
+                                console.warn('⚠️ inicializarScriptProveedor no está disponible aún, reintentando...');
+                                // Reintentar varias veces
+                                let intentos = 0;
+                                const intervalo = setInterval(function() {
+                                    intentos++;
+                                    if (typeof window.inicializarScriptProveedor === 'function') {
+                                        console.log('✅ inicializarScriptProveedor encontrado después de', intentos, 'intentos');
+                                        window.inicializarScriptProveedor();
+                                        clearInterval(intervalo);
+                                    } else if (intentos >= 30) {
+                                        console.error('❌ inicializarScriptProveedor no está disponible después de 30 intentos');
+                                        clearInterval(intervalo);
+                                    }
+                                }, 200);
+                            }
+                        }, 800);
+                    } else {
+                        formularioPropio.style.display = 'block';
+                        formularioPropio.style.visibility = 'visible';
+                        formularioProveedor.style.display = 'none';
+                        formularioProveedor.style.visibility = 'hidden';
+                    }
+                    
+                    // Ahora intentar llamar a cambiarFormularioProducto si está disponible
+                    // Esto asegurará que los event listeners se configuren correctamente
+                    function intentarCambiarFormularioProducto(intentos) {
+                        if (typeof window.cambiarFormularioProducto === 'function') {
+                            console.log('✅ Llamando a cambiarFormularioProducto...');
+                            window.cambiarFormularioProducto();
+                            return true;
+                        } else if (intentos < 50) {
+                            if (intentos % 5 === 0) { // Solo log cada 5 intentos para no saturar la consola
+                                console.log(`⏳ Esperando cambiarFormularioProducto (intento ${intentos})...`);
+                            }
+                            setTimeout(function() {
+                                intentarCambiarFormularioProducto(intentos + 1);
+                            }, 100);
+                            return false;
+                        } else {
+                            console.warn('⚠️ cambiarFormularioProducto no está disponible después de 50 intentos, pero el formulario ya está visible y funcional');
+                            return false;
+                        }
+                    }
+                    // Esperar un poco antes de intentar llamar a la función
+                    setTimeout(function() {
+                        intentarCambiarFormularioProducto(1);
+                    }, 500);
+                    
+                    // También disparar evento change manualmente como respaldo
+                    setTimeout(function() {
+                        if (radioPropio.checked) {
+                            radioPropio.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
+                        if (radioProveedor.checked) {
+                            radioProveedor.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
+                    }, 200);
+                    
+                    return true;
+                } else if (intentos < 15) {
+                    console.log('⏳ Esperando elementos, reintentando en 100ms...');
+                    setTimeout(function() {
+                        intentarCambiarFormulario(intentos + 1);
+                    }, 100);
+                } else {
+                    console.error('❌ No se pudieron encontrar los elementos después de 15 intentos');
+                }
+                return false;
+            }
+            
+            // Iniciar el proceso de cambio
+            setTimeout(function() {
+                intentarCambiarFormulario(1);
+            }, 50);
+        }
+        
+        const cancelBtn = form.querySelector('button[data-bs-dismiss="modal"]');
+        if (cancelBtn) {
+            cancelBtn.setAttribute('onclick', 'closeDrawerProductoCrear(); return false;');
+            cancelBtn.removeAttribute('data-bs-dismiss');
+        }
+        
+        // Remover listener anterior si existe para evitar duplicados
+        if (form._submitHandler) {
+            form.removeEventListener('submit', form._submitHandler);
+        }
+        
+        // Crear nuevo handler y guardarlo en el formulario
+        form._submitHandler = function(e) {
+            e.preventDefault();
+            
+            // Prevenir envíos duplicados
+            if (form._isSubmitting) {
+                console.warn('El formulario ya se está enviando, ignorando envío duplicado');
+                return;
+            }
+            
+            // Determinar qué formulario está activo
+            const radioPropio = document.getElementById('tipo_propio');
+            const radioProveedor = document.getElementById('tipo_proveedor');
+            const esProductoPropio = radioPropio && radioPropio.checked;
+            
+            // Crear FormData nuevo y agregar solo los campos del formulario activo
+            const formData = new FormData();
+            
+            // Agregar CSRF token
+            const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]');
+            if (csrfToken) {
+                formData.append('csrfmiddlewaretoken', csrfToken.value);
+            }
+            
+            // Agregar tipo_producto y activo
+            if (esProductoPropio) {
+                formData.append('tipo_producto', 'propio');
+            } else {
+                formData.append('tipo_producto', 'proveedor');
+            }
+            // Asegurar que el producto esté activo por defecto
+            formData.append('activo', 'true');
+            
+            // Determinar qué contenedor está visible
+            const formularioPropio = document.getElementById('formulario-propio');
+            const formularioProveedor = document.getElementById('formulario-proveedor');
+            const contenedorActivo = esProductoPropio ? formularioPropio : formularioProveedor;
+            const contenedorInactivo = esProductoPropio ? formularioProveedor : formularioPropio;
+            
+            // Primero, deshabilitar todos los campos del formulario inactivo para asegurar que no se envíen
+            if (contenedorInactivo) {
+                const camposInactivos = contenedorInactivo.querySelectorAll('input, select, textarea');
+                camposInactivos.forEach(campo => {
+                    campo.disabled = true;
+                });
+            }
+            
+            // Agregar solo los campos del formulario activo (que estén habilitados y visibles)
+            if (contenedorActivo) {
+                const camposActivos = contenedorActivo.querySelectorAll('input:not([disabled]), select:not([disabled]), textarea:not([disabled])');
+                camposActivos.forEach(campo => {
+                    if (campo.name && campo.name !== 'tipo_producto' && campo.name !== 'csrfmiddlewaretoken') {
+                        if (campo.type === 'file') {
+                            if (campo.files && campo.files.length > 0) {
+                                formData.append(campo.name, campo.files[0]);
+                            }
+                        } else {
+                            const valor = campo.value;
+                            if (valor !== null && valor !== undefined && valor !== '') {
+                                formData.append(campo.name, valor);
+                            }
+                        }
+                    }
+                });
+            }
+            
+            // Debug: Log de datos que se enviarán
+            console.log('Enviando datos:');
+            for (let [key, value] of formData.entries()) {
+                console.log(key + ':', value);
+            }
+            
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            
+            // Marcar que el formulario se está enviando
+            form._isSubmitting = true;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Guardando...';
+            
+            fetch('{% url "inventario_crear" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    return response.json();
+                } else {
+                    return response.text().then(html => ({ html: html, isHtml: true }));
+                }
+            })
+            .then(data => {
+                // Resetear la bandera de envío
+                form._isSubmitting = false;
+                
+                if (data.success) {
+                    closeDrawerProductoCrear();
+                    
+                    const productosUrl = '{% url "inventario_lista" %}';
+                    fetch(productosUrl, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.text())
+                    .then(html => {
+                        const contentArea = document.getElementById('main-content-area');
+                        if (contentArea) {
+                            contentArea.innerHTML = html;
+                            const alertDiv = document.createElement('div');
+                            alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                            alertDiv.innerHTML = '<i class="fas fa-check-circle me-2"></i>' + data.message + '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                            contentArea.insertBefore(alertDiv, contentArea.firstChild);
+                            // Disparar evento contentLoaded (compatible con y sin jQuery)
+                        try {
+                            if (typeof jQuery !== 'undefined' && typeof $ !== 'undefined') {
+                                $(document).trigger('contentLoaded');
+                            } else {
+                                const event = new Event('contentLoaded');
+                                document.dispatchEvent(event);
+                            }
+                        } catch (e) {
+                            // Fallback: usar evento nativo si jQuery falla
+                            const event = new Event('contentLoaded');
+                            document.dispatchEvent(event);
+                        }
+                        }
+                    });
+                } else if (data.isHtml) {
+                    const drawerBody = document.getElementById('drawerProductoCrearBody');
+                    if (drawerBody) {
+                        drawerBody.innerHTML = data.html;
+                        initializeProductoCrearForm();
+                    }
+                } else {
+                    // Mostrar errores específicos
+                    let errorMessage = 'Error al crear el producto.';
+                    if (data.error_message) {
+                        errorMessage = data.error_message;
+                    } else if (data.errors) {
+                        const errorList = [];
+                        for (const field in data.errors) {
+                            if (Array.isArray(data.errors[field])) {
+                                errorList.push(...data.errors[field]);
+                            } else {
+                                errorList.push(data.errors[field]);
+                            }
+                        }
+                        if (errorList.length > 0) {
+                            errorMessage = errorList.join('\n');
+                        }
+                    }
+                    console.error('Errores del formulario:', data);
+                    console.error('Errores específicos:', JSON.stringify(data.errors, null, 2));
+                    // Mostrar errores específicos en un alert más detallado
+                    let errorDetails = 'Errores encontrados:\n\n';
+                    if (data.errors) {
+                        for (const field in data.errors) {
+                            const fieldErrors = Array.isArray(data.errors[field]) ? data.errors[field] : [data.errors[field]];
+                            fieldErrors.forEach(error => {
+                                errorDetails += `• ${field}: ${error}\n`;
+                            });
+                        }
+                    }
+                    showAlertModal(errorDetails || errorMessage, 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                }
+            })
+            .catch(error => {
+                // Resetear la bandera de envío en caso de error
+                form._isSubmitting = false;
+                console.error('Error:', error);
+                showAlertModal('Error al crear el producto. Por favor, intenta nuevamente.', 'error');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            });
+        };
+        
+        // Agregar el nuevo listener
+        form.addEventListener('submit', form._submitHandler);
+    }
+}
+
+// Manejar envío del formulario de edición
+function initializeProductoEditarForm(productoId) {
+    const form = document.getElementById('producto-editar-form');
+    const drawer = document.getElementById('drawerProductoEditar');
+    
+    if (form) {
+        const id = productoId || drawer.getAttribute('data-producto-id');
+        
+        if (!id) {
+            console.error('No se pudo obtener el ID del producto');
+            return;
+        }
+        
+        console.log('🔧 initializeProductoEditarForm llamado con ID:', id);
+        
+        const cancelBtn = form.querySelector('button[data-bs-dismiss="modal"]');
+        if (cancelBtn) {
+            cancelBtn.setAttribute('onclick', 'closeDrawerProductoEditar(); return false;');
+            cancelBtn.removeAttribute('data-bs-dismiss');
+        }
+        
+        // Inicializar el cambio dinámico de formularios
+        // Intentar múltiples veces para asegurar que los elementos estén disponibles
+        function intentarInicializarCambioDinamico(intentos) {
+            const radioPropio = document.getElementById('tipo_propio_edit');
+            const radioProveedor = document.getElementById('tipo_proveedor_edit');
+            const formularioPropio = document.getElementById('formulario-propio-edit');
+            const formularioProveedor = document.getElementById('formulario-proveedor-edit');
+            
+            console.log('🔍 Intentando inicializar cambio dinámico, intento:', intentos, {
+                radioPropio: !!radioPropio,
+                radioProveedor: !!radioProveedor,
+                formularioPropio: !!formularioPropio,
+                formularioProveedor: !!formularioProveedor
+            });
+            
+            if (radioPropio && radioProveedor && formularioPropio && formularioProveedor) {
+                console.log('✅ Todos los elementos encontrados, inicializando cambio dinámico...');
+                
+                // Llamar a la función de cambio si está disponible
+                if (typeof window.cambiarFormularioProductoEdit === 'function') {
+                    window.cambiarFormularioProductoEdit();
+                    console.log('✅ cambiarFormularioProductoEdit ejecutado');
+                } else {
+                    console.warn('⚠️ cambiarFormularioProductoEdit no está disponible aún');
+                    if (intentos < 10) {
+                        setTimeout(function() {
+                            intentarInicializarCambioDinamico(intentos + 1);
+                        }, 200);
+                    }
+                }
+            } else if (intentos < 10) {
+                setTimeout(function() {
+                    intentarInicializarCambioDinamico(intentos + 1);
+                }, 200);
+            }
+        }
+        
+            // Iniciar la inicialización del cambio dinámico
+        setTimeout(function() {
+            intentarInicializarCambioDinamico(1);
+        }, 100);
+        
+        // También disparar evento change manualmente como respaldo
+        setTimeout(function() {
+            const radioPropio = document.getElementById('tipo_propio_edit');
+            const radioProveedor = document.getElementById('tipo_proveedor_edit');
+            if (radioPropio && radioPropio.checked) {
+                radioPropio.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            if (radioProveedor && radioProveedor.checked) {
+                radioProveedor.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        }, 300);
+        
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Obtener el tipo de producto del campo oculto
+            const tipoProductoHidden = document.getElementById('tipo_producto_hidden_edit');
+            const tipoProducto = tipoProductoHidden ? tipoProductoHidden.value : 'propio';
+            const esProductoPropio = tipoProducto === 'propio';
+            
+            // Validar campos requeridos antes de enviar
+            if (!esProductoPropio) {
+                // Validar que se haya seleccionado un proveedor
+                const proveedorSelect = document.getElementById('id_proveedor_seleccionado_edit');
+                const productoProveedorSelect = document.getElementById('id_producto_proveedor_edit');
+                
+                if (!proveedorSelect || !proveedorSelect.value) {
+                    alert('Debe seleccionar un proveedor');
+                    if (proveedorSelect) proveedorSelect.focus();
+                    return;
+                }
+                
+                if (!productoProveedorSelect || !productoProveedorSelect.value || productoProveedorSelect.disabled) {
+                    alert('Debe seleccionar un producto del proveedor');
+                    if (productoProveedorSelect) productoProveedorSelect.focus();
+                    return;
+                }
+            }
+            
+            // Crear FormData nuevo y agregar solo los campos del formulario activo
+            const formData = new FormData();
+            
+            // Agregar CSRF token
+            const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]');
+            if (csrfToken) {
+                formData.append('csrfmiddlewaretoken', csrfToken.value);
+            }
+            
+            // Agregar tipo_producto desde el campo oculto
+            formData.append('tipo_producto', tipoProducto);
+            
+            // Determinar qué contenedor está visible
+            const formularioPropio = document.getElementById('formulario-propio-edit');
+            const formularioProveedor = document.getElementById('formulario-proveedor-edit');
+            const contenedorActivo = esProductoPropio ? formularioPropio : formularioProveedor;
+            
+            // Agregar campos del formulario activo
+            if (contenedorActivo) {
+                const camposActivos = contenedorActivo.querySelectorAll('input, select, textarea');
+                camposActivos.forEach(campo => {
+                    // Para productos de proveedor, incluir los campos aunque estén deshabilitados si tienen valores
+                    if (!esProductoPropio && (campo.id === 'id_proveedor_seleccionado_edit' || campo.id === 'id_producto_proveedor_edit')) {
+                        // Habilitar temporalmente para que se incluya en el FormData
+                        const wasDisabled = campo.disabled;
+                        campo.disabled = false;
+                        if (campo.name && campo.value && campo.name !== 'csrfmiddlewaretoken') {
+                            formData.append(campo.name, campo.value);
+                        }
+                        // Restaurar el estado original
+                        if (wasDisabled) campo.disabled = true;
+                    } else if (campo.name && campo.name !== 'csrfmiddlewaretoken') {
+                        // Para otros campos, solo incluir si no están deshabilitados (excepto readonly)
+                        const isReadonly = campo.hasAttribute('readonly');
+                        if (!campo.disabled || isReadonly) {
+                            if (campo.type === 'file' && campo.files.length > 0) {
+                                formData.append(campo.name, campo.files[0]);
+                            } else if (campo.type === 'checkbox') {
+                                if (campo.checked) {
+                                    formData.append(campo.name, campo.value || 'on');
+                                }
+                            } else if (campo.type !== 'file') {
+                                // Incluir el valor aunque esté readonly
+                                formData.append(campo.name, campo.value || '');
+                            }
+                        }
+                    }
+                });
+                
+                // Para productos de proveedor, asegurar que el campo nombre oculto se incluya
+                if (!esProductoPropio) {
+                    const nombreHidden = contenedorActivo.querySelector('#id_nombre_producto_proveedor_edit');
+                    if (nombreHidden && nombreHidden.value) {
+                        formData.append('nombre', nombreHidden.value);
+                    }
+                }
+            }
+            
+            // Agregar checkbox de activo si existe
+            const activoCheckbox = form.querySelector('#id_activo_edit, #id_activo_proveedor_edit');
+            if (activoCheckbox) {
+                formData.append('activo', activoCheckbox.checked ? 'true' : 'false');
+            } else {
+                formData.append('activo', 'true');
+            }
+            
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Actualizando...';
+            
+            const url = '{% url "inventario_editar" 0 %}'.replace('0', id);
+            
+            fetch(url, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    return response.json();
+                } else {
+                    return response.text().then(html => ({ html: html, isHtml: true }));
+                }
+            })
+            .then(data => {
+                if (data.success) {
+                    closeDrawerProductoEditar();
+                    
+                    const productosUrl = '{% url "inventario_lista" %}';
+                    fetch(productosUrl, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.text())
+                    .then(html => {
+                        const contentArea = document.getElementById('main-content-area');
+                        if (contentArea) {
+                            contentArea.innerHTML = html;
+                            const alertDiv = document.createElement('div');
+                            alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                            alertDiv.innerHTML = '<i class="fas fa-check-circle me-2"></i>' + data.message + '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                            contentArea.insertBefore(alertDiv, contentArea.firstChild);
+                            // Disparar evento contentLoaded (compatible con y sin jQuery)
+                        try {
+                            if (typeof jQuery !== 'undefined' && typeof $ !== 'undefined') {
+                                $(document).trigger('contentLoaded');
+                            } else {
+                                const event = new Event('contentLoaded');
+                                document.dispatchEvent(event);
+                            }
+                        } catch (e) {
+                            // Fallback: usar evento nativo si jQuery falla
+                            const event = new Event('contentLoaded');
+                            document.dispatchEvent(event);
+                        }
+                        }
+                    });
+                } else if (data.isHtml) {
+                    const drawerBody = document.getElementById('drawerProductoEditarBody');
+                    if (drawerBody) {
+                        drawerBody.innerHTML = data.html;
+                        initializeProductoEditarForm(id);
+                    }
+                } else if (data.errors) {
+                    let errorHtml = '<div class="alert alert-danger"><ul class="mb-0">';
+                    for (const field in data.errors) {
+                        if (Array.isArray(data.errors[field])) {
+                            data.errors[field].forEach(error => {
+                                errorHtml += '<li>' + (field === '__all__' ? '' : field + ': ') + error + '</li>';
+                            });
+                        } else {
+                            errorHtml += '<li>' + (field === '__all__' ? '' : field + ': ') + data.errors[field] + '</li>';
+                        }
+                    }
+                    errorHtml += '</ul></div>';
+                    const drawerBody = document.getElementById('drawerProductoEditarBody');
+                    if (drawerBody) {
+                        drawerBody.insertAdjacentHTML('afterbegin', errorHtml);
+                    }
+                    console.error('Errores de validación:', data.errors);
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                } else {
+                    console.error('Error en la respuesta:', data);
+                    showAlertModal('Error al actualizar el producto. Por favor, intenta nuevamente.', 'error');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showAlertModal('Error al actualizar el producto. Por favor, intenta nuevamente.', 'error');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            });
+        });
+    }
+}
+
+// Función para eliminar producto
+window.toggleEstadoProducto = function(productoId, productoNombre, esActivo) {
+    const accion = esActivo ? 'suspender' : 'activar';
+    const mensaje = esActivo 
+        ? `¿Estás seguro de suspender el producto "${productoNombre}"?`
+        : `¿Estás seguro de activar el producto "${productoNombre}"?`;
+    
+    showConfirmModal(
+        mensaje,
+        function() {
+            ejecutarToggleEstado(productoId, productoNombre, esActivo);
+        },
+        null,
+        esActivo ? 'suspend' : 'activate'
+    );
+};
+
+function ejecutarToggleEstado(productoId, productoNombre, esActivo) {
+    const btnToggle = document.getElementById(`btn-toggle-estado-${productoId}`);
+    if (btnToggle) {
+        btnToggle.disabled = true;
+    }
+    
+    // Obtener el CSRF token
+    let csrfToken = getCookie('csrftoken');
+    if (!csrfToken) {
+        // Intentar obtenerlo del formulario
+        const csrfInput = document.querySelector('[name=csrfmiddlewaretoken]');
+        if (csrfInput) {
+            csrfToken = csrfInput.value;
+        }
+    }
+    
+    if (!csrfToken) {
+        console.error('No se pudo obtener el CSRF token');
+        if (typeof showAlertModal === 'function') {
+            showAlertModal('Error: No se pudo obtener el token de seguridad. Por favor, recarga la página.', 'error');
+        }
+        if (btnToggle) {
+            btnToggle.disabled = false;
+        }
+        return;
+    }
+    
+    const url = `{% url "inventario_toggle_estado" 0 %}`.replace('0', productoId);
+    console.log('Enviando petición a:', url);
+    console.log('CSRF Token:', csrfToken ? 'Presente' : 'Faltante');
+    
+    // Crear FormData para enviar el CSRF token correctamente
+    const formData = new FormData();
+    formData.append('csrfmiddlewaretoken', csrfToken);
+    
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': csrfToken
+        },
+        body: formData
+    })
+    .then(response => {
+        console.log('Respuesta recibida. Status:', response.status);
+        if (!response.ok) {
+            return response.text().then(text => {
+                console.error('Error en respuesta:', text);
+                try {
+                    return JSON.parse(text);
+                } catch {
+                    throw new Error(text || `Error HTTP ${response.status}`);
+                }
+            });
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Datos recibidos:', data);
+        if (data.success) {
+            // Actualizar el botón sin recargar toda la página
+            if (btnToggle) {
+                const nuevoEstado = data.activo;
+                const nombreEscapado = productoNombre.replace(/'/g, "\\'");
+                
+                if (nuevoEstado) {
+                    // Cambiar a estado activo (botón amarillo de suspender)
+                    btnToggle.className = 'btn btn-action btn-warning';
+                    btnToggle.title = 'Suspender';
+                    btnToggle.innerHTML = '<i class="fas fa-ban"></i>';
+                    btnToggle.setAttribute('onclick', `toggleEstadoProducto(${productoId}, '${nombreEscapado}', true)`);
+                } else {
+                    // Cambiar a estado inactivo (botón verde de activar)
+                    btnToggle.className = 'btn btn-action btn-success';
+                    btnToggle.title = 'Activar';
+                    btnToggle.innerHTML = '<i class="fas fa-check"></i>';
+                    btnToggle.setAttribute('onclick', `toggleEstadoProducto(${productoId}, '${nombreEscapado}', false)`);
+                }
+                btnToggle.disabled = false;
+            }
+            
+            // Actualizar el badge de estado en la tabla
+            const badgeEstado = document.getElementById(`badge-estado-${productoId}`);
+            if (badgeEstado) {
+                const nuevoEstado = data.activo;
+                const cantidad = data.cantidad || 0;
+                const stockMinimo = data.stock_minimo || 0;
+                const estadoVisual = data.estado_visual;
+                
+                // Determinar el badge según la lógica:
+                // 1. Si está inactivo → "Inactivo" (gris)
+                // 2. Si está activo y cantidad == 0 → "Agotado" (rojo)
+                // 3. Si está activo y cantidad < stock_minimo → "Bajo Stock" (amarillo)
+                // 4. Si está activo y cantidad >= stock_minimo → "Activo" (verde)
+                
+                if (!nuevoEstado) {
+                    // Producto inactivo
+                    badgeEstado.innerHTML = '<span class="badge bg-secondary">Inactivo</span>';
+                } else if (cantidad === 0) {
+                    // Producto activo pero agotado
+                    badgeEstado.innerHTML = '<span class="badge bg-danger">Agotado</span>';
+                } else if (cantidad < stockMinimo) {
+                    // Producto activo pero bajo stock
+                    badgeEstado.innerHTML = '<span class="badge bg-warning">Bajo Stock</span>';
+                } else {
+                    // Producto activo con stock suficiente
+                    badgeEstado.innerHTML = '<span class="badge bg-success">Activo</span>';
+                }
+            }
+            
+            // Mostrar mensaje de éxito
+            if (typeof showAlertModal === 'function') {
+                showAlertModal(data.message || 'Estado del producto actualizado exitosamente', 'success');
+            }
+        } else {
+            console.error('Error en respuesta:', data);
+            if (typeof showAlertModal === 'function') {
+                showAlertModal('Error: ' + (data.error || 'No se pudo cambiar el estado del producto'), 'error');
+            }
+            if (btnToggle) {
+                btnToggle.disabled = false;
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error completo:', error);
+        if (typeof showAlertModal === 'function') {
+            showAlertModal('Error al cambiar el estado del producto: ' + (error.message || 'Error desconocido'), 'error');
+        }
+        if (btnToggle) {
+            btnToggle.disabled = false;
+        }
+    });
+}
+
+window.activarProducto = function(productoId, productoNombre) {
+    showConfirmModal(
+        `¿Estás seguro de activar el producto "${productoNombre}"?`,
+        function() {
+            ejecutarActivacion(productoId);
+        },
+        null,
+        'activate'
+    );
+};
+
+function ejecutarActivacion(productoId) {
+    
+    fetch(`{% url "inventario_activar" 0 %}`.replace('0', productoId), {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Recargar la lista de productos
+            const productosUrl = '{% url "inventario_lista" %}';
+            fetch(productosUrl, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                const contentArea = document.getElementById('main-content-area');
+                if (contentArea) {
+                    contentArea.innerHTML = html;
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                    alertDiv.innerHTML = '<i class="fas fa-check-circle me-2"></i>' + (data.message || 'Producto activado exitosamente') + '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                    contentArea.insertBefore(alertDiv, contentArea.firstChild);
+                    
+                    // Disparar evento contentLoaded para reinicializar scripts
+                    try {
+                        if (typeof jQuery !== 'undefined' && typeof $ !== 'undefined') {
+                            $(document).trigger('contentLoaded');
+                        } else {
+                            const event = new Event('contentLoaded');
+                            document.dispatchEvent(event);
+                        }
+                    } catch (e) {
+                        const event = new Event('contentLoaded');
+                        document.dispatchEvent(event);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error al recargar:', error);
+                showAlertModal('Producto activado, pero hubo un error al recargar la lista.', 'warning');
+            });
+        } else {
+            showAlertModal('Error: ' + (data.error || 'No se pudo activar el producto'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlertModal('Error al activar el producto. Por favor, intenta nuevamente.', 'error');
+    });
+}
+
+window.suspenderProducto = function(productoId, productoNombre) {
+    showConfirmModal(
+        `¿Estás seguro de suspender el producto "${productoNombre}"?`,
+        function() {
+            ejecutarSuspension(productoId);
+        },
+        null,
+        'suspend'
+    );
+};
+
+function ejecutarSuspension(productoId) {
+    fetch(`{% url "inventario_suspender" 0 %}`.replace('0', productoId), {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Recargar la lista de productos
+            const productosUrl = '{% url "inventario_lista" %}';
+            fetch(productosUrl, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                const contentArea = document.getElementById('main-content-area');
+                if (contentArea) {
+                    contentArea.innerHTML = html;
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'alert alert-warning alert-dismissible fade show';
+                    alertDiv.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i>' + (data.message || 'Producto suspendido exitosamente') + '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                    contentArea.insertBefore(alertDiv, contentArea.firstChild);
+                    
+                    // Disparar evento contentLoaded para reinicializar scripts
+                    try {
+                        if (typeof jQuery !== 'undefined' && typeof $ !== 'undefined') {
+                            $(document).trigger('contentLoaded');
+                        } else {
+                            const event = new Event('contentLoaded');
+                            document.dispatchEvent(event);
+                        }
+                    } catch (e) {
+                        const event = new Event('contentLoaded');
+                        document.dispatchEvent(event);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error al recargar:', error);
+                showAlertModal('Producto suspendido, pero hubo un error al recargar la lista.', 'warning');
+            });
+        } else {
+            showAlertModal('Error: ' + (data.error || 'No se pudo suspender el producto'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlertModal('Error al suspender el producto. Por favor, intenta nuevamente.', 'error');
+    });
+}
+
+window.eliminarProducto = function(productoId, productoNombre) {
+    showConfirmModal(
+        `¿Estás seguro de eliminar el producto "${productoNombre}"? Esta acción no se puede deshacer.`,
+        function() {
+            ejecutarEliminacion(productoId);
+        },
+        null,
+        'delete'
+    );
+};
+
+function ejecutarEliminacion(productoId) {
+    fetch(`{% url "inventario_eliminar" 0 %}`.replace('0', productoId), {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Recargar la lista de productos
+            const productosUrl = '{% url "inventario_lista" %}';
+            fetch(productosUrl, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                const contentArea = document.getElementById('main-content-area');
+                if (contentArea) {
+                    contentArea.innerHTML = html;
+                    const alertDiv = document.createElement('div');
+                    alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                    alertDiv.innerHTML = '<i class="fas fa-check-circle me-2"></i>' + (data.message || 'Producto eliminado exitosamente') + '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                    contentArea.insertBefore(alertDiv, contentArea.firstChild);
+                    $(document).trigger('contentLoaded');
+                }
+            });
+        } else {
+            showAlertModal('Error al eliminar el producto: ' + (data.error || 'Error desconocido'), 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showAlertModal('Error al eliminar el producto. Por favor, intenta nuevamente.', 'error');
+    });
+}
+
+// Función para obtener el token CSRF
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+
+// Cerrar drawer con tecla ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const drawerCrear = document.getElementById('drawerProductoCrear');
+        const drawerEditar = document.getElementById('drawerProductoEditar');
+        if (drawerCrear && drawerCrear.classList.contains('active')) {
+            closeDrawerProductoCrear();
+        }
+        if (drawerEditar && drawerEditar.classList.contains('active')) {
+            closeDrawerProductoEditar();
+        }
+    }
+});
+</script>
+

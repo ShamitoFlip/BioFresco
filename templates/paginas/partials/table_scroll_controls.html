@@ -1,0 +1,91 @@
+<!-- Controles de scroll para tablas responsivas - Mobile Only -->
+<div class="table-scroll-controls" id="scrollControls{{ table_id }}">
+    <button class="scroll-btn scroll-left" id="scrollLeft{{ table_id }}" title="Desplazar a la izquierda" onclick="scrollTableLeft('{{ table_id }}')">
+        <i class="fas fa-chevron-left"></i>
+    </button>
+    <div class="scroll-progress">
+        <div class="scroll-progress-bar" id="scrollBar{{ table_id }}" style="width: 0%"></div>
+    </div>
+    <button class="scroll-btn scroll-right" id="scrollRight{{ table_id }}" title="Desplazar a la derecha" onclick="scrollTableRight('{{ table_id }}')">
+        <i class="fas fa-chevron-right"></i>
+    </button>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    initTableScrollControls('{{ table_id }}');
+});
+
+function initTableScrollControls(tableId) {
+    const container = document.getElementById('tableContainer' + tableId);
+    const controls = document.getElementById('scrollControls' + tableId);
+    
+    if (!container || !controls) return;
+    
+    // Mostrar controles solo en móviles
+    if (window.innerWidth <= 640) {
+        controls.classList.add('active');
+    }
+    
+    // Escuchar scroll para actualizar barra de progreso
+    container.addEventListener('scroll', function() {
+        updateScrollBar(tableId);
+        updateScrollButtons(tableId);
+    });
+    
+    // Actualizar cuando se redimensiona
+    window.addEventListener('resize', function() {
+        if (window.innerWidth <= 640) {
+            controls.classList.add('active');
+        } else {
+            controls.classList.remove('active');
+        }
+        updateScrollBar(tableId);
+        updateScrollButtons(tableId);
+    });
+    
+    updateScrollBar(tableId);
+    updateScrollButtons(tableId);
+}
+
+function scrollTableLeft(tableId) {
+    const container = document.getElementById('tableContainer' + tableId);
+    if (container) {
+        container.scrollBy({ left: -150, behavior: 'smooth' });
+    }
+}
+
+function scrollTableRight(tableId) {
+    const container = document.getElementById('tableContainer' + tableId);
+    if (container) {
+        container.scrollBy({ left: 150, behavior: 'smooth' });
+    }
+}
+
+function updateScrollBar(tableId) {
+    const container = document.getElementById('tableContainer' + tableId);
+    const bar = document.getElementById('scrollBar' + tableId);
+    
+    if (!container || !bar) return;
+    
+    const scrollLeft = container.scrollLeft;
+    const scrollWidth = container.scrollWidth - container.clientWidth;
+    const scrollPercent = scrollWidth > 0 ? (scrollLeft / scrollWidth) * 100 : 0;
+    
+    bar.style.width = scrollPercent + '%';
+}
+
+function updateScrollButtons(tableId) {
+    const container = document.getElementById('tableContainer' + tableId);
+    const btnLeft = document.getElementById('scrollLeft' + tableId);
+    const btnRight = document.getElementById('scrollRight' + tableId);
+    
+    if (!container || !btnLeft || !btnRight) return;
+    
+    const scrollLeft = container.scrollLeft;
+    const scrollWidth = container.scrollWidth - container.clientWidth;
+    
+    btnLeft.disabled = scrollLeft <= 0;
+    btnRight.disabled = scrollLeft >= scrollWidth - 10;
+}
+</script>

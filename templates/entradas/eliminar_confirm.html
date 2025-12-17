@@ -1,0 +1,37 @@
+{% extends 'base_admin.html' %}
+
+{% block titulo %}Eliminar Entrada - BioFresco{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-title">Eliminar Entrada de Inventario</h1>
+</div>
+
+<div class="bg-white-admin rounded-admin shadow-admin p-4">
+    <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle me-2"></i>
+        <strong>Advertencia:</strong> Esta acción eliminará la entrada y ajustará el stock del producto restando {{ entrada.cantidad }} unidades.
+    </div>
+    
+    <h5>¿Estás seguro de eliminar esta entrada?</h5>
+    <ul class="list-unstyled mt-3">
+        <li><strong>Producto:</strong> {{ entrada.producto.nombre }}</li>
+        <li><strong>Cantidad:</strong> {{ entrada.cantidad }}</li>
+        <li><strong>Precio Unitario:</strong> ${{ entrada.precio_unitario }}</li>
+        <li><strong>Fecha:</strong> {{ entrada.fecha_entrada|date:"d/m/Y H:i" }}</li>
+    </ul>
+    
+    <form method="post" class="mt-4">
+        {% csrf_token %}
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-danger">
+                <i class="fas fa-trash-alt me-2"></i>Sí, Eliminar
+            </button>
+            <a href="{% url 'entradas_lista' %}" class="btn btn-secondary">
+                <i class="fas fa-times me-2"></i>Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+

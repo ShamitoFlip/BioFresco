@@ -1,0 +1,424 @@
+<!-- Formulario de Crear Producto con Radio Buttons -->
+<form id="producto-crear-form" method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    
+    <!-- Radio Buttons para Tipo de Producto -->
+    <div class="mb-4">
+        <label class="form-label fw-bold mb-3">
+            <i class="fas fa-tag me-2"></i>Tipo de Producto
+        </label>
+        <div class="d-flex gap-4">
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="tipo_producto" id="tipo_propio" value="propio" {% if tipo_producto != 'proveedor' %}checked{% endif %} required>
+                <label class="form-check-label" for="tipo_propio">
+                    <i class="fas fa-box text-success me-2"></i>Producto Propio
+                </label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input" type="radio" name="tipo_producto" id="tipo_proveedor" value="proveedor" {% if tipo_producto == 'proveedor' %}checked{% endif %} required>
+                <label class="form-check-label" for="tipo_proveedor">
+                    <i class="fas fa-truck text-info me-2"></i>Producto de Proveedor
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenedor dinámico para los formularios -->
+    <div id="formulario-contenedor">
+        <!-- Se cargará dinámicamente según el radio button seleccionado -->
+        <div id="formulario-propio" {% if tipo_producto == 'proveedor' %}style="display: none; visibility: hidden;"{% else %}style="display: block; visibility: visible;"{% endif %}>
+            {% include 'inventario/crear_propio_fragment.html' %}
+        </div>
+        <div id="formulario-proveedor" {% if tipo_producto == 'proveedor' %}style="display: block; visibility: visible;"{% else %}style="display: none; visibility: hidden;"{% endif %}>
+            {% include 'inventario/crear_proveedor_fragment.html' %}
+        </div>
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+        <button type="button" class="btn btn-secondary" onclick="closeDrawerProductoCrear()">
+            <i class="fas fa-times me-2"></i>Cancelar
+        </button>
+        <button type="submit" class="btn btn-primary-admin">
+            <i class="fas fa-save me-2"></i>Guardar Producto
+        </button>
+    </div>
+</form>
+
+<script>
+console.log('✅ Script de crear_fragment.html cargado');
+
+// Asegurar que la función esté disponible inmediatamente
+(function() {
+    'use strict';
+    
+    console.log('✅ Iniciando IIFE de crear_fragment.html');
+    
+    // Función para cambiar entre formularios (disponible globalmente)
+    window.cambiarFormularioProducto = function() {
+        console.log('=== cambiarFormularioProducto llamado ===');
+        const radioPropio = document.getElementById('tipo_propio');
+        const radioProveedor = document.getElementById('tipo_proveedor');
+        const formularioPropio = document.getElementById('formulario-propio');
+        const formularioProveedor = document.getElementById('formulario-proveedor');
+        
+        if (!radioPropio || !radioProveedor || !formularioPropio || !formularioProveedor) {
+            console.log('Esperando elementos del formulario...', {
+                radioPropio: !!radioPropio,
+                radioProveedor: !!radioProveedor,
+                formularioPropio: !!formularioPropio,
+                formularioProveedor: !!formularioProveedor
+            });
+            return;
+        }
+        
+        console.log('Cambiando formulario. Propio:', radioPropio.checked, 'Proveedor:', radioProveedor.checked);
+        
+        if (radioPropio.checked) {
+            // Mostrar formulario propio, ocultar formulario proveedor
+            formularioPropio.style.display = 'block';
+            formularioPropio.style.visibility = 'visible';
+            formularioProveedor.style.display = 'none';
+            formularioProveedor.style.visibility = 'hidden';
+            
+            console.log('Mostrando formulario propio');
+            
+            // Deshabilitar campos de proveedor (los campos deshabilitados no se envían en FormData)
+            const camposProveedor = formularioProveedor.querySelectorAll('input, select, textarea');
+            camposProveedor.forEach(campo => {
+                campo.disabled = true;
+                campo.removeAttribute('required');
+            });
+            
+            // Habilitar campos propios
+            const camposPropios = formularioPropio.querySelectorAll('input, select, textarea');
+            camposPropios.forEach(campo => {
+                campo.disabled = false;
+                if (campo.hasAttribute('data-required')) {
+                    campo.setAttribute('required', 'required');
+                }
+            });
+        } else if (radioProveedor.checked) {
+            // Mostrar formulario proveedor, ocultar formulario propio
+            formularioPropio.style.display = 'none';
+            formularioPropio.style.visibility = 'hidden';
+            formularioProveedor.style.display = 'block';
+            formularioProveedor.style.visibility = 'visible';
+            
+            console.log('Mostrando formulario proveedor');
+            
+            // Deshabilitar campos propios (los campos deshabilitados no se envían en FormData)
+            const camposPropios = formularioPropio.querySelectorAll('input, select, textarea');
+            camposPropios.forEach(campo => {
+                campo.disabled = true;
+                campo.removeAttribute('required');
+            });
+            
+            // Habilitar campos de proveedor
+            const camposProveedor = formularioProveedor.querySelectorAll('input, select, textarea');
+            camposProveedor.forEach(campo => {
+                if (campo.id !== 'id_costo_promedio_actual_proveedor') { // No habilitar el campo readonly
+                    campo.disabled = false;
+                    if (campo.hasAttribute('data-required')) {
+                        campo.setAttribute('required', 'required');
+                    }
+                }
+            });
+            
+            // Asegurar que el select de proveedor tenga el atributo required si tiene data-required
+            const proveedorSelect = document.getElementById('id_proveedor_seleccionado');
+            if (proveedorSelect && proveedorSelect.hasAttribute('data-required')) {
+                proveedorSelect.setAttribute('required', 'required');
+            }
+            
+            // Inicializar el script de proveedor después de mostrar el formulario
+            function intentarInicializarScriptProveedor(intentos) {
+                if (typeof window.inicializarScriptProveedor === 'function') {
+                    console.log('✅ Inicializando script de proveedor...');
+                    window.inicializarScriptProveedor();
+                    return true;
+                } else if (intentos < 20) {
+                    console.log(`⏳ Esperando inicializarScriptProveedor (intento ${intentos})...`);
+                    setTimeout(function() {
+                        intentarInicializarScriptProveedor(intentos + 1);
+                    }, 150);
+                    return false;
+                } else {
+                    console.warn('⚠️ inicializarScriptProveedor no está disponible después de 20 intentos');
+                    return false;
+                }
+            }
+            setTimeout(function() {
+                intentarInicializarScriptProveedor(1);
+            }, 200);
+            
+            // Disparar evento personalizado (compatible con y sin jQuery)
+            try {
+                if (typeof jQuery !== 'undefined' && typeof $ !== 'undefined') {
+                    $(document).trigger('formularioCambiado');
+                } else {
+                    const event = new Event('formularioCambiado');
+                    document.dispatchEvent(event);
+                }
+            } catch (e) {
+                // Fallback: usar evento nativo si jQuery falla
+                const event = new Event('formularioCambiado');
+                document.dispatchEvent(event);
+            }
+        }
+    };
+    
+    // Función para inicializar los event listeners
+    function inicializarRadioButtons(tipoInicial) {
+        console.log('=== inicializarRadioButtons llamado ===', tipoInicial);
+        
+        const radioPropio = document.getElementById('tipo_propio');
+        const radioProveedor = document.getElementById('tipo_proveedor');
+        const form = document.getElementById('producto-crear-form');
+        
+        console.log('Elementos encontrados:', {
+            radioPropio: !!radioPropio,
+            radioProveedor: !!radioProveedor,
+            form: !!form
+        });
+        
+        if (!radioPropio || !radioProveedor) {
+            console.error('Radio buttons no encontrados');
+            return false;
+        }
+        
+        // Si se pasa un tipo inicial, seleccionarlo
+        if (tipoInicial === 'proveedor') {
+            radioProveedor.checked = true;
+            radioPropio.checked = false;
+            console.log('Tipo inicial: proveedor');
+        } else {
+            radioPropio.checked = true;
+            radioProveedor.checked = false;
+            console.log('Tipo inicial: propio');
+        }
+        
+        // Función para manejar el cambio
+        function manejarCambio(tipo) {
+            console.log('Manejando cambio a:', tipo);
+            setTimeout(function() {
+                window.cambiarFormularioProducto();
+            }, 50);
+        }
+        
+        // Agregar listeners directamente a los radio buttons
+        radioPropio.addEventListener('change', function(e) {
+            console.log('✅ Event listener CHANGE en Radio Propio activado');
+            console.log('Radio Propio checked:', this.checked);
+            manejarCambio('propio');
+        });
+        
+        radioProveedor.addEventListener('change', function(e) {
+            console.log('✅ Event listener CHANGE en Radio Proveedor activado');
+            console.log('Radio Proveedor checked:', this.checked);
+            manejarCambio('proveedor');
+        });
+        
+        // También agregar listeners de click como respaldo
+        radioPropio.addEventListener('click', function(e) {
+            console.log('✅ Click en Radio Propio');
+            setTimeout(function() {
+                if (radioPropio.checked) {
+                    window.cambiarFormularioProducto();
+                }
+            }, 50);
+        });
+        
+        radioProveedor.addEventListener('click', function(e) {
+            console.log('✅ Click en Radio Proveedor');
+            setTimeout(function() {
+                if (radioProveedor.checked) {
+                    window.cambiarFormularioProducto();
+                }
+            }, 50);
+        });
+        
+        // También usar event delegation en el form como respaldo
+        if (form) {
+            form.addEventListener('change', function(e) {
+                if (e.target.id === 'tipo_propio' || e.target.id === 'tipo_proveedor') {
+                    console.log('✅ Event delegation capturado:', e.target.id);
+                    setTimeout(function() {
+                        window.cambiarFormularioProducto();
+                    }, 50);
+                }
+            });
+        }
+        
+        // Inicializar el estado inmediatamente
+        console.log('Inicializando estado inicial con tipo:', tipoInicial);
+        
+        // Forzar el cambio inmediatamente
+        setTimeout(function() {
+            window.cambiarFormularioProducto();
+            // Si es proveedor, asegurarse de que se muestre
+            if (tipoInicial === 'proveedor') {
+                const formularioProveedor = document.getElementById('formulario-proveedor');
+                const formularioPropio = document.getElementById('formulario-propio');
+                if (formularioProveedor && formularioPropio) {
+                    formularioPropio.style.display = 'none';
+                    formularioPropio.style.visibility = 'hidden';
+                    formularioProveedor.style.display = 'block';
+                    formularioProveedor.style.visibility = 'visible';
+                    console.log('✅ Formulario proveedor forzado a mostrarse');
+                }
+            }
+        }, 10);
+        
+        return true;
+    }
+    
+    // Obtener tipo inicial de la URL o del drawer
+    function obtenerTipoInicial() {
+        let tipoInicial = null;
+        
+        // Primero intentar obtenerlo del drawer (más confiable cuando se carga vía AJAX)
+        const drawer = document.getElementById('drawerProductoCrear');
+        if (drawer) {
+            tipoInicial = drawer.getAttribute('data-tipo-producto');
+            if (tipoInicial) {
+                console.log('✅ Tipo obtenido del drawer:', tipoInicial);
+                return tipoInicial;
+            }
+        }
+        
+        // Si no está en el drawer, intentar obtenerlo de la URL actual
+        const urlParams = new URLSearchParams(window.location.search);
+        tipoInicial = urlParams.get('tipo_producto');
+        if (tipoInicial) {
+            console.log('✅ Tipo obtenido de la URL:', tipoInicial);
+            return tipoInicial;
+        }
+        
+        console.log('⚠️ No se encontró tipo, usando "propio" por defecto');
+        return 'propio';
+    }
+    
+    // Función para inicializar cuando el contenido esté listo
+    function initFormulario() {
+        console.log('=== initFormulario llamado ===');
+        const tipoInicial = obtenerTipoInicial();
+        console.log('✅ Tipo inicial obtenido:', tipoInicial);
+        
+        // Si el tipo es 'proveedor', asegurarse de que el drawer tenga el atributo
+        if (tipoInicial === 'proveedor') {
+            const drawer = document.getElementById('drawerProductoCrear');
+            if (drawer && !drawer.getAttribute('data-tipo-producto')) {
+                drawer.setAttribute('data-tipo-producto', 'proveedor');
+                console.log('✅ Atributo data-tipo-producto establecido en drawer');
+            }
+        }
+        
+        const resultado = inicializarRadioButtons(tipoInicial);
+        if (!resultado) {
+            console.warn('⚠️ Inicialización falló, reintentando...');
+        }
+        return resultado;
+    }
+    
+    // Función para intentar inicializar múltiples veces
+    function intentarInicializar(intentos) {
+        console.log('Intentando inicializar, intento:', intentos);
+        if (initFormulario()) {
+            console.log('✅ Inicialización exitosa');
+            return true;
+        }
+        if (intentos < 5) {
+            setTimeout(function() {
+                intentarInicializar(intentos + 1);
+            }, 200);
+        } else {
+            console.error('❌ No se pudo inicializar después de 5 intentos');
+        }
+        return false;
+    }
+    
+    // Ejecutar cuando el DOM esté listo
+    console.log('Estado del documento:', document.readyState);
+    if (document.readyState === 'loading') {
+        console.log('Documento cargando, esperando DOMContentLoaded...');
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOMContentLoaded disparado');
+            intentarInicializar(1);
+        });
+    } else {
+        console.log('Documento ya listo, ejecutando inmediatamente...');
+        intentarInicializar(1);
+    }
+    
+    // También ejecutar después de delays para asegurar que los elementos estén disponibles
+    setTimeout(function() {
+        console.log('Timeout 1 ejecutado');
+        intentarInicializar(1);
+    }, 100);
+    
+    setTimeout(function() {
+        console.log('Timeout 2 ejecutado');
+        intentarInicializar(1);
+    }, 300);
+    
+    setTimeout(function() {
+        console.log('Timeout 3 ejecutado');
+        intentarInicializar(1);
+    }, 500);
+    
+    // Escuchar el evento contentLoaded que se dispara cuando se carga contenido vía AJAX
+    // Compatible con y sin jQuery
+    try {
+        if (typeof jQuery !== 'undefined' && typeof $ !== 'undefined') {
+            $(document).on('contentLoaded', function() {
+                console.log('✅ Evento contentLoaded disparado (jQuery)');
+                setTimeout(function() {
+                    intentarInicializar(1);
+                }, 100);
+            });
+        }
+    } catch (e) {
+        console.log('jQuery no disponible, usando eventos nativos');
+    }
+    
+    // También escuchar el evento nativo
+    document.addEventListener('contentLoaded', function() {
+        console.log('✅ Evento contentLoaded disparado (nativo)');
+        setTimeout(function() {
+            intentarInicializar(1);
+        }, 100);
+    });
+    
+    // También escuchar eventos personalizados
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('✅ DOMContentLoaded disparado (nativo)');
+        setTimeout(function() {
+            intentarInicializar(1);
+        }, 100);
+    });
+    
+    console.log('✅ Script de crear_fragment.html configurado completamente');
+    
+    // Asegurar que los campos required se establezcan correctamente antes del submit
+    const form = document.getElementById('producto-crear-form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            // Remover required de todos los campos deshabilitados antes de validar
+            const allFields = form.querySelectorAll('input, select, textarea');
+            allFields.forEach(campo => {
+                if (campo.disabled) {
+                    campo.removeAttribute('required');
+                } else if (campo.hasAttribute('data-required')) {
+                    campo.setAttribute('required', 'required');
+                }
+            });
+        });
+    }
+})();
+
+// Asegurar que la función esté disponible globalmente inmediatamente después de la definición
+console.log('✅ cambiarFormularioProducto disponible:', typeof window.cambiarFormularioProducto);
+</script>
+
+

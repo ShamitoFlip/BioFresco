@@ -1,0 +1,81 @@
+<!-- Fragmento HTML para carga AJAX - Dashboard -->
+<!-- Page Header -->
+<div class="page-header">
+    <h1 class="page-title">Dashboard</h1>
+</div>
+
+<!-- Dashboard Grid -->
+<div class="dashboard-grid">
+    <div class="metric-card color-teal">
+        <div class="metric-icon">
+            <i class="fas fa-user-check"></i>
+        </div>
+        <div class="metric-info">
+            <div class="metric-label">Usuarios activos</div>
+            <div class="metric-value">{{ usuarios_activos|default:0 }}</div>
+        </div>
+    </div>
+
+    <div class="metric-card color-grey">
+        <div class="metric-icon">
+            <i class="fas fa-clipboard-check"></i>
+        </div>
+        <div class="metric-info">
+            <div class="metric-label">Auditorías pendientes</div>
+            <div class="metric-value">{{ auditorias_pendientes|default:0 }}</div>
+        </div>
+    </div>
+
+    <div class="metric-card color-orange">
+        <div class="metric-icon">
+            <i class="fas fa-truck"></i>
+        </div>
+        <div class="metric-info">
+            <div class="metric-label">Proveedores</div>
+            <div class="metric-value">{{ proveedores_count|default:0 }}</div>
+        </div>
+    </div>
+
+    <div class="metric-card color-purple">
+        <div class="metric-icon">
+            <i class="fas fa-box"></i>
+        </div>
+        <div class="metric-info">
+            <div class="metric-label">Productos</div>
+            <div class="metric-value">{{ productos_count|default:0 }}</div>
+        </div>
+    </div>
+
+    <div class="metric-card color-blue">
+        <div class="metric-icon">
+            <i class="fas fa-shopping-bag"></i>
+        </div>
+        <div class="metric-info">
+            <div class="metric-label">Existencia total</div>
+            <div class="metric-value">{{ existencia_total|default:0 }}</div>
+        </div>
+    </div>
+
+    <div class="metric-card color-red">
+        <div class="metric-icon">
+            <i class="fas fa-truck"></i>
+        </div>
+        <div class="metric-info">
+            <div class="metric-label">Existencia vendida</div>
+            <div class="metric-value">{{ existencia_vendida|default:0 }}</div>
+        </div>
+    </div>
+
+    <div class="metric-card color-light-blue">
+        <div class="metric-icon">
+            <i class="fas fa-chart-bar"></i>
+        </div>
+        <div class="metric-info">
+            <div class="metric-label">Existencia actual</div>
+            <div class="metric-value">{{ existencia_actual|default:0 }}</div>
+        </div>
+    </div>
+</div>
+
+{% include "paginas/partials/recent_activity.html" %}
+

@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block titulo %}Inicio - BioFresco{% endblock %}
+
+{% block contenido %}
+<!-- Hero Section -->
+<div class="position-relative overflow-hidden" style="background: linear-gradient(135deg, #2e7d32 0%, #4caf50 30%, #66bb6a 60%, #81c784 100%); color: white; padding: 5rem 0;">
+    <div class="container px-4 py-5">
+        <div class="row align-items-center g-5 py-5">
+            <div class="col-lg-6">
+                <h1 class="display-3 fw-bold mb-4" style="text-shadow: 2px 2px 6px rgba(0,0,0,0.3); color: #ffffff;">
+                    <i class="fas fa-leaf me-3" style="color: #c8e6c9;"></i>BioFresco
+                </h1>
+                <p class="lead mb-4 fs-5" style="line-height: 1.8; color: #e8f5e9;">
+                    Tu tienda de <strong style="color: #fff;">verduras y frutas frescas</strong>. Productos naturales, orgánicos y de la más alta calidad directamente del campo a tu mesa.
+                </p>
+                <div class="d-grid gap-3 d-md-flex justify-content-md-start">
+                    {% if user.is_authenticated and user.is_staff %}
+                    <a href="{% url 'admin_panel' %}" class="btn btn-lg px-4 shadow" style="font-weight: 600; background: #ff9800; color: white; border: none;">
+                        <i class="fas fa-calendar-check me-2"></i>Administrar
+                    </a>
+                    {% else %}
+                    <a href="{% url 'agendar_cita' %}" class="btn btn-lg px-4 shadow" style="font-weight: 600; background: #ff9800; color: white; border: none;">
+                        <i class="fas fa-calendar-alt me-2"></i>Agendar Cita
+                    </a>
+                    {% endif %}
+                </div>
+                
+                <!-- Admin Only Section -->
+                {% if user.is_staff %}
+                <div class="mt-4">
+                    <a href="{% url 'admin_panel' %}" class="btn btn-lg shadow" style="font-weight: 600; background: #fff; color: #2e7d32; border: none;">
+                        <i class="fas fa-th-large me-2"></i>Panel de Administración
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+            <div class="col-lg-6 text-center">
+                <div class="hero-icons">
+                    <i class="fas fa-carrot fa-8x mb-3" style="opacity: 0.4; color: #ff9800; filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));"></i>
+                    <i class="fas fa-apple-alt fa-6x mx-3" style="opacity: 0.4; color: #f44336; filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));"></i>
+                    <i class="fas fa-pepper-hot fa-7x" style="opacity: 0.4; color: #ff5722; filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.2));"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<div class="container px-4 py-5 my-5">
+    <h2 class="text-center mb-5 fw-bold" style="color: #1b5e20;">
+        <i class="fas fa-seedling me-2" style="color: #4caf50;"></i>¿Por qué elegir BioFresco?
+    </h2>
+    <div class="row g-4 py-4 row-cols-1 row-cols-md-3">
+        <div class="col">
+            <div class="text-center p-4 h-100 feature-card" style="border-radius: 20px; background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%); transition: all 0.3s ease; border: 2px solid #a5d6a7;">
+                <div class="feature-icon mb-3">
+                    <i class="fas fa-leaf fa-4x" style="color: #2e7d32;"></i>
+                </div>
+                <h3 class="fs-4 fw-bold mb-3" style="color: #1b5e20;">100% Natural</h3>
+                <p style="color: #424242;">Verduras y frutas frescas, cultivadas de forma natural sin pesticidas ni químicos dañinos.</p>
+            </div>
+        </div>
+        <div class="col">
+            <div class="text-center p-4 h-100 feature-card" style="border-radius: 20px; background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%); transition: all 0.3s ease; border: 2px solid #ffcc80;">
+                <div class="feature-icon mb-3">
+                    <i class="fas fa-truck-fast fa-4x" style="color: #f57c00;"></i>
+                </div>
+                <h3 class="fs-4 fw-bold mb-3" style="color: #e65100;">Fresco del Campo</h3>
+                <p style="color: #424242;">Productos recién cosechados, entregados directamente desde nuestros campos a tu hogar.</p>
+            </div>
+        </div>
+        <div class="col">
+            <div class="text-center p-4 h-100 feature-card" style="border-radius: 20px; background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%); transition: all 0.3s ease; border: 2px solid #f48fb1;">
+                <div class="feature-icon mb-3">
+                    <i class="fas fa-award fa-4x" style="color: #c2185b;"></i>
+                </div>
+                <h3 class="fs-4 fw-bold mb-3" style="color: #880e4f;">Calidad Premium</h3>
+                <p style="color: #424242;">Selección rigurosa de los mejores productos para garantizar la máxima calidad y sabor.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Services Section -->
+<div class="container px-4 pb-5 my-5">
+    <div class="text-center mb-5">
+        <h2 class="fw-bold mb-3" style="color: #1b5e20; font-size: 2.5rem;">
+            <i class="fas fa-hand-holding-heart me-2" style="color: #4caf50;"></i>Nuestros Servicios
+        </h2>
+        <p class="fs-5" style="color: #616161;">Todo lo que necesitas para una alimentación saludable</p>
+    </div>
+    <div class="row g-4">
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100 service-card" style="border-radius: 20px; overflow: hidden; transition: all 0.3s ease; border: 2px solid #c8e6c9;">
+                <div class="d-flex align-items-center justify-content-center" style="height: 200px; background: linear-gradient(135deg, #2e7d32 0%, #4caf50 100%);">
+                    <i class="fas fa-shopping-cart fa-5x text-white"></i>
+                </div>
+                <div class="card-body text-center p-4" style="background: #fafafa;">
+                    <h5 class="card-title fw-bold mb-3" style="color: #1b5e20;">Compra Online</h5>
+                    <p class="card-text mb-4" style="color: #616161;">Explora nuestro catálogo completo de verduras y frutas. Compra desde la comodidad de tu hogar.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100 service-card" style="border-radius: 20px; overflow: hidden; transition: all 0.3s ease; border: 2px solid #ffe0b2;">
+                <div class="d-flex align-items-center justify-content-center" style="height: 200px; background: linear-gradient(135deg, #f57c00 0%, #ff9800 100%);">
+                    <i class="fas fa-calendar-check fa-5x text-white"></i>
+                </div>
+                <div class="card-body text-center p-4" style="background: #fafafa;">
+                    <h5 class="card-title fw-bold mb-3" style="color: #e65100;">Agenda tu Cita</h5>
+                    <p class="card-text mb-4" style="color: #616161;">Reserva una consulta personalizada para conocer nuestros productos y recibir asesoramiento.</p>
+                    <a href="{% url 'agendar_cita' %}" class="btn btn-sm px-4" style="background: #ff9800; color: white; border: none; font-weight: 600;">
+                        <i class="fas fa-arrow-right me-1"></i>Agendar Ahora
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100 service-card" style="border-radius: 20px; overflow: hidden; transition: all 0.3s ease; border: 2px solid #f8bbd0;">
+                <div class="d-flex align-items-center justify-content-center" style="height: 200px; background: linear-gradient(135deg, #c2185b 0%, #e91e63 100%);">
+                    <i class="fas fa-users fa-5x text-white"></i>
+                </div>
+                <div class="card-body text-center p-4" style="background: #fafafa;">
+                    <h5 class="card-title fw-bold mb-3" style="color: #880e4f;">Atención Personalizada</h5>
+                    <p class="card-text mb-4" style="color: #616161;">Nuestro equipo está listo para ayudarte a elegir los mejores productos para tu familia.</p>
+                    <a href="{% url 'nosotros' %}" class="btn btn-sm px-4" style="background: #c2185b; color: white; border: none; font-weight: 600;">
+                        <i class="fas fa-arrow-right me-1"></i>Conócenos
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Call to Action Section -->
+<div class="container px-4 pb-5">
+    <div class="text-center p-5" style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 50%, #a5d6a7 100%); border-radius: 25px; border: 3px solid #81c784;">
+        <h2 class="fw-bold mb-4" style="color: #1b5e20; font-size: 2.5rem;">
+            <i class="fas fa-heart me-2" style="color: #f44336;"></i>¡Comienza tu Alimentación Saludable Hoy!
+        </h2>
+        <p class="lead mb-4" style="color: #424242; font-size: 1.2rem;">Descubre la frescura y calidad de nuestros productos naturales</p>
+        <div class="d-flex gap-3 justify-content-center flex-wrap">
+            <a href="{% url 'agendar_cita' %}" class="btn btn-lg px-5" style="font-weight: 600; background: #ff9800; color: white; border: none;">
+                <i class="fas fa-calendar-alt me-2"></i>Agendar Consulta
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+.product-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 35px rgba(46, 125, 50, 0.3) !important;
+    border-color: #4caf50 !important;
+}
+
+.product-card:hover .card-img-top img {
+    transform: scale(1.1);
+}
+
+.service-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.2) !important;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
+}
+
+.feature-icon {
+    margin-bottom: 1.5rem;
+}
+
+.card {
+    transition: all 0.3s ease;
+}
+
+.hero-icons i {
+    animation: float 3s ease-in-out infinite;
+}
+
+.hero-icons i:nth-child(2) {
+    animation-delay: 0.5s;
+}
+
+.hero-icons i:nth-child(3) {
+    animation-delay: 1s;
+}
+
+@keyframes float {
+    0%, 100% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-20px);
+    }
+}
+
+/* Colores temáticos para verduras y frutas */
+:root {
+    --verde-oscuro: #1b5e20;
+    --verde-medio: #2e7d32;
+    --verde-claro: #4caf50;
+    --verde-muy-claro: #81c784;
+    --naranja-oscuro: #e65100;
+    --naranja-medio: #f57c00;
+    --naranja-claro: #ff9800;
+    --rojo-oscuro: #880e4f;
+    --rojo-medio: #c2185b;
+    --gris-texto: #616161;
+    --gris-claro: #fafafa;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,162 @@
+<!-- Fragmento HTML para carga AJAX - Formulario de editar proveedor (para drawer) -->
+<form method="POST" id="proveedor-editar-form" autocomplete="off" novalidate>
+    {% csrf_token %}
+    
+    <div class="row">
+        <div class="col-md-12 mb-3">
+            <label for="nombre" class="form-label">Nombre del Proveedor *</label>
+            <input type="text" class="form-control" id="nombre" name="nombre" required 
+                   value="{{ proveedor.nombre }}" placeholder="Ej: Distribuidora ABC, Proveedor XYZ">
+            <small class="text-muted">Nombre del proveedor o empresa</small>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="contacto" class="form-label">Persona de Contacto</label>
+            <input type="text" class="form-control" id="contacto" name="contacto" 
+                   value="{{ proveedor.contacto|default:'' }}" placeholder="Nombre del contacto">
+            <small class="text-muted">Nombre de la persona de contacto (opcional)</small>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="telefono" class="form-label">Teléfono</label>
+            <input type="text" class="form-control" id="telefono" name="telefono" 
+                   value="{{ proveedor.telefono|default:'' }}" placeholder="Ej: 56912345678" pattern="[0-9]*" inputmode="numeric"
+                   onkeypress="return event.charCode >= 48 && event.charCode <= 57">
+            <small class="text-muted">Teléfono de contacto (opcional) - Solo números</small>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" name="email" 
+                   value="{{ proveedor.email|default:'' }}" placeholder="Ej: proveedor@gmail.com" pattern=".*@gmail\.com$" title="Solo se permiten direcciones de Gmail">
+            <small class="text-muted">Correo electrónico (opcional) - Solo Gmail</small>
+            <div id="email-error" class="text-danger small mt-1" style="display: none;"></div>
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="ciudad" class="form-label">Ciudad</label>
+            <input type="text" class="form-control" id="ciudad" name="ciudad" 
+                   value="{{ proveedor.ciudad|default:'' }}" placeholder="Ej: Santiago, Valparaíso">
+            <small class="text-muted">Ciudad donde se encuentra el proveedor (opcional)</small>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label for="direccion" class="form-label">Dirección</label>
+        <textarea class="form-control" id="direccion" name="direccion" rows="3" 
+                  placeholder="Dirección completa del proveedor">{{ proveedor.direccion|default:'' }}</textarea>
+        <small class="text-muted">Dirección física (opcional)</small>
+    </div>
+    
+    <div class="d-flex gap-2 justify-content-end">
+        <button type="button" class="btn btn-secondary" onclick="closeDrawerProveedorEditar(); return false;">Cancelar</button>
+        <button type="submit" class="btn btn-primary-admin">Actualizar Proveedor</button>
+    </div>
+</form>
+
+<style>
+#proveedor-editar-form .form-control,
+#proveedor-editar-form .form-select {
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    transition: border-color 0.2s;
+    background: #fafafa;
+}
+
+#proveedor-editar-form .form-control:focus,
+#proveedor-editar-form .form-select:focus {
+    outline: none;
+    border-color: #4caf50;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+#proveedor-editar-form .form-label {
+    font-weight: 600;
+    color: #212121;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+</style>
+
+<script>
+// Validación de email Gmail y teléfono
+(function() {
+    const emailInput = document.getElementById('email');
+    const emailError = document.getElementById('email-error');
+    const telefonoInput = document.getElementById('telefono');
+    
+    // Validar email Gmail
+    if (emailInput) {
+        function validarEmailGmail(email) {
+            if (!email || email.trim() === '') {
+                emailError.style.display = 'none';
+                emailInput.classList.remove('is-invalid', 'is-valid');
+                return true; // Email vacío es válido (opcional)
+            }
+            
+            const emailLower = email.toLowerCase().trim();
+            if (!emailLower.endsWith('@gmail.com')) {
+                emailError.textContent = 'Solo se permiten direcciones de correo de Gmail (@gmail.com)';
+                emailError.style.display = 'block';
+                emailInput.classList.remove('is-valid');
+                emailInput.classList.add('is-invalid');
+                return false;
+            } else {
+                emailError.style.display = 'none';
+                emailInput.classList.remove('is-invalid');
+                emailInput.classList.add('is-valid');
+                return true;
+            }
+        }
+        
+        emailInput.addEventListener('input', function() {
+            validarEmailGmail(this.value);
+        });
+        
+        emailInput.addEventListener('blur', function() {
+            if (this.value) {
+                this.value = this.value.toLowerCase().trim();
+                validarEmailGmail(this.value);
+            }
+        });
+        
+        // Validar antes de enviar
+        const form = document.getElementById('proveedor-editar-form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                if (!validarEmailGmail(emailInput.value)) {
+                    e.preventDefault();
+                    emailInput.focus();
+                    return false;
+                }
+            });
+        }
+    }
+    
+    // Validar que solo se ingresen números en el teléfono
+    if (telefonoInput) {
+        telefonoInput.addEventListener('keypress', function(e) {
+            const char = String.fromCharCode(e.which);
+            if (!/[0-9]/.test(char)) {
+                e.preventDefault();
+            }
+        });
+        
+        telefonoInput.addEventListener('paste', function(e) {
+            e.preventDefault();
+            const paste = (e.clipboardData || window.clipboardData).getData('text');
+            const numbersOnly = paste.replace(/[^0-9]/g, '');
+            this.value = numbersOnly;
+        });
+        
+        telefonoInput.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+    }
+})();
+</script>
+

@@ -1,0 +1,143 @@
+{% extends "base_admin.html" %}
+
+{% block titulo %}Editar Rol - BioFresco{% endblock %}
+
+{% block contenido %}
+<div id="main-content-area">
+<!-- Page Header -->
+<div class="page-header">
+    <h1 class="page-title">Editar Rol</h1>
+</div>
+
+<div class="admin-content-body">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h1 class="display-5 mb-4">
+                <i class="fas fa-edit text-primary me-2"></i>Editar Cargo
+            </h1>
+
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    <form method="POST" novalidate>
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label for="nombre" class="form-label">Nombre del Cargo *</label>
+                            <input type="text" class="form-control" id="nombre" name="nombre" required 
+                                   value="{{ cargo.nombre }}">
+                            <small class="text-muted">Nombre único del cargo</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="descripcion" class="form-label">Descripción</label>
+                            <textarea class="form-control" id="descripcion" name="descripcion" rows="4">{{ cargo.descripcion|default:'' }}</textarea>
+                            <small class="text-muted">Información adicional sobre el cargo (opcional)</small>
+                        </div>
+
+                        <div class="card mb-3">
+                            <div class="card-header bg-primary text-white">
+                                <strong><i class="fas fa-key me-2"></i>Permisos del Cargo</strong>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center mb-3 p-2 border rounded">
+                                    <div>
+                                        <label class="form-label mb-0 fw-bold" for="puede_agendar">
+                                            <i class="fas fa-calendar-check me-2 text-success"></i>Puede crear/agendar citas
+                                        </label>
+                                        <small class="text-muted d-block">Permite crear y agendar nuevas citas</small>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="puede_agendar" name="puede_agendar" 
+                                               style="width: 3rem; height: 1.5rem;" {% if cargo.puede_agendar %}checked{% endif %}>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex justify-content-between align-items-center mb-3 p-2 border rounded">
+                                    <div>
+                                        <label class="form-label mb-0 fw-bold" for="puede_gestionar_inventario">
+                                            <i class="fas fa-boxes me-2 text-warning"></i>Gestión de inventario
+                                        </label>
+                                        <small class="text-muted d-block">Acceso completo al inventario y productos</small>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="puede_gestionar_inventario" name="puede_gestionar_inventario" 
+                                               style="width: 3rem; height: 1.5rem;" {% if cargo.puede_gestionar_inventario %}checked{% endif %}>
+                                    </div>
+                                </div>
+                                
+                                <div class="d-flex justify-content-between align-items-center mb-3 p-2 border rounded">
+                                    <div>
+                                        <label class="form-label mb-0 fw-bold" for="puede_ver_compras">
+                                            <i class="fas fa-history me-2 text-primary"></i>Ver historial de compras
+                                        </label>
+                                        <small class="text-muted d-block">Puede consultar el historial de compras</small>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="puede_ver_compras" name="puede_ver_compras" 
+                                               style="width: 3rem; height: 1.5rem;" {% if cargo.puede_ver_compras %}checked{% endif %}>
+                                    </div>
+                                </div>
+                                
+                                
+                                <div class="d-flex justify-content-between align-items-center p-2 border rounded">
+                                    <div>
+                                        <label class="form-label mb-0 fw-bold" for="puede_gestionar_empleados_servicios_proveedores">
+                                            <i class="fas fa-cogs me-2 text-dark"></i>Gestionar empleados, servicios, proveedores y especialidades
+                                        </label>
+                                        <small class="text-muted d-block">Acceso completo a empleados, servicios ofrecidos, proveedores y especialidades</small>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="puede_gestionar_empleados_servicios_proveedores" name="puede_gestionar_empleados_servicios_proveedores" 
+                                               style="width: 3rem; height: 1.5rem;" {% if cargo.puede_gestionar_empleados_servicios_proveedores %}checked{% endif %}>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center p-2">
+                                    <div>
+                                        <label class="form-label mb-0 fw-bold" for="activo">
+                                            <i class="fas fa-toggle-on me-2 text-success"></i>Cargo activo
+                                        </label>
+                                        <small class="text-muted d-block">Visible para asignar a empleados</small>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" type="checkbox" id="activo" name="activo" 
+                                               style="width: 3rem; height: 1.5rem;" {% if cargo.activo %}checked{% endif %}>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Empleados asignados:</strong> Este cargo está asignado a <strong>{{ cargo.empleados.count }}</strong> empleado(s).
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save me-2"></i>Guardar Cambios
+                            </button>
+                            <a href="{% url 'cargos_lista' %}" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+</div>
+</div>
+{% endblock %}
+

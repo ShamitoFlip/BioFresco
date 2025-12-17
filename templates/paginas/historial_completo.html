@@ -1,0 +1,592 @@
+{% extends "base_admin.html" %}
+
+{% block titulo %}Historial Completo - BioFresco{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="page-header">
+    <h1 class="page-title">Historial Completo del Sistema</h1>
+    <p class="page-subtitle">Registro de todas las acciones realizadas en el sistema</p>
+</div>
+
+<!-- Search Container -->
+<div class="search-container-enhanced">
+    <div class="filter-toggle-header" id="filter-toggle-header-historial">
+        <div class="filter-title">
+            <i class="fas fa-filter"></i>
+            <span>Filtros de Búsqueda</span>
+        </div>
+        <div class="filter-actions">
+            <button type="button" class="btn-clear-filters" id="btn-limpiar-filtros-historial" title="Limpiar todos los filtros">
+                <i class="fas fa-redo"></i>
+                <span>Limpiar</span>
+            </button>
+            <button type="button" class="btn-toggle-filters" id="btn-toggle-filters-historial" title="Mostrar/Ocultar filtros">
+                <i class="fas fa-chevron-down toggle-icon"></i>
+            </button>
+        </div>
+    </div>
+    
+    <div id="filter-content-area-historial" class="filter-content-hidden">
+        <form method="GET" action="{% url 'historial_completo' %}" id="filtroHistorialForm">
+            <div class="search-row-enhanced" style="grid-template-columns: repeat(5, 1fr);">
+                <div class="search-field-enhanced">
+                    <div class="field-label">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span>Fecha Desde</span>
+                    </div>
+                    <div class="input-wrapper">
+                        <i class="fas fa-calendar-alt input-icon"></i>
+                        <input type="date" id="fecha_desde" name="fecha_desde" value="{{ fecha_desde }}" class="form-control-enhanced">
+                    </div>
+                </div>
+                
+                <div class="search-field-enhanced">
+                    <div class="field-label">
+                        <i class="fas fa-calendar-check"></i>
+                        <span>Fecha Hasta</span>
+                    </div>
+                    <div class="input-wrapper">
+                        <i class="fas fa-calendar-check input-icon"></i>
+                        <input type="date" id="fecha_hasta" name="fecha_hasta" value="{{ fecha_hasta }}" class="form-control-enhanced">
+                    </div>
+                </div>
+                
+                <div class="search-field-enhanced">
+                    <div class="field-label">
+                        <i class="fas fa-tag"></i>
+                        <span>Tipo de Modelo</span>
+                    </div>
+                    <div class="input-wrapper">
+                        <i class="fas fa-tag input-icon"></i>
+                        <select id="tipo_modelo" name="tipo_modelo" class="form-control-enhanced">
+                            <option value="">Todos</option>
+                            {% for value, label in tipos_modelo %}
+                                <option value="{{ value }}" {% if tipo_modelo_filtro == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="search-field-enhanced">
+                    <div class="field-label">
+                        <i class="fas fa-bolt"></i>
+                        <span>Acción</span>
+                    </div>
+                    <div class="input-wrapper">
+                        <i class="fas fa-bolt input-icon"></i>
+                        <select id="accion" name="accion" class="form-control-enhanced">
+                            <option value="">Todas</option>
+                            {% for value, label in acciones_choices %}
+                                <option value="{{ value }}" {% if accion_filtro == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="search-field-enhanced">
+                    <div class="field-label">
+                        <i class="fas fa-user"></i>
+                        <span>Usuario</span>
+                    </div>
+                    <div class="input-wrapper">
+                        <i class="fas fa-user input-icon"></i>
+                        <select id="usuario" name="usuario" class="form-control-enhanced">
+                            <option value="">Todos</option>
+                            {% for usuario in usuarios %}
+                                <option value="{{ usuario.id }}" {% if usuario_filtro == usuario.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ usuario.get_full_name|default:usuario.username }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </form>
+        
+        <div class="filter-footer-enhanced">
+            <div class="results-info-enhanced">
+                <div class="results-icon">
+                    <i class="fas fa-history"></i>
+                </div>
+                <div class="results-content">
+                    <span class="results-label">Resultados encontrados:</span>
+                    <span id="resultados-text-historial" class="results-number">{{ total_eventos }} evento{{ total_eventos|pluralize }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="loading-indicator-historial" class="loading-indicator-enhanced" style="display: none;">
+        <div class="spinner-wrapper">
+            <div class="spinner"></div>
+        </div>
+        <span class="loading-text">Filtrando resultados...</span>
+    </div>
+</div>
+
+<!-- Data Table Container -->
+<div class="data-table-container">
+    <table class="table-data">
+        <thead>
+            <tr>
+                <th>Tipo</th>
+                <th>Resumen</th>
+                <th>Usuario</th>
+                <th>Fecha</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for activity in eventos %}
+            <tr>
+                <td>
+                    <span class="badge" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 6px 12px; border-radius: 20px; font-size: 0.85rem;">
+                        <i class="{{ activity.icon }}"></i>
+                        {{ activity.category }}
+                    </span>
+                </td>
+                <td>
+                    <div style="font-weight: 600; color: #333; margin-bottom: 4px;">{{ activity.title }}</div>
+                    <div style="font-size: 0.875rem; color: #666;">{{ activity.description }}</div>
+                </td>
+                <td>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <i class="fas fa-user-circle" style="color: #667eea;"></i>
+                        <span>{{ activity.author }}</span>
+                    </div>
+                </td>
+                <td>
+                    <div style="font-weight: 500; color: #333;">{{ activity.timestamp|date:"d/m/Y" }}</div>
+                    <div style="font-size: 0.875rem; color: #666;">{{ activity.timestamp|date:"H:i" }}</div>
+                </td>
+                <td>
+                    <button class="btn btn-action btn-edit"
+                            type="button"
+                            aria-label="Ver detalle"
+                            onclick="openActivityModal(this)"
+                            data-title="{{ activity.title|escape }}"
+                            data-category="{{ activity.category|escape }}"
+                            data-description="{{ activity.description|escape }}"
+                            data-author="{{ activity.author|escape }}"
+                            data-date="{{ activity.timestamp|date:'d/m/Y H:i' }}"
+                            data-details="{{ activity.details|join:'||'|escape }}"
+                            title="Ver detalle">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" class="text-center" style="padding: 3rem; color: #757575;">
+                    <i class="fas fa-inbox fa-3x mb-3" style="opacity: 0.3;"></i>
+                    <p style="margin-bottom: 1rem; font-size: 1rem;">No se encontraron eventos con los filtros aplicados</p>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Paginación -->
+{% if eventos.has_other_pages %}
+<div class="pagination-wrapper-historial" style="display: flex !important; justify-content: center !important; align-items: center !important; gap: 12px !important; flex-wrap: wrap !important; margin-top: 10px !important; margin-bottom: 10px !important; padding: 0 !important; width: 100% !important;">
+    {% if eventos.has_previous %}
+        <a href="?page=1{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta }}{% endif %}{% if tipo_modelo_filtro %}&tipo_modelo={{ tipo_modelo_filtro }}{% endif %}{% if accion_filtro %}&accion={{ accion_filtro }}{% endif %}{% if usuario_filtro %}&usuario={{ usuario_filtro }}{% endif %}" 
+           class="pagination-btn pagination-btn-nav ajax-link" data-url="{% url 'historial_completo' %}?page=1{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta }}{% endif %}{% if tipo_modelo_filtro %}&tipo_modelo={{ tipo_modelo_filtro }}{% endif %}{% if accion_filtro %}&accion={{ accion_filtro }}{% endif %}{% if usuario_filtro %}&usuario={{ usuario_filtro }}{% endif %}" 
+           style="display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 8px !important; padding: 0.75rem 1.5rem !important; border-radius: 12px !important; font-weight: 600 !important; font-size: 0.9rem !important; text-decoration: none !important; transition: all 0.2s ease !important; border: none !important; cursor: pointer !important; white-space: nowrap !important; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08) !important; background: linear-gradient(135deg, #757575 0%, #9e9e9e 100%) !important; color: #ffffff !important;">
+            <i class="fas fa-angle-double-left"></i> Primera
+        </a>
+        <a href="?page={{ eventos.previous_page_number }}{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta }}{% endif %}{% if tipo_modelo_filtro %}&tipo_modelo={{ tipo_modelo_filtro }}{% endif %}{% if accion_filtro %}&accion={{ accion_filtro }}{% endif %}{% if usuario_filtro %}&usuario={{ usuario_filtro }}{% endif %}" 
+           class="pagination-btn pagination-btn-nav ajax-link" data-url="{% url 'historial_completo' %}?page={{ eventos.previous_page_number }}{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta }}{% endif %}{% if tipo_modelo_filtro %}&tipo_modelo={{ tipo_modelo_filtro }}{% endif %}{% if accion_filtro %}&accion={{ accion_filtro }}{% endif %}{% if usuario_filtro %}&usuario={{ usuario_filtro }}{% endif %}" 
+           style="display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 8px !important; padding: 0.75rem 1.5rem !important; border-radius: 12px !important; font-weight: 600 !important; font-size: 0.9rem !important; text-decoration: none !important; transition: all 0.2s ease !important; border: none !important; cursor: pointer !important; white-space: nowrap !important; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08) !important; background: linear-gradient(135deg, #757575 0%, #9e9e9e 100%) !important; color: #ffffff !important;">
+            <i class="fas fa-angle-left"></i> Anterior
+        </a>
+    {% endif %}
+
+    <span class="pagination-info-historial" style="display: inline-flex !important; align-items: center !important; justify-content: center !important; padding: 0.75rem 1.5rem !important; background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%) !important; border: 2px solid #e0e0e0 !important; border-radius: 12px !important; font-weight: 600 !important; font-size: 0.9rem !important; color: #212121 !important; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08) !important; min-width: 140px !important; text-align: center !important;">
+        Página {{ eventos.number }} de {{ eventos.paginator.num_pages }}
+    </span>
+
+    {% if eventos.has_next %}
+        <a href="?page={{ eventos.next_page_number }}{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta }}{% endif %}{% if tipo_modelo_filtro %}&tipo_modelo={{ tipo_modelo_filtro }}{% endif %}{% if accion_filtro %}&accion={{ accion_filtro }}{% endif %}{% if usuario_filtro %}&usuario={{ usuario_filtro }}{% endif %}" 
+           class="pagination-btn pagination-btn-nav ajax-link" data-url="{% url 'historial_completo' %}?page={{ eventos.next_page_number }}{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta }}{% endif %}{% if tipo_modelo_filtro %}&tipo_modelo={{ tipo_modelo_filtro }}{% endif %}{% if accion_filtro %}&accion={{ accion_filtro }}{% endif %}{% if usuario_filtro %}&usuario={{ usuario_filtro }}{% endif %}" 
+           style="display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 8px !important; padding: 0.75rem 1.5rem !important; border-radius: 12px !important; font-weight: 600 !important; font-size: 0.9rem !important; text-decoration: none !important; transition: all 0.2s ease !important; border: none !important; cursor: pointer !important; white-space: nowrap !important; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08) !important; background: linear-gradient(135deg, #757575 0%, #9e9e9e 100%) !important; color: #ffffff !important;">
+            Siguiente <i class="fas fa-angle-right"></i>
+        </a>
+        <a href="?page={{ eventos.paginator.num_pages }}{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta }}{% endif %}{% if tipo_modelo_filtro %}&tipo_modelo={{ tipo_modelo_filtro }}{% endif %}{% if accion_filtro %}&accion={{ accion_filtro }}{% endif %}{% if usuario_filtro %}&usuario={{ usuario_filtro }}{% endif %}" 
+           class="pagination-btn pagination-btn-nav ajax-link" data-url="{% url 'historial_completo' %}?page={{ eventos.paginator.num_pages }}{% if fecha_desde %}&fecha_desde={{ fecha_desde }}{% endif %}{% if fecha_hasta %}&fecha_hasta={{ fecha_hasta }}{% endif %}{% if tipo_modelo_filtro %}&tipo_modelo={{ tipo_modelo_filtro }}{% endif %}{% if accion_filtro %}&accion={{ accion_filtro }}{% endif %}{% if usuario_filtro %}&usuario={{ usuario_filtro }}{% endif %}" 
+           style="display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 8px !important; padding: 0.75rem 1.5rem !important; border-radius: 12px !important; font-weight: 600 !important; font-size: 0.9rem !important; text-decoration: none !important; transition: all 0.2s ease !important; border: none !important; cursor: pointer !important; white-space: nowrap !important; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08) !important; background: linear-gradient(135deg, #757575 0%, #9e9e9e 100%) !important; color: #ffffff !important;">
+            Última <i class="fas fa-angle-double-right"></i>
+        </a>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Modal para detalles -->
+<div class="activity-modal-backdrop" id="activityModalBackdrop" onclick="closeActivityModal()"></div>
+<div class="activity-modal" id="activityModal">
+    <div class="activity-modal-content">
+        <button class="activity-modal-close" type="button" onclick="closeActivityModal()">
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="activity-modal-icon">
+            <i class="fas fa-clipboard-list"></i>
+        </div>
+        <h4 data-activity-field="title">Detalle</h4>
+        <p class="activity-modal-category" data-activity-field="category"></p>
+        <p class="activity-modal-meta">
+            <span><i class="fas fa-user"></i> <span data-activity-field="author"></span></span>
+            <span><i class="far fa-clock"></i> <span data-activity-field="date"></span></span>
+        </p>
+        <p class="activity-modal-description" data-activity-field="description"></p>
+        <ul class="activity-modal-details" data-activity-field="details"></ul>
+    </div>
+</div>
+
+<script>
+    // Sistema completo de filtrado dinámico para historial
+    (function() {
+        'use strict';
+        
+        let searchTimeout;
+        const DEBOUNCE_DELAY = 500;
+        
+        // Función para inicializar el toggle de filtros
+        function inicializarToggleFiltros() {
+            const toggleHeader = document.getElementById('filter-toggle-header-historial');
+            const filterContent = document.getElementById('filter-content-area-historial');
+            const toggleBtn = document.getElementById('btn-toggle-filters-historial');
+            
+            if (!toggleHeader || !filterContent) {
+                return false;
+            }
+            
+            // Remover listeners anteriores si existen
+            if (toggleHeader._toggleHandler) {
+                toggleHeader.removeEventListener('click', toggleHeader._toggleHandler);
+            }
+            if (toggleBtn && toggleBtn._toggleHandler) {
+                toggleBtn.removeEventListener('click', toggleBtn._toggleHandler);
+            }
+            
+            toggleHeader.style.display = 'flex';
+            toggleHeader.style.visibility = 'visible';
+            
+            // Restaurar estado desde localStorage (por defecto oculto)
+            const savedState = localStorage.getItem('filtros-historial-visible');
+            const isVisible = savedState === 'true';
+            
+            if (!isVisible) {
+                filterContent.classList.remove('filter-content-visible');
+                filterContent.classList.add('filter-content-hidden');
+                toggleHeader.classList.add('collapsed');
+                if (toggleBtn) {
+                    const chevron = toggleBtn.querySelector('.toggle-icon');
+                    if (chevron) {
+                        chevron.classList.remove('fa-chevron-down');
+                        chevron.classList.add('fa-chevron-up');
+                    }
+                }
+            } else {
+                filterContent.classList.remove('filter-content-hidden');
+                filterContent.classList.add('filter-content-visible');
+                toggleHeader.classList.remove('collapsed');
+                if (toggleBtn) {
+                    const chevron = toggleBtn.querySelector('.toggle-icon');
+                    if (chevron) {
+                        chevron.classList.remove('fa-chevron-up');
+                        chevron.classList.add('fa-chevron-down');
+                    }
+                }
+            }
+            
+            function toggleFilters() {
+                const isVisible = filterContent.classList.contains('filter-content-visible');
+                
+                if (isVisible) {
+                    filterContent.classList.remove('filter-content-visible');
+                    filterContent.classList.add('filter-content-hidden');
+                    toggleHeader.classList.add('collapsed');
+                    localStorage.setItem('filtros-historial-visible', 'false');
+                    if (toggleBtn) {
+                        const chevron = toggleBtn.querySelector('.toggle-icon');
+                        if (chevron) {
+                            chevron.classList.remove('fa-chevron-down');
+                            chevron.classList.add('fa-chevron-up');
+                        }
+                    }
+                } else {
+                    filterContent.classList.remove('filter-content-hidden');
+                    filterContent.classList.add('filter-content-visible');
+                    toggleHeader.classList.remove('collapsed');
+                    localStorage.setItem('filtros-historial-visible', 'true');
+                    if (toggleBtn) {
+                        const chevron = toggleBtn.querySelector('.toggle-icon');
+                        if (chevron) {
+                            chevron.classList.remove('fa-chevron-up');
+                            chevron.classList.add('fa-chevron-down');
+                        }
+                    }
+                }
+            }
+            
+            // Handler para el header
+            const headerClickHandler = function(e) {
+                if (e.target.closest('.btn-clear-filters') || e.target.closest('.btn-toggle-filters')) {
+                    return;
+                }
+                toggleFilters();
+            };
+            
+            toggleHeader._toggleHandler = headerClickHandler;
+            toggleHeader.addEventListener('click', headerClickHandler);
+            
+            // Handler para el botón toggle
+            if (toggleBtn) {
+                const btnClickHandler = function(e) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    toggleFilters();
+                };
+                
+                toggleBtn._toggleHandler = btnClickHandler;
+                toggleBtn.addEventListener('click', btnClickHandler);
+            }
+            
+            return true;
+        }
+        
+        // Función para inicializar el filtrado dinámico
+        function inicializarFiltrado() {
+            const filtroForm = document.getElementById('filtroHistorialForm');
+            const fechaDesde = document.getElementById('fecha_desde');
+            const fechaHasta = document.getElementById('fecha_hasta');
+            const tipoModelo = document.getElementById('tipo_modelo');
+            const accion = document.getElementById('accion');
+            const usuario = document.getElementById('usuario');
+            const btnLimpiar = document.getElementById('btn-limpiar-filtros-historial');
+            const loadingIndicator = document.getElementById('loading-indicator-historial');
+            
+            if (!filtroForm) {
+                console.log('⚠️ Formulario de filtros no encontrado');
+                return false;
+            }
+            
+            // Remover listeners anteriores si existen
+            if (fechaDesde && fechaDesde._changeHandler) {
+                fechaDesde.removeEventListener('change', fechaDesde._changeHandler);
+                fechaDesde._changeHandler = null;
+            }
+            if (fechaHasta && fechaHasta._changeHandler) {
+                fechaHasta.removeEventListener('change', fechaHasta._changeHandler);
+                fechaHasta._changeHandler = null;
+            }
+            if (tipoModelo && tipoModelo._changeHandler) {
+                tipoModelo.removeEventListener('change', tipoModelo._changeHandler);
+                tipoModelo._changeHandler = null;
+            }
+            if (accion && accion._changeHandler) {
+                accion.removeEventListener('change', accion._changeHandler);
+                accion._changeHandler = null;
+            }
+            if (usuario && usuario._changeHandler) {
+                usuario.removeEventListener('change', usuario._changeHandler);
+                usuario._changeHandler = null;
+            }
+            if (btnLimpiar && btnLimpiar._clearHandler) {
+                btnLimpiar.removeEventListener('click', btnLimpiar._clearHandler);
+                btnLimpiar._clearHandler = null;
+            }
+            
+            function loadDataViaAjax() {
+                if (!filtroForm) {
+                    console.error('❌ Formulario no disponible para filtrar');
+                    return;
+                }
+                
+                const formData = new FormData(filtroForm);
+                const urlParams = new URLSearchParams();
+                
+                for (const [key, value] of formData.entries()) {
+                    if (value) {
+                        urlParams.append(key, value);
+                    }
+                }
+                
+                const url = filtroForm.action + (urlParams.toString() ? '?' + urlParams.toString() : '');
+                
+                if (loadingIndicator) {
+                    loadingIndicator.style.display = 'block';
+                }
+                
+                console.log('🔍 Filtrando historial:', url);
+                
+                // Usar AdminAjax si está disponible, sino usar fetch
+                if (window.AdminAjax && typeof window.AdminAjax.loadContent === 'function') {
+                    window.AdminAjax.loadContent(url, function(response) {
+                        if (loadingIndicator) {
+                            loadingIndicator.style.display = 'none';
+                        }
+                        actualizarContadorResultados();
+                    });
+                } else {
+                    fetch(url, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.text())
+                    .then(html => {
+                        const contentArea = document.getElementById('main-content-area');
+                        if (contentArea) {
+                            contentArea.innerHTML = html;
+                            if (typeof jQuery !== 'undefined' && typeof $ !== 'undefined') {
+                                $(document).trigger('contentLoaded');
+                            }
+                        }
+                        if (loadingIndicator) {
+                            loadingIndicator.style.display = 'none';
+                        }
+                        actualizarContadorResultados();
+                    })
+                    .catch(error => {
+                        console.error('Error al filtrar:', error);
+                        if (loadingIndicator) {
+                            loadingIndicator.style.display = 'none';
+                        }
+                    });
+                }
+            }
+            
+            function actualizarContadorResultados() {
+                const resultadosText = document.getElementById('resultados-text-historial');
+                if (resultadosText) {
+                    // El contador se actualizará cuando se recargue el contenido
+                    setTimeout(() => {
+                        const nuevoContador = document.getElementById('resultados-text-historial');
+                        if (nuevoContador) {
+                            // El valor se actualizará automáticamente con el nuevo contenido
+                        }
+                    }, 100);
+                }
+            }
+            
+            // Agregar listeners con referencias guardadas
+            if (fechaDesde) {
+                fechaDesde._changeHandler = loadDataViaAjax;
+                fechaDesde.addEventListener('change', loadDataViaAjax);
+            }
+            
+            if (fechaHasta) {
+                fechaHasta._changeHandler = loadDataViaAjax;
+                fechaHasta.addEventListener('change', loadDataViaAjax);
+            }
+            
+            if (tipoModelo) {
+                tipoModelo._changeHandler = loadDataViaAjax;
+                tipoModelo.addEventListener('change', loadDataViaAjax);
+            }
+            
+            if (accion) {
+                accion._changeHandler = loadDataViaAjax;
+                accion.addEventListener('change', loadDataViaAjax);
+            }
+            
+            if (usuario) {
+                usuario._changeHandler = loadDataViaAjax;
+                usuario.addEventListener('change', loadDataViaAjax);
+            }
+            
+            if (btnLimpiar) {
+                const clearHandler = function(e) {
+                    e.preventDefault();
+                    if (fechaDesde) fechaDesde.value = '';
+                    if (fechaHasta) fechaHasta.value = '';
+                    if (tipoModelo) tipoModelo.value = '';
+                    if (accion) accion.value = '';
+                    if (usuario) usuario.value = '';
+                    loadDataViaAjax();
+                };
+                btnLimpiar._clearHandler = clearHandler;
+                btnLimpiar.addEventListener('click', clearHandler);
+            }
+            
+            return true;
+        }
+        
+        // Función principal de inicialización
+        function inicializar() {
+            inicializarToggleFiltros();
+            inicializarFiltrado();
+        }
+        
+        // Inicializar cuando el DOM esté listo
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', inicializar);
+        } else {
+            inicializar();
+        }
+        
+        // También inicializar cuando se cargue contenido vía AJAX
+        if (typeof jQuery !== 'undefined' && typeof $ !== 'undefined') {
+            $(document).on('contentLoaded', inicializar);
+        } else {
+            document.addEventListener('contentLoaded', inicializar);
+        }
+    })();
+    
+    // Modal de detalles
+    if (!window.openActivityModal) {
+        window.openActivityModal = function(button) {
+            const modal = document.getElementById('activityModal');
+            const backdrop = document.getElementById('activityModalBackdrop');
+            if (!modal || !backdrop) {
+                return;
+            }
+            modal.querySelector('[data-activity-field="title"]').textContent = button.dataset.title || '';
+            modal.querySelector('[data-activity-field="category"]').textContent = button.dataset.category || '';
+            modal.querySelector('[data-activity-field="author"]').textContent = button.dataset.author || 'No especificado';
+            modal.querySelector('[data-activity-field="date"]').textContent = button.dataset.date || '';
+            modal.querySelector('[data-activity-field="description"]').textContent = button.dataset.description || '';
+
+            const detailsContainer = modal.querySelector('[data-activity-field="details"]');
+            detailsContainer.innerHTML = '';
+            const details = (button.dataset.details || '').split('||').filter(Boolean);
+            if (details.length) {
+                details.forEach(function(detail) {
+                    const li = document.createElement('li');
+                    li.textContent = detail;
+                    detailsContainer.appendChild(li);
+                });
+            }
+
+            modal.classList.add('show');
+            backdrop.classList.add('show');
+        };
+
+        window.closeActivityModal = function() {
+            const modal = document.getElementById('activityModal');
+            const backdrop = document.getElementById('activityModalBackdrop');
+            if (!modal || !backdrop) {
+                return;
+            }
+            modal.classList.remove('show');
+            backdrop.classList.remove('show');
+        };
+    }
+    
+    // Estilos adicionales para paginación
+    const style = document.createElement('style');
+    style.textContent = `
+        .pagination-btn-nav:hover {
+            background: linear-gradient(135deg, #616161 0%, #757575 100%) !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+            color: #ffffff !important;
+            text-decoration: none !important;
+        }
+    `;
+    document.head.appendChild(style);
+</script>
+{% endblock %}

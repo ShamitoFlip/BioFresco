@@ -1,0 +1,236 @@
+{% extends 'base.html' %}
+
+{% block titulo %}Historial de Servicios{% endblock %}
+
+{% block contenido %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h2 class="mb-4"><i class="fas fa-calendar-check me-2"></i>Historial de Servicios Completados</h2>
+            
+            <!-- Filtros -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title mb-3"><i class="fas fa-filter me-2"></i>Filtros</h5>
+                    <form method="get" action="{% url 'servicios_historial' %}" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="fecha_desde" class="form-label">Fecha Desde</label>
+                            <input type="date" class="form-control" id="fecha_desde" name="fecha_desde" value="{{ fecha_desde }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="fecha_hasta" class="form-label">Fecha Hasta</label>
+                            <input type="date" class="form-control" id="fecha_hasta" name="fecha_hasta" value="{{ fecha_hasta }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="servicio_id" class="form-label">Servicio</label>
+                            <select class="form-select" id="servicio_id" name="servicio_id">
+                                <option value="">Todos los servicios</option>
+                                {% for servicio in servicios_disponibles %}
+                                <option value="{{ servicio.id }}" {% if servicio_id_seleccionado == servicio.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ servicio.nombre }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="empleado_id" class="form-label">Empleado</label>
+                            <select class="form-select" id="empleado_id" name="empleado_id">
+                                <option value="">Todos los empleados</option>
+                                {% for empleado in empleados_disponibles %}
+                                <option value="{{ empleado.id }}" {% if empleado_id_seleccionado == empleado.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ empleado.nombre }}{% if empleado.apellido %} {{ empleado.apellido }}{% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-12 d-flex align-items-end gap-2">
+                            <button type="submit" class="btn btn-primary-admin">
+                                <i class="fas fa-filter me-2"></i>Filtrar
+                            </button>
+                            <a href="{% url 'servicios_historial' %}" class="btn btn-secondary">
+                                <i class="fas fa-times me-2"></i>Limpiar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Tarjetas de Estadísticas -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <h6 class="card-title text-muted">Total de Servicios Completados</h6>
+                            <h2 class="text-primary">{{ total_servicios }}</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <h6 class="card-title text-muted">Ingresos Totales</h6>
+                            <h2 class="text-success">${{ total_ingresos|floatformat:0 }}</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            {% if servicios %}
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped">
+                        <thead class="table-primary">
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Hora</th>
+                                <th>Cliente</th>
+                                <th>Email</th>
+                                <th>Teléfono</th>
+                                <th>Servicio</th>
+                                <th>Empleado</th>
+                                <th>Costo</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for servicio in servicios %}
+                            <tr>
+                                <td>
+                                    <small class="text-muted">{{ servicio.fecha_servicio|date:"d/m/Y" }}</small>
+                                </td>
+                                <td>
+                                    {% if servicio.hora %}
+                                        <small class="text-muted">{{ servicio.hora|time:"H:i" }}</small>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td><strong>{{ servicio.nombre_cliente }}</strong></td>
+                                <td>
+                                    {% if servicio.email_cliente %}
+                                        <a href="mailto:{{ servicio.email_cliente }}">{{ servicio.email_cliente }}</a>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if servicio.telefono_cliente %}
+                                        {{ servicio.telefono_cliente }}
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if servicio.servicio %}
+                                        <span class="badge bg-info">{{ servicio.servicio.nombre }}</span>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if servicio.estilista %}
+                                        {{ servicio.estilista.nombre }}{% if servicio.estilista.apellido %} {{ servicio.estilista.apellido }}{% endif %}
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <strong>${{ servicio.costo|floatformat:0 }}</strong>
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#detalleModal{{ servicio.id }}">
+                                        <i class="fas fa-eye"></i> Ver
+                                    </button>
+                                </td>
+                            </tr>
+
+                            <!-- Modal de Detalles -->
+                            <div class="modal fade" id="detalleModal{{ servicio.id }}" tabindex="-1">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header bg-info text-white">
+                                            <h5 class="modal-title">Detalles del Servicio #{{ servicio.id }}</h5>
+                                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <h6 class="mb-3"><strong>Información del Cliente</strong></h6>
+                                            <ul class="list-unstyled">
+                                                <li><strong>Nombre:</strong> {{ servicio.nombre_cliente }}</li>
+                                                <li><strong>Email:</strong> {{ servicio.email_cliente|default:"-" }}</li>
+                                                <li><strong>Teléfono:</strong> {{ servicio.telefono_cliente|default:"-" }}</li>
+                                            </ul>
+
+                                            <hr>
+
+                                            <h6 class="mb-3"><strong>Información del Servicio</strong></h6>
+                                            <ul class="list-unstyled">
+                                                <li><strong>Servicio:</strong> {{ servicio.servicio.nombre|default:"-" }}</li>
+                                                {% if servicio.servicio %}
+                                                <li><strong>Descripción:</strong> {{ servicio.servicio.descripcion|default:"Sin descripción" }}</li>
+                                                {% endif %}
+                                                <li><strong>Fecha:</strong> {{ servicio.fecha_servicio|date:"d/m/Y" }}</li>
+                                                <li><strong>Hora:</strong> {{ servicio.hora|time:"H:i"|default:"-" }}</li>
+                                                <li><strong>Estado:</strong> 
+                                                    <span class="badge bg-success">Completado</span>
+                                                </li>
+                                                <li><strong>Costo:</strong> <span class="text-success"><strong>${{ servicio.costo|floatformat:0 }}</strong></span></li>
+                                            </ul>
+
+                                            {% if servicio.estilista %}
+                                            <hr>
+                                            <h6 class="mb-3"><strong>Empleado Asignado</strong></h6>
+                                            <ul class="list-unstyled">
+                                                <li><strong>Nombre:</strong> {{ servicio.estilista.nombre }}{% if servicio.estilista.apellido %} {{ servicio.estilista.apellido }}{% endif %}</li>
+                                                {% if servicio.estilista.cargo %}
+                                                <li><strong>Cargo:</strong> {{ servicio.estilista.cargo.nombre }}</li>
+                                                {% endif %}
+                                            </ul>
+                                            {% endif %}
+
+                                            <hr>
+                                            <p class="text-muted small mb-0">
+                                                <strong>Fecha de registro:</strong> {{ servicio.fecha_registro|date:"d/m/Y H:i:s" }}
+                                            </p>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-inbox me-2"></i>
+                    {% if fecha_desde or fecha_hasta or servicio_id_seleccionado or empleado_id_seleccionado %}
+                        No hay servicios completados en el rango de filtros seleccionado
+                    {% else %}
+                        No hay servicios completados registrados
+                    {% endif %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+    .table th {
+        font-weight: 600;
+        border-bottom: 2px solid #dee2e6;
+    }
+    
+    .btn-sm {
+        padding: 0.35rem 0.6rem;
+        font-size: 0.85rem;
+    }
+</style>
+{% endblock contenido %}
+
+
+

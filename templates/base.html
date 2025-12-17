@@ -1,0 +1,352 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>{% block titulo %}Clínica Estética{% endblock %}</title>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS v5.2.1 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
+          crossorigin="anonymous">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Variables CSS para Light Mode */
+        :root {
+            --bg-primary: #f8f9fa;
+            --bg-card: #ffffff;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --navbar-bg: linear-gradient(135deg, #1e40af 0%, #0369a1 100%);
+            --footer-bg: linear-gradient(135deg, #1e40af 0%, #0369a1 100%);
+            --card-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --border-color: #dee2e6;
+        }
+
+
+        .navbar {
+            background: var(--navbar-bg) !important;
+            padding: 1rem 2rem;
+            transition: background 0.3s ease;
+        }
+        .navbar-brand, .nav-link {
+            color: white !important;
+        }
+        .nav-link:hover {
+            color: #f0f0f0 !important;
+            transform: translateY(-2px);
+            transition: all 0.3s;
+        }
+        .navbar-brand {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+        .card {
+            border: none;
+            box-shadow: var(--card-shadow);
+            transition: transform 0.3s, box-shadow 0.3s ease, background-color 0.3s ease;
+            background-color: var(--bg-card);
+            color: var(--text-primary);
+        }
+        .card:hover {
+            transform: translateY(-5px);
+        }
+        .btn {
+            border-radius: 25px;
+            padding: 8px 20px;
+        }
+        .footer {
+            background: var(--footer-bg);
+            color: white;
+            padding: 2rem 0;
+            margin-top: 3rem;
+            transition: background 0.3s ease;
+        }
+        /* Alert prominence for missing required data */
+        .alert-prominent {
+            border-left: 6px solid #dc3545;
+            background-color: #fff5f5;
+            color: #842029;
+            font-weight: 600;
+            box-shadow: 0 6px 18px rgba(220,53,69,0.12);
+        }
+        .alert-prominent .fa-exclamation-triangle {
+            color: #b02a37;
+            margin-right: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'inicio' %}">
+                <i class="fas fa-leaf me-2"></i>BioFresco
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'inicio' %}">
+                            <i class="fas fa-home me-1"></i>Inicio
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'servicios_publicos' %}">
+                            <i class="fas fa-spa me-1"></i>Servicios
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'nosotros' %}">
+                            <i class="fas fa-users me-1"></i>Nosotros
+                        </a>
+                    </li>
+                    {# Compras moved to admin panel: removed from header to reduce clutter #}
+                </ul>
+                <div class="navbar-nav d-flex align-items-center">
+                    {% if user.is_authenticated %}
+                        <span class="nav-link">
+                            <i class="fas fa-user me-1"></i>Bienvenido, {{ user.email|default:user.username }}
+                        </span>
+                        {% if user.is_staff or user.is_superuser %}
+                        <a class="nav-link" href="/panel-admin/">
+                            <i class="fas fa-tools me-1"></i>Panel de Administración
+                        </a>
+                        {% endif %}
+                        <a class="nav-link" href="{% url 'logout' %}">
+                            <i class="fas fa-sign-out-alt me-1"></i>Cerrar Sesión
+                        </a>
+                    {% else %}
+                        <a class="nav-link" href="{% url 'login' %}">
+                            <i class="fas fa-sign-in-alt me-1"></i>Iniciar Sesión
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container py-4">
+        {% if messages %}
+        <div class="row">
+            <div class="col-12">
+                {% for message in messages %}
+                {% comment %}Marcar errores como más llamativos{% endcomment %}
+                {% if 'error' in message.tags or 'danger' in message.tags %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show alert-prominent" role="alert">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong class="me-2">Faltan datos:</strong> {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% else %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+        {% block contenido %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <h5><i class="fas fa-spa me-2"></i>Clínica Estética</h5>
+                    <p>Tu destino de belleza y bienestar con los mejores tratamientos estéticos.</p>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <h5><i class="fas fa-spa me-2"></i>Nuestros Servicios</h5>
+                    <ul class="list-unstyled">
+                        <li><a href="{% url 'servicios_publicos' %}" class="text-white-50 text-decoration-none">Servicios</a></li>
+                        <li><a href="{% url 'nosotros' %}" class="text-white-50 text-decoration-none">Conoce nuestro equipo</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <h5><i class="fas fa-clock me-2"></i>Horario</h5>
+                    <p>
+                        Lunes a Viernes: 9:00 - 19:00<br>
+                        Sábado: 10:00 - 14:00<br>
+                        Domingo: Cerrado
+                    </p>
+                </div>
+            </div>
+            <hr class="mt-4 mb-3" style="border-color: rgba(255,255,255,0.1);">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <p class="mb-0">&copy; {% now "Y" %} Clínica Estética. Todos los derechos reservados.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JavaScript Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+            integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+            crossorigin="anonymous">
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
+            integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
+            crossorigin="anonymous">
+    </script>
+    <script>
+    // If there's a prominent alert (missing required data), scroll to it and focus first empty required input
+    document.addEventListener('DOMContentLoaded', function(){
+        const alertProm = document.querySelector('.alert-prominent');
+        if(alertProm){
+            // scroll into view
+            alertProm.scrollIntoView({behavior: 'smooth', block: 'center'});
+            // find first required input/select/textarea that's empty and focus it and add a pulse border
+            const selectors = 'input[required], select[required], textarea[required]';
+            const fields = Array.from(document.querySelectorAll(selectors));
+            for(const f of fields){
+                const val = (f.value || '').toString().trim();
+                if(!val){
+                    try{ f.focus(); } catch(e){}
+                    f.classList.add('border', 'border-danger');
+                    // remove highlight after a moment
+                    setTimeout(()=>{ f.classList.remove('border', 'border-danger'); }, 3000);
+                    break;
+                }
+            }
+        }
+    });
+    </script>
+    
+    <!-- Script para auto-ocultar mensajes después de 3 segundos -->
+    <script>
+    (function() {
+        'use strict';
+        
+        // Función para ocultar un mensaje
+        function ocultarMensaje(alertElement) {
+            if (alertElement && alertElement.classList) {
+                // Usar Bootstrap para cerrar el alert con animación
+                if (typeof bootstrap !== 'undefined' && bootstrap.Alert) {
+                    const bsAlert = new bootstrap.Alert(alertElement);
+                    bsAlert.close();
+                } else {
+                    // Fallback: ocultar manualmente
+                    alertElement.classList.remove('show');
+                    alertElement.classList.add('fade');
+                    setTimeout(function() {
+                        if (alertElement.parentNode) {
+                            alertElement.parentNode.removeChild(alertElement);
+                        }
+                    }, 150);
+                }
+            }
+        }
+        
+        // Función para inicializar auto-ocultar en un mensaje
+        function inicializarAutoOcultar(alertElement) {
+            if (!alertElement || alertElement.dataset.autoHideInitialized) {
+                return;
+            }
+            
+            // Marcar como inicializado para evitar múltiples timers
+            alertElement.dataset.autoHideInitialized = 'true';
+            
+            // Ocultar después de 3 segundos
+            setTimeout(function() {
+                ocultarMensaje(alertElement);
+            }, 3000);
+        }
+        
+        // Inicializar mensajes existentes al cargar la página
+        function inicializarMensajesExistentes() {
+            const mensajes = document.querySelectorAll('.alert.alert-dismissible, .alert[role="alert"]');
+            mensajes.forEach(function(mensaje) {
+                inicializarAutoOcultar(mensaje);
+            });
+        }
+        
+        // Observer para detectar nuevos mensajes creados dinámicamente
+        function crearObserver() {
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    mutation.addedNodes.forEach(function(node) {
+                        if (node.nodeType === 1) { // Element node
+                            // Verificar si el nodo es un alert
+                            if (node.classList && (node.classList.contains('alert') || node.classList.contains('alert-dismissible'))) {
+                                inicializarAutoOcultar(node);
+                            }
+                            // Verificar si el nodo contiene alerts
+                            const alerts = node.querySelectorAll && node.querySelectorAll('.alert.alert-dismissible, .alert[role="alert"]');
+                            if (alerts) {
+                                alerts.forEach(function(alert) {
+                                    inicializarAutoOcultar(alert);
+                                });
+                            }
+                        }
+                    });
+                });
+            });
+            
+            // Observar cambios en el contenedor principal
+            const main = document.querySelector('main');
+            if (main) {
+                observer.observe(main, {
+                    childList: true,
+                    subtree: true
+                });
+            }
+            
+            // También observar el body por si se agregan mensajes en otros lugares
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+        }
+        
+        // Inicializar cuando el DOM esté listo
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                inicializarMensajesExistentes();
+                crearObserver();
+            });
+        } else {
+            inicializarMensajesExistentes();
+            crearObserver();
+        }
+        
+        // Función global para crear mensajes con auto-ocultar
+        window.crearMensajeAutoOcultar = function(mensaje, tipo, contenedor) {
+            tipo = tipo || 'success';
+            contenedor = contenedor || document.querySelector('main');
+            
+            if (!contenedor) return null;
+            
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-' + tipo + ' alert-dismissible fade show';
+            alertDiv.setAttribute('role', 'alert');
+            
+            const icono = tipo === 'success' ? 'fa-check-circle' : 
+                         tipo === 'danger' ? 'fa-exclamation-triangle' : 
+                         tipo === 'warning' ? 'fa-exclamation-circle' : 'fa-info-circle';
+            
+            alertDiv.innerHTML = '<i class="fas ' + icono + ' me-2"></i>' + mensaje + 
+                                '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+            
+            contenedor.insertBefore(alertDiv, contenedor.firstChild);
+            inicializarAutoOcultar(alertDiv);
+            
+            return alertDiv;
+        };
+    })();
+    </script>
+</body>
+</html>

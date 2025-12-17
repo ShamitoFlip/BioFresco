@@ -1,0 +1,366 @@
+<!-- Definir URL global para el swap si no existe -->
+<script>
+    if (typeof window.swapSlotsUrl === 'undefined') {
+        window.swapSlotsUrl = '/api/inventory/swap/';
+    }
+</script>
+
+<!-- jQuery UI CSS para Drag and Drop (solo si no está cargado) -->
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/ui-lightness/jquery-ui.css">
+<style>
+    .inventory-container {
+        padding: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .inventory-header {
+        margin-bottom: 2rem;
+        text-align: center;
+    }
+    
+    .inventory-header h1 {
+        color: #2e7d32;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .inventory-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+        margin: 0 auto;
+        max-width: 600px;
+    }
+    
+    .inventory-slot {
+        aspect-ratio: 1;
+        background: linear-gradient(135deg, #f5f5f5 0%, #e0e0e0 100%);
+        border: 3px solid #bdbdbd;
+        border-radius: 12px;
+        position: relative;
+        cursor: move;
+        transition: all 0.2s ease;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem;
+        min-height: 120px;
+    }
+    
+    .inventory-slot:hover {
+        border-color: #4caf50;
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+    }
+    
+    .inventory-slot.ui-draggable-dragging {
+        opacity: 0.7;
+        z-index: 1000;
+        transform: scale(1.1);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+    
+    .inventory-slot.ui-droppable-hover {
+        border-color: #4caf50;
+        background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+        box-shadow: 0 0 20px rgba(76, 175, 80, 0.5);
+    }
+    
+    .inventory-slot.empty {
+        background: linear-gradient(135deg, #fafafa 0%, #f0f0f0 100%);
+        border-color: #e0e0e0;
+    }
+    
+    .inventory-slot.empty:hover {
+        border-color: #bdbdbd;
+        transform: none;
+    }
+    
+    .slot-icon {
+        max-width: 80%;
+        max-height: 80%;
+        object-fit: contain;
+        margin-bottom: 0.25rem;
+    }
+    
+    .slot-quantity {
+        position: absolute;
+        bottom: 0.25rem;
+        right: 0.5rem;
+        background: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 0.15rem 0.4rem;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        min-width: 24px;
+        text-align: center;
+    }
+    
+    .slot-item-name {
+        font-size: 0.7rem;
+        color: #424242;
+        text-align: center;
+        margin-top: 0.25rem;
+        font-weight: 500;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 100%;
+    }
+    
+    .empty-slot-indicator {
+        color: #bdbdbd;
+        font-size: 2rem;
+        opacity: 0.3;
+    }
+    
+    @media (max-width: 768px) {
+        .inventory-grid {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+        }
+        
+        .inventory-slot {
+            min-height: 100px;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .inventory-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5rem;
+        }
+    }
+</style>
+
+<div class="inventory-container">
+    <div class="inventory-header">
+        <h1><i class="fas fa-boxes me-2"></i>Mi Inventario Personal</h1>
+        <p class="text-muted">Arrastra y suelta los items para reorganizar tu inventario</p>
+    </div>
+    
+    <div class="inventory-grid" id="inventory-grid">
+        {% for slot in slots %}
+        <div class="inventory-slot {% if not slot.item %}empty{% endif %}" 
+             data-index="{{ slot.slot_index }}" 
+             data-item-id="{% if slot.item %}{{ slot.item.id }}{% else %}null{% endif %}">
+            {% if slot.item %}
+                {% if slot.item.image_url %}
+                    <img src="{{ slot.item.image_url }}" alt="{{ slot.item.item_name }}" class="slot-icon">
+                {% else %}
+                    <div class="empty-slot-indicator">
+                        <i class="fas fa-cube"></i>
+                    </div>
+                {% endif %}
+                {% if slot.quantity > 1 %}
+                    <span class="slot-quantity">{{ slot.quantity }}</span>
+                {% endif %}
+                <div class="slot-item-name" title="{{ slot.item.item_name }}">{{ slot.item.item_name }}</div>
+            {% else %}
+                <div class="empty-slot-indicator">
+                    <i class="fas fa-square"></i>
+                </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- jQuery UI JS (solo si no está cargado) -->
+<script>
+if (typeof jQuery === 'undefined' || typeof jQuery.ui === 'undefined') {
+    var script1 = document.createElement('script');
+    script1.src = 'https://code.jquery.com/jquery-3.6.0.min.js';
+    document.head.appendChild(script1);
+    
+    script1.onload = function() {
+        var script2 = document.createElement('script');
+        script2.src = 'https://code.jquery.com/ui/1.13.2/jquery-ui.min.js';
+        document.head.appendChild(script2);
+        script2.onload = initializeInventoryDragDrop;
+    };
+} else {
+    initializeInventoryDragDrop();
+}
+
+function initializeInventoryDragDrop() {
+    'use strict';
+    
+    // Función para obtener el token CSRF
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    
+    // Función para actualizar el DOM después de un swap/merge exitoso
+    function updateSlotDOM(slotData) {
+        const slotElement = document.querySelector(`.inventory-slot[data-index="${slotData.slot_index}"]`);
+        if (!slotElement) return;
+        
+        // Actualizar data-item-id
+        slotElement.setAttribute('data-item-id', slotData.item_id || 'null');
+        
+        // Limpiar contenido actual
+        slotElement.innerHTML = '';
+        
+        // Remover clases
+        slotElement.classList.remove('empty');
+        
+        if (slotData.item_id && slotData.quantity > 0) {
+            // Slot con item
+            let html = '';
+            
+            if (slotData.image_url) {
+                html += `<img src="${slotData.image_url}" alt="${slotData.item_name || ''}" class="slot-icon">`;
+            } else {
+                html += `<div class="empty-slot-indicator"><i class="fas fa-cube"></i></div>`;
+            }
+            
+            if (slotData.quantity > 1) {
+                html += `<span class="slot-quantity">${slotData.quantity}</span>`;
+            }
+            
+            if (slotData.item_name) {
+                html += `<div class="slot-item-name" title="${slotData.item_name}">${slotData.item_name}</div>`;
+            }
+            
+            slotElement.innerHTML = html;
+        } else {
+            // Slot vacío
+            slotElement.classList.add('empty');
+            slotElement.innerHTML = '<div class="empty-slot-indicator"><i class="fas fa-square"></i></div>';
+        }
+    }
+    
+    // Función para reinicializar drag and drop después de actualizar el DOM
+    function reinitializeDragAndDrop() {
+        // Destruir instancias anteriores
+        $('.inventory-slot').draggable('destroy').droppable('destroy');
+        
+        // Recrear draggable
+        $('.inventory-slot').draggable({
+            revert: 'invalid',
+            cursor: 'move',
+            zIndex: 1000,
+            helper: 'clone',
+            appendTo: 'body',
+            start: function(event, ui) {
+                // Solo permitir arrastrar si tiene un item
+                const itemId = $(this).attr('data-item-id');
+                if (itemId === 'null' || !itemId) {
+                    return false;
+                }
+                $(this).addClass('ui-draggable-dragging');
+            },
+            stop: function(event, ui) {
+                $(this).removeClass('ui-draggable-dragging');
+            }
+        });
+        
+        // Recrear droppable
+        $('.inventory-slot').droppable({
+            accept: '.inventory-slot',
+            hoverClass: 'ui-droppable-hover',
+            tolerance: 'pointer',
+            drop: handleDrop
+        });
+    }
+    
+    // Función para manejar el evento drop
+    function handleDrop(event, ui) {
+        const fromElement = ui.draggable[0];
+        const toElement = this;
+        
+        const fromIndex = parseInt($(fromElement).attr('data-index'));
+        const toIndex = parseInt($(toElement).attr('data-index'));
+        
+        // No hacer nada si es el mismo slot
+        if (fromIndex === toIndex) {
+            return;
+        }
+        
+        // Obtener token CSRF
+        const csrftoken = getCookie('csrftoken');
+        
+        // Obtener la URL del swap (usar la URL completa o una variable global)
+        const swapUrl = (typeof window.swapSlotsUrl !== 'undefined') ? window.swapSlotsUrl : '/api/inventory/swap/';
+        
+        // Enviar petición AJAX
+        $.ajax({
+            url: swapUrl,
+            type: 'POST',
+            contentType: 'application/json',
+            headers: {
+                'X-CSRFToken': csrftoken
+            },
+            data: JSON.stringify({
+                'from_index': fromIndex,
+                'to_index': toIndex
+            }),
+            success: function(response) {
+                if (response.success && response.updated_slots) {
+                    // Actualizar el DOM para cada slot modificado
+                    response.updated_slots.forEach(function(slotData) {
+                        updateSlotDOM(slotData);
+                    });
+                    
+                    // Reinicializar drag and drop
+                    reinitializeDragAndDrop();
+                    
+                    console.log('Slots actualizados exitosamente:', response.action);
+                } else {
+                    console.error('Error en la respuesta:', response);
+                    alert('Error al intercambiar los slots. Por favor, intenta nuevamente.');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error AJAX:', error);
+                let errorMessage = 'Error al intercambiar los slots.';
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    errorMessage = xhr.responseJSON.error;
+                }
+                alert(errorMessage);
+            }
+        });
+    }
+    
+    // Inicializar cuando el DOM esté listo o cuando se carga vía AJAX
+    function initInventory() {
+        // Esperar un momento para asegurar que jQuery UI esté cargado
+        setTimeout(function() {
+            if (typeof $ !== 'undefined' && typeof $.fn.draggable !== 'undefined') {
+                reinitializeDragAndDrop();
+            } else {
+                // Si jQuery UI no está listo, intentar de nuevo
+                setTimeout(initInventory, 100);
+            }
+        }, 100);
+    }
+    
+    // Inicializar cuando el DOM esté listo
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initInventory);
+    } else {
+        initInventory();
+    }
+    
+    // También escuchar el evento contentLoaded que dispara admin_ajax.js
+    $(document).on('contentLoaded', function() {
+        initInventory();
+    });
+}
+</script>
+

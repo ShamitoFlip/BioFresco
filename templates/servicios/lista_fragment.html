@@ -1,0 +1,375 @@
+<!-- Fragmento HTML para carga AJAX - Gestión de Servicios -->
+<!-- Page Header -->
+<div class="page-header">
+    <h1 class="page-title">Gestión de Servicios</h1>
+    {% if servicios %}
+    <div class="d-flex gap-2">
+        <a href="{% url 'servicios_crear' %}" class="btn btn-primary-admin ajax-link" data-url="{% url 'servicios_crear' %}">
+            <i class="fas fa-plus me-2"></i>Servicio nuevo
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Search Container -->
+<div class="search-container-enhanced">
+    <div class="filter-toggle-header" id="filter-toggle-header-servicios">
+        <div class="filter-title">
+            <i class="fas fa-filter"></i>
+            <span>Filtros de Búsqueda</span>
+        </div>
+        <div class="filter-actions">
+            <button type="button" class="btn-clear-filters" id="btn-limpiar-filtros-servicios" title="Limpiar todos los filtros">
+                <i class="fas fa-redo"></i>
+                <span>Limpiar</span>
+            </button>
+            <button type="button" class="btn-toggle-filters" id="btn-toggle-filters-servicios" title="Mostrar/Ocultar filtros">
+                <i class="fas fa-chevron-down toggle-icon"></i>
+            </button>
+        </div>
+    </div>
+    
+    <div id="filter-content-area-servicios" class="filter-content-visible">
+        <form method="GET" action="{% url 'servicios_lista' %}" id="servicios-filter-form">
+        <div class="search-row-enhanced">
+            <div class="search-field-enhanced">
+                <div class="field-label">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Fecha Desde</span>
+                </div>
+                <div class="input-wrapper">
+                    <i class="fas fa-calendar-alt input-icon"></i>
+                    <input type="date" name="fecha_desde" value="{{ fecha_desde }}" class="form-control-enhanced" autocomplete="off">
+                </div>
+            </div>
+            
+            <div class="search-field-enhanced">
+                <div class="field-label">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Fecha Hasta</span>
+                </div>
+                <div class="input-wrapper">
+                    <i class="fas fa-calendar-alt input-icon"></i>
+                    <input type="date" name="fecha_hasta" value="{{ fecha_hasta }}" class="form-control-enhanced" autocomplete="off">
+                </div>
+            </div>
+            
+            <div class="search-field-enhanced">
+                <div class="field-label">
+                    <i class="fas fa-list"></i>
+                    <span>Servicio</span>
+                </div>
+                <div class="input-wrapper">
+                    <i class="fas fa-list input-icon"></i>
+                    <select name="servicio_id" class="form-control-enhanced">
+                        <option value="">Todos los servicios</option>
+                        {% for servicio in servicios_disponibles %}
+                        <option value="{{ servicio.id }}" {% if servicio_id_seleccionado == servicio.id|stringformat:"s" %}selected{% endif %}>
+                            {{ servicio.nombre }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            
+            <div class="search-field-enhanced">
+                <div class="field-label">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Estado</span>
+                </div>
+                <div class="toggle-container-enhanced" style="flex-direction: column; align-items: flex-start; gap: 0.75rem;">
+                    <div class="d-flex gap-3 flex-wrap">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="estado" value="pendiente" id="estado_pendiente" {% if 'pendiente' in estados_seleccionados %}checked{% endif %}>
+                            <label class="form-check-label" for="estado_pendiente">Pendiente</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="estado" value="en_progreso" id="estado_en_progreso" {% if 'en_progreso' in estados_seleccionados %}checked{% endif %}>
+                            <label class="form-check-label" for="estado_en_progreso">En Progreso</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="estado" value="completado" id="estado_completado" {% if 'completado' in estados_seleccionados %}checked{% endif %}>
+                            <label class="form-check-label" for="estado_completado">Completado</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </form>
+        
+        <div class="filter-footer-enhanced">
+        <div class="results-info-enhanced">
+            <div class="results-icon">
+                <i class="fas fa-concierge-bell"></i>
+            </div>
+            <div class="results-content">
+                <span class="results-label">Resultados encontrados:</span>
+                <span id="resultados-text-servicios" class="results-number">{{ servicios|length }} servicio{{ servicios|length|pluralize }}</span>
+            </div>
+        </div>
+    </div>
+    
+    <div id="loading-indicator-servicios" class="loading-indicator-enhanced" style="display: none;">
+        <div class="spinner-wrapper">
+            <div class="spinner"></div>
+        </div>
+        <span class="loading-text">Filtrando resultados...</span>
+    </div>
+    </div>
+</div>
+
+<!-- Data Table Container -->
+<div class="data-table-container">
+    {% if servicios %}
+    <table class="table-data">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Servicio</th>
+                <th>Especialista</th>
+                <th>Cliente</th>
+                <th>RUT</th>
+                <th>Email</th>
+                <th>Teléfono</th>
+                <th>Fecha</th>
+                <th>Costo</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for servicio in servicios %}
+            <tr>
+                <td>{{ servicio.id }}</td>
+                <td><strong>{{ servicio.servicio.nombre }}</strong></td>
+                <td>{{ servicio.estilista.nombre }}{% if servicio.estilista.apellido %} {{ servicio.estilista.apellido }}{% endif %}</td>
+                <td>{{ servicio.nombre_cliente }}</td>
+                <td>{{ servicio.rut_cliente|default:"-" }}</td>
+                <td>{{ servicio.email_cliente|default:"-" }}</td>
+                <td>{{ servicio.telefono_cliente|default:"-" }}</td>
+                <td>
+                    {% if servicio.hora %}
+                        <small>{{ servicio.fecha_servicio|date:"d/m/Y" }} {{ servicio.hora|time:"H:i" }}</small>
+                    {% else %}
+                        <small>{{ servicio.fecha_servicio|date:"d/m/Y" }}</small>
+                    {% endif %}
+                </td>
+                <td>${{ servicio.costo|floatformat:0 }}</td>
+                <td>
+                    <span class="badge 
+                        {% if servicio.estado == 'pendiente' %}bg-warning
+                        {% elif servicio.estado == 'en_progreso' %}bg-primary
+                        {% elif servicio.estado == 'completado' %}bg-success
+                        {% else %}bg-secondary{% endif %}">
+                        {{ servicio.get_estado_display }}
+                    </span>
+                </td>
+                <td>
+                    <a href="{% url 'servicios_editar' servicio.id %}" class="btn btn-action btn-edit" title="Editar">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <a href="{% url 'servicios_eliminar' servicio.id %}" class="btn btn-action btn-delete" title="Eliminar" onclick="return confirm('¿Estás seguro de eliminar este servicio?');">
+                        <i class="fas fa-trash-alt"></i>
+                    </a>
+                    {% if servicio.estado != 'completado' %}
+                    <a href="{% url 'servicios_marcar_completado' servicio.id %}" class="btn btn-action btn-success" title="Marcar completado" onclick="return confirm('¿Marcar este servicio como completado?');">
+                        <i class="fas fa-check"></i>
+                    </a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="text-center" style="padding: 3rem; color: #757575;">
+        <i class="fas fa-inbox fa-3x mb-3" style="opacity: 0.3;"></i>
+        <p style="margin-bottom: 1rem; font-size: 1rem;">
+            {% if fecha_desde or fecha_hasta %}
+                No hay servicios registrados en el rango de fechas seleccionado
+            {% else %}
+                No hay servicios registrados
+            {% endif %}
+        </p>
+        <div class="d-flex gap-2 justify-content-center">
+            <a href="{% url 'servicios_crear' %}" class="btn btn-primary-admin mt-3 ajax-link" data-url="{% url 'servicios_crear' %}">
+                <i class="fas fa-plus me-2"></i>Crear Primer Servicio
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    // Manejar el toggle de mostrar/ocultar filtros
+    (function() {
+        const toggleHeader = document.getElementById('filter-toggle-header-servicios');
+        const filterContent = document.getElementById('filter-content-area-servicios');
+        const toggleBtn = document.getElementById('btn-toggle-filters-servicios');
+        
+        if (toggleHeader && filterContent) {
+            // Asegurar que el header siempre esté visible
+            toggleHeader.style.display = 'flex';
+            toggleHeader.style.visibility = 'visible';
+            
+            const savedState = localStorage.getItem('filtros-servicios-visible');
+            const isVisible = savedState === null ? true : savedState === 'true';
+            
+            if (!isVisible) {
+                filterContent.classList.remove('filter-content-visible');
+                filterContent.classList.add('filter-content-hidden');
+                toggleHeader.classList.add('collapsed');
+            } else {
+                filterContent.classList.remove('filter-content-hidden');
+                filterContent.classList.add('filter-content-visible');
+                toggleHeader.classList.remove('collapsed');
+            }
+            
+            function toggleFilters() {
+                const isVisible = filterContent.classList.contains('filter-content-visible');
+                
+                if (isVisible) {
+                    filterContent.classList.remove('filter-content-visible');
+                    filterContent.classList.add('filter-content-hidden');
+                    toggleHeader.classList.add('collapsed');
+                    localStorage.setItem('filtros-servicios-visible', 'false');
+                } else {
+                    filterContent.classList.remove('filter-content-hidden');
+                    filterContent.classList.add('filter-content-visible');
+                    toggleHeader.classList.remove('collapsed');
+                    localStorage.setItem('filtros-servicios-visible', 'true');
+                }
+            }
+            
+            toggleHeader.addEventListener('click', function(e) {
+                if (e.target.closest('.btn-clear-filters') || e.target.closest('.btn-toggle-filters')) {
+                    return;
+                }
+                toggleFilters();
+            });
+            
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    toggleFilters();
+                });
+            }
+        }
+    })();
+
+    // Función para actualizar contador de resultados
+    function updateResultsCountServicios() {
+        const visibleRows = document.querySelectorAll('.table-data tbody tr:not([style*="display: none"])');
+        const count = visibleRows.length;
+        const resultadosText = document.getElementById('resultados-text-servicios');
+        
+        if (resultadosText) {
+            resultadosText.textContent = `${count} servicio${count !== 1 ? 's' : ''}`;
+            resultadosText.style.transform = 'scale(1.1)';
+            resultadosText.style.transition = 'transform 0.2s ease';
+            setTimeout(() => {
+                resultadosText.style.transform = 'scale(1)';
+            }, 200);
+        }
+    }
+    
+    // Manejar el formulario de filtros con AJAX
+    (function() {
+        let isLoading = false;
+        const filtroForm = document.getElementById('servicios-filter-form');
+        const btnLimpiar = document.getElementById('btn-limpiar-filtros-servicios');
+        const loadingIndicator = document.getElementById('loading-indicator-servicios');
+        
+        function setLoading(loading) {
+            isLoading = loading;
+            if (loadingIndicator) {
+                if (loading) {
+                    loadingIndicator.style.display = 'flex';
+                } else {
+                    setTimeout(() => {
+                        loadingIndicator.style.display = 'none';
+                    }, 200);
+                }
+            }
+        }
+        
+        function loadDataViaAjax() {
+            if (isLoading) return;
+            
+            setLoading(true);
+            const formData = new FormData(filtroForm);
+            const params = new URLSearchParams(formData);
+            const url = filtroForm.action + (params.toString() ? '?' + params.toString() : '');
+            
+            if (window.AdminAjax && typeof window.AdminAjax.loadContent === 'function') {
+                window.AdminAjax.loadContent(url, function() {
+                    setLoading(false);
+                    updateResultsCountServicios();
+                });
+            } else {
+                fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    const contentArea = document.getElementById('main-content-area');
+                    if (contentArea) {
+                        contentArea.innerHTML = html;
+                        setLoading(false);
+                        $(document).trigger('contentLoaded');
+                        setTimeout(() => {
+                            updateResultsCountServicios();
+                        }, 100);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al filtrar:', error);
+                    setLoading(false);
+                });
+            }
+        }
+        
+        if (filtroForm) {
+            filtroForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                loadDataViaAjax();
+            });
+        }
+        
+        if (btnLimpiar) {
+            btnLimpiar.addEventListener('click', function(e) {
+                e.preventDefault();
+                filtroForm.reset();
+                const url = filtroForm.action;
+                if (window.AdminAjax && typeof window.AdminAjax.loadContent === 'function') {
+                    window.AdminAjax.loadContent(url, function() {
+                        updateResultsCountServicios();
+                    });
+                } else {
+                    fetch(url, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.text())
+                    .then(html => {
+                        const contentArea = document.getElementById('main-content-area');
+                        if (contentArea) {
+                            contentArea.innerHTML = html;
+                            $(document).trigger('contentLoaded');
+                            setTimeout(() => {
+                                updateResultsCountServicios();
+                            }, 100);
+                        }
+                    });
+                }
+            });
+        }
+        
+        updateResultsCountServicios();
+    })();
+</script>
+

@@ -1,0 +1,204 @@
+<!-- Page Header -->
+<div class="page-header">
+    <h1 class="page-title">Editar Conteo Físico</h1>
+    <a href="{% url 'auditoria_detalle' auditoria.id %}" class="btn btn-secondary ajax-link" data-url="{% url 'auditoria_detalle' auditoria.id %}" title="Volver a revisión">
+        <i class="fas fa-arrow-left me-2"></i>Volver
+    </a>
+</div>
+
+<!-- Información del Producto -->
+<div class="card mb-4" style="border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    <div class="card-header" style="background: linear-gradient(135deg, #1976d2 0%, #2196f3 100%); color: white; border: none;">
+        <h5 class="mb-0">
+            <i class="fas fa-box me-2"></i>Producto: {{ detalle.producto.nombre }}
+        </h5>
+    </div>
+    <div class="card-body" style="background: #f8f9fa;">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="fas fa-database me-2"></i>Cantidad en Sistema
+                    </div>
+                    <div class="info-value h4 text-primary mb-0">{{ detalle.cantidad_sistema }}</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="fas fa-map-marker-alt me-2"></i>Zona
+                    </div>
+                    <div class="info-value">{{ detalle.producto.zona.nombre|default:"Sin zona asignada" }}</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="info-item">
+                    <div class="info-label">
+                        <i class="fas fa-ruler me-2"></i>Unidad de Medida
+                    </div>
+                    <div class="info-value">{{ detalle.producto.unidad_medida|default:"Unidades" }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Form Container -->
+<div class="card" style="border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+    <div class="card-header" style="background: linear-gradient(135deg, #2e7d32 0%, #4caf50 100%); color: white; border: none;">
+        <h5 class="mb-0">
+            <i class="fas fa-edit me-2"></i>Editar Conteo Físico
+        </h5>
+    </div>
+    <div class="card-body" style="background: #f8f9fa; padding: 2rem;">
+    <form method="POST" action="{% url 'auditoria_editar_detalle' auditoria.id detalle.id %}">
+        {% csrf_token %}
+        
+        <div class="form-section">
+            <h5 class="form-section-title mb-3" style="color: #2e7d32; font-weight: 600;">
+                <i class="fas fa-clipboard-check me-2"></i>Conteo Físico
+            </h5>
+            
+            <div class="form-group">
+                <label for="{{ form.conteo_fisico.id_for_label }}" class="form-label">
+                    {{ form.conteo_fisico.label }} <span class="text-danger">*</span>
+                </label>
+                {{ form.conteo_fisico }}
+                {% if form.conteo_fisico.errors %}
+                    <div class="text-danger">{{ form.conteo_fisico.errors }}</div>
+                {% endif %}
+                <small class="form-text text-muted">
+                    Ingrese la cantidad encontrada físicamente en el inventario.
+                </small>
+                <div class="mt-2">
+                    <strong>Diferencia calculada:</strong> 
+                    <span id="diferencia-calculada" class="badge bg-secondary">0</span>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.tipo_discrepancia.id_for_label }}" class="form-label">
+                    {{ form.tipo_discrepancia.label }}
+                </label>
+                {{ form.tipo_discrepancia }}
+                {% if form.tipo_discrepancia.errors %}
+                    <div class="text-danger">{{ form.tipo_discrepancia.errors }}</div>
+                {% endif %}
+                <small class="form-text text-muted">
+                    Seleccione el tipo de discrepancia si hay diferencia entre el sistema y el conteo físico.
+                </small>
+            </div>
+            
+            <div class="form-group">
+                <label for="{{ form.observaciones.id_for_label }}" class="form-label">
+                    {{ form.observaciones.label }}
+                </label>
+                {{ form.observaciones }}
+                {% if form.observaciones.errors %}
+                    <div class="text-danger">{{ form.observaciones.errors }}</div>
+                {% endif %}
+                <small class="form-text text-muted">
+                    Agregue observaciones sobre el conteo físico o la discrepancia encontrada (ej: producto vencido, desaparecido, podrido, etc.).
+                </small>
+            </div>
+            
+            <div class="form-group">
+                <div class="form-check">
+                    {{ form.revisado }}
+                    <label class="form-check-label" for="{{ form.revisado.id_for_label }}">
+                        {{ form.revisado.label }}
+                    </label>
+                </div>
+                {% if form.revisado.errors %}
+                    <div class="text-danger">{{ form.revisado.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="alert alert-info" style="border-left: 4px solid #2196f3; background: #e3f2fd;">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>Tipos de Discrepancia:</strong>
+            <ul class="mb-0 mt-2">
+                <li><strong>Desaparecido:</strong> El producto no se encuentra físicamente</li>
+                <li><strong>Vencido:</strong> El producto ha vencido</li>
+                <li><strong>Merma/Deterioro:</strong> El producto se deterioró, podrió o perdió calidad</li>
+                <li><strong>Sobrante:</strong> Hay más productos físicamente de los registrados</li>
+                <li><strong>Otro:</strong> Otra razón de discrepancia</li>
+            </ul>
+        </div>
+        
+        <div class="form-actions mt-4 d-flex gap-2">
+            <button type="submit" class="btn btn-primary-admin">
+                <i class="fas fa-save me-2"></i>Guardar Conteo
+            </button>
+            <a href="{% url 'auditoria_detalle' auditoria.id %}" class="btn btn-secondary ajax-link" data-url="{% url 'auditoria_detalle' auditoria.id %}">
+                <i class="fas fa-times me-2"></i>Cancelar
+            </a>
+        </div>
+    </form>
+    </div>
+</div>
+
+<style>
+.info-item {
+    padding: 1rem;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+    height: 100%;
+}
+.info-label {
+    font-size: 0.85rem;
+    color: #757575;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+}
+.info-value {
+    font-size: 1rem;
+    color: #212121;
+    font-weight: 600;
+}
+</style>
+
+<script>
+// Calcular diferencia automáticamente
+document.addEventListener('DOMContentLoaded', function() {
+    const conteoFisicoInput = document.getElementById('{{ form.conteo_fisico.id_for_label }}');
+    const cantidadSistema = {{ detalle.cantidad_sistema }};
+    const diferenciaCalculada = document.getElementById('diferencia-calculada');
+    const tipoDiscrepanciaSelect = document.getElementById('{{ form.tipo_discrepancia.id_for_label }}');
+    
+    if (conteoFisicoInput) {
+        function actualizarDiferencia() {
+            const conteoFisico = parseInt(conteoFisicoInput.value) || 0;
+            const diferencia = conteoFisico - cantidadSistema;
+            
+            // Actualizar badge de diferencia
+            if (diferenciaCalculada) {
+                diferenciaCalculada.textContent = diferencia > 0 ? `+${diferencia}` : diferencia;
+                diferenciaCalculada.className = 'badge';
+                if (diferencia < 0) {
+                    diferenciaCalculada.classList.add('bg-danger');
+                } else if (diferencia > 0) {
+                    diferenciaCalculada.classList.add('bg-warning');
+                } else {
+                    diferenciaCalculada.classList.add('bg-success');
+                }
+            }
+            
+            // Sugerir tipo de discrepancia si hay diferencia
+            if (tipoDiscrepanciaSelect && diferencia != 0 && !tipoDiscrepanciaSelect.value) {
+                if (diferencia < 0) {
+                    tipoDiscrepanciaSelect.value = 'desaparecido';
+                } else if (diferencia > 0) {
+                    tipoDiscrepanciaSelect.value = 'sobrante';
+                }
+            }
+        }
+        
+        conteoFisicoInput.addEventListener('input', actualizarDiferencia);
+        actualizarDiferencia(); // Calcular al cargar
+    }
+});
+</script>
+

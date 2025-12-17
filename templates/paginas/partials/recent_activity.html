@@ -1,0 +1,132 @@
+{% if recent_activities is not None %}
+<div class="activity-card">
+    <div class="activity-card-header">
+        <div>
+            <h3>Historial Reciente</h3>
+            <span class="activity-count" style="margin-bottom: 20px;">{{ recent_activities|length }} eventos</span>
+        </div>
+        <div style="align-items: center; gap: 15px;">
+            
+            <a href="{% url 'historial_completo' %}" class="btn btn-primary ajax-link" data-url="{% url 'historial_completo' %}" style="margin-top: 10px;padding: 8px 16px; text-decoration: none; border-radius: 4px; font-size: 14px; white-space: nowrap;">
+                <i class="fas fa-history"></i>Historial Completo
+            </a>
+        </div>
+    </div>
+
+    {% if recent_activities %}
+    <div class="activity-table-wrapper">
+        <table class="activity-table">
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Resumen</th>
+                    <th>Fecha</th>
+                    <th class="activity-col-action">Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for activity in recent_activities %}
+                <tr>
+                    <td>
+                        <span class="activity-chip">
+                            <i class="{{ activity.icon }}"></i>
+                            {{ activity.category }}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="activity-table-title">{{ activity.title }}</div>
+                        <div class="activity-table-description">{{ activity.description }}</div>
+                    </td>
+                    <td>
+                        <div class="activity-table-date">{{ activity.timestamp|date:"d/m/Y" }}</div>
+                        <div class="activity-table-time">{{ activity.timestamp|date:"H:i" }}</div>
+                    </td>
+                    <td class="activity-col-action">
+                        <button class="activity-action-btn"
+                            type="button"
+                            aria-label="Ver detalle"
+                            onclick="openActivityModal(this)"
+                            data-title="{{ activity.title|escape }}"
+                            data-category="{{ activity.category|escape }}"
+                            data-description="{{ activity.description|escape }}"
+                            data-author="{{ activity.author|escape }}"
+                            data-date="{{ activity.timestamp|date:'d/m/Y H:i' }}"
+                            data-details="{{ activity.details|join:'||'|escape }}">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="activity-empty-state">
+        <i class="fas fa-check-circle"></i>
+        <p>No hay actividades recientes registradas.</p>
+    </div>
+    {% endif %}
+</div>
+
+<div class="activity-modal-backdrop" id="activityModalBackdrop" onclick="closeActivityModal()"></div>
+<div class="activity-modal" id="activityModal">
+    <div class="activity-modal-content">
+        <button class="activity-modal-close" type="button" onclick="closeActivityModal()">
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="activity-modal-icon">
+            <i class="fas fa-clipboard-list"></i>
+        </div>
+        <h4 data-activity-field="title">Detalle</h4>
+        <p class="activity-modal-category" data-activity-field="category"></p>
+        <p class="activity-modal-meta">
+            <span><i class="fas fa-user"></i> <span data-activity-field="author"></span></span>
+            <span><i class="far fa-clock"></i> <span data-activity-field="date"></span></span>
+        </p>
+        <p class="activity-modal-description" data-activity-field="description"></p>
+        <ul class="activity-modal-details" data-activity-field="details"></ul>
+    </div>
+</div>
+
+<script>
+    if (!window.openActivityModal) {
+        window.openActivityModal = function(button) {
+            const modal = document.getElementById('activityModal');
+            const backdrop = document.getElementById('activityModalBackdrop');
+            if (!modal || !backdrop) {
+                return;
+            }
+            modal.querySelector('[data-activity-field=\"title\"]').textContent = button.dataset.title || '';
+            modal.querySelector('[data-activity-field=\"category\"]').textContent = button.dataset.category || '';
+            modal.querySelector('[data-activity-field=\"author\"]').textContent = button.dataset.author || 'No especificado';
+            modal.querySelector('[data-activity-field=\"date\"]').textContent = button.dataset.date || '';
+            modal.querySelector('[data-activity-field=\"description\"]').textContent = button.dataset.description || '';
+
+            const detailsContainer = modal.querySelector('[data-activity-field=\"details\"]');
+            detailsContainer.innerHTML = '';
+            const details = (button.dataset.details || '').split('||').filter(Boolean);
+            if (details.length) {
+                details.forEach(function(detail) {
+                    const li = document.createElement('li');
+                    li.textContent = detail;
+                    detailsContainer.appendChild(li);
+                });
+            }
+
+            modal.classList.add('show');
+            backdrop.classList.add('show');
+        };
+
+        window.closeActivityModal = function() {
+            const modal = document.getElementById('activityModal');
+            const backdrop = document.getElementById('activityModalBackdrop');
+            if (!modal || !backdrop) {
+                return;
+            }
+            modal.classList.remove('show');
+            backdrop.classList.remove('show');
+        };
+    }
+</script>
+{% endif %}
+

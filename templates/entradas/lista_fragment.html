@@ -1,0 +1,918 @@
+<!-- Fragmento HTML para carga AJAX - Entradas de Inventario -->
+<!-- Page Header -->
+<div class="page-header">
+    <h1 class="page-title">Entradas de Inventario</h1>
+    {% if entradas %}
+    <button type="button" class="btn btn-primary-admin" id="btn-crear-entrada" onclick="openDrawerEntradaCrear()">
+        <i class="fas fa-plus me-2"></i>Nueva Entrada
+    </button>
+    {% endif %}
+</div>
+
+<!-- Search Container -->
+<div class="search-container-enhanced">
+    <div class="filter-toggle-header" id="filter-toggle-header-entradas">
+        <div class="filter-title">
+            <i class="fas fa-filter"></i>
+            <span>Filtros de Búsqueda</span>
+        </div>
+        <div class="filter-actions">
+            <button type="button" class="btn-clear-filters" id="btn-limpiar-filtros-entradas" title="Limpiar todos los filtros">
+                <i class="fas fa-redo"></i>
+                <span>Limpiar</span>
+            </button>
+            <button type="button" class="btn-toggle-filters" id="btn-toggle-filters-entradas" title="Mostrar/Ocultar filtros">
+                <i class="fas fa-chevron-down toggle-icon"></i>
+            </button>
+        </div>
+    </div>
+    
+    <div id="filter-content-area-entradas" class="filter-content-hidden">
+        <form method="get" action="{% url 'entradas_lista' %}" id="filtro-form">
+        <div class="search-row-enhanced">
+            <div class="search-field-enhanced">
+                <div class="field-label">
+                    <i class="fas fa-box"></i>
+                    <span>Producto</span>
+                </div>
+                <div class="input-wrapper">
+                    <i class="fas fa-box input-icon"></i>
+                    <input type="text" name="producto" value="{{ producto_filtro }}" placeholder="Buscar por producto..." class="form-control-enhanced" autocomplete="off">
+                </div>
+            </div>
+            
+            <div class="search-field-enhanced">
+                <div class="field-label">
+                    <i class="fas fa-truck"></i>
+                    <span>Proveedor</span>
+                </div>
+                <div class="input-wrapper">
+                    <i class="fas fa-truck input-icon"></i>
+                    <input type="text" name="proveedor" value="{{ proveedor_filtro }}" placeholder="Buscar por proveedor..." class="form-control-enhanced" autocomplete="off">
+                </div>
+            </div>
+            
+            <div class="search-field-enhanced">
+                <div class="field-label">
+                    <i class="fas fa-calendar"></i>
+                    <span>Fecha Desde</span>
+                </div>
+                <div class="input-wrapper">
+                    <i class="fas fa-calendar input-icon"></i>
+                    <input type="date" name="fecha_desde" value="{{ fecha_desde }}" class="form-control-enhanced" autocomplete="off">
+                </div>
+            </div>
+            
+            <div class="search-field-enhanced">
+                <div class="field-label">
+                    <i class="fas fa-calendar"></i>
+                    <span>Fecha Hasta</span>
+                </div>
+                <div class="input-wrapper">
+                    <i class="fas fa-calendar input-icon"></i>
+                    <input type="date" name="fecha_hasta" value="{{ fecha_hasta }}" class="form-control-enhanced" autocomplete="off">
+                </div>
+            </div>
+        </div>
+        </form>
+        
+        <div class="filter-footer-enhanced">
+        <div class="results-info-enhanced">
+            <div class="results-icon">
+                <i class="fas fa-arrow-down"></i>
+            </div>
+            <div class="results-content">
+                <span class="results-label">Resultados encontrados:</span>
+                <span id="resultados-text-entradas" class="results-number">0 entradas</span>
+            </div>
+        </div>
+    </div>
+    
+    <div id="loading-indicator-entradas" class="loading-indicator-enhanced" style="display: none;">
+        <div class="spinner-wrapper">
+            <div class="spinner"></div>
+        </div>
+        <span class="loading-text">Filtrando resultados...</span>
+    </div>
+    </div>
+</div>
+
+<!-- Estadísticas -->
+{% if entradas %}
+<div class="bg-white-admin rounded-admin shadow-admin p-3 mb-3">
+    <div class="row text-center">
+        <div class="col-md-4">
+            <h6 class="text-muted mb-1">Total Entradas</h6>
+            <h4 class="mb-0">{{ total_entradas }}</h4>
+        </div>
+        <div class="col-md-4">
+            <h6 class="text-muted mb-1">Total Cantidad</h6>
+            <h4 class="mb-0">{{ total_cantidad }}</h4>
+        </div>
+        <div class="col-md-4">
+            <h6 class="text-muted mb-1">Valor Total</h6>
+            <h4 class="mb-0">${{ total_valor|floatformat:0 }}</h4>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Data Table Container -->
+<div class="data-table-container">
+    <table class="table-data">
+        <thead>
+            <tr>
+                <th>Fecha</th>
+                <th>Producto</th>
+                <th>Proveedor</th>
+                <th>Cantidad</th>
+                <th>Precio Unitario</th>
+                <th>Total</th>
+                <th>N° Factura</th>
+                <th>Usuario</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for entrada in entradas %}
+            <tr>
+                <td>{{ entrada.fecha_entrada|date:"d/m/Y H:i" }}</td>
+                <td><strong>{{ entrada.producto.nombre }}</strong></td>
+                <td>{{ entrada.proveedor.nombre|default:"-" }}</td>
+                <td>{{ entrada.cantidad }}</td>
+                <td>${{ entrada.precio_unitario|floatformat:0 }}</td>
+                <td><strong>${{ entrada.total|floatformat:0 }}</strong></td>
+                <td>{{ entrada.numero_factura|default:"-" }}</td>
+                <td>{{ entrada.usuario_registro.get_full_name|default:entrada.usuario_registro.username }}</td>
+                <td>
+                    <a href="{% url 'entradas_editar' entrada.id %}" class="btn btn-action btn-edit" title="Editar">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <a href="{% url 'entradas_eliminar' entrada.id %}" class="btn btn-action btn-delete" title="Eliminar" onclick="return confirm('¿Estás seguro de eliminar esta entrada? Esto ajustará el stock del producto.');">
+                        <i class="fas fa-trash-alt"></i>
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="9" class="text-center" style="padding: 3rem; color: #757575;">
+                    <i class="fas fa-inbox fa-3x mb-3" style="opacity: 0.3;"></i>
+                    <p style="margin-bottom: 1rem; font-size: 1rem;">No hay entradas de inventario registradas</p>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button type="button" class="btn btn-primary-admin mt-3" id="btn-crear-entrada-empty" onclick="openDrawerEntradaCrear()">
+                            <i class="fas fa-plus me-2"></i>Crear Primera Entrada
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Drawer para Crear Entrada -->
+<div class="drawer-overlay" id="drawerOverlayEntradaCrear" onclick="closeDrawerEntradaCrear()"></div>
+<div class="drawer" id="drawerEntradaCrear">
+    <div class="drawer-header">
+        <h5 class="drawer-title">
+            <i class="fas fa-box me-2"></i>Nueva Entrada de Inventario
+        </h5>
+        <button type="button" class="drawer-close" onclick="closeDrawerEntradaCrear()" aria-label="Cerrar">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <div class="drawer-body" id="drawerEntradaCrearBody">
+        <div class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-3 text-muted">Cargando formulario...</p>
+        </div>
+    </div>
+</div>
+
+<script>
+// Funciones para abrir y cerrar drawer de crear entrada
+window.openDrawerEntradaCrear = function() {
+    const drawer = document.getElementById('drawerEntradaCrear');
+    const overlay = document.getElementById('drawerOverlayEntradaCrear');
+    const drawerBody = document.getElementById('drawerEntradaCrearBody');
+    
+    if (drawer && overlay) {
+        // Siempre cargar el formulario cuando se abre el drawer
+        if (!drawerBody.dataset.loaded || drawerBody.innerHTML.includes('Cargando formulario')) {
+            loadDrawerEntradaCrearForm();
+        }
+        
+        overlay.classList.add('active');
+        drawer.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+};
+
+window.closeDrawerEntradaCrear = function() {
+    const drawer = document.getElementById('drawerEntradaCrear');
+    const overlay = document.getElementById('drawerOverlayEntradaCrear');
+    
+    if (drawer && overlay) {
+        overlay.classList.remove('active');
+        drawer.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+};
+
+// Cargar formulario en el drawer
+function loadDrawerEntradaCrearForm() {
+    const drawerBody = document.getElementById('drawerEntradaCrearBody');
+    
+    if (drawerBody) {
+        // Mostrar indicador de carga
+        drawerBody.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div><p class="mt-3 text-muted">Cargando formulario...</p></div>';
+        
+        fetch('{% url "entradas_crear" %}', {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error al cargar el formulario');
+            }
+            return response.text();
+        })
+        .then(html => {
+            drawerBody.innerHTML = html;
+            drawerBody.dataset.loaded = 'true';
+            initializeEntradaCrearForm();
+        })
+        .catch(error => {
+            console.error('Error al cargar formulario:', error);
+            drawerBody.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle me-2"></i>Error al cargar el formulario. Por favor, recarga la página.</div>';
+        });
+    }
+}
+
+// Función para inicializar autocomplete de productos de proveedor
+function inicializarAutocompleteProductosProveedor() {
+    const proveedorSelect = document.getElementById('id_proveedor_entrada');
+    const productoSelect = document.getElementById('id_producto_entrada');
+    const precioUnitarioInput = document.getElementById('id_precio_unitario_entrada');
+    
+    if (!proveedorSelect || !productoSelect || !precioUnitarioInput) {
+        console.log('⏳ Esperando elementos del formulario...');
+        setTimeout(inicializarAutocompleteProductosProveedor, 100);
+        return;
+    }
+    
+    console.log('✅ Inicializando autocomplete de productos de proveedor');
+    
+    // Almacenar datos de productos de proveedor para mapear a productos del inventario
+    let productosProveedorMap = {};
+    
+    // Remover listeners previos si existen clonando los elementos
+    const nuevoProveedorSelect = proveedorSelect.cloneNode(true);
+    proveedorSelect.parentNode.replaceChild(nuevoProveedorSelect, proveedorSelect);
+    const nuevoProveedorSelectRef = document.getElementById('id_proveedor_entrada');
+    
+    const nuevoProductoSelect = productoSelect.cloneNode(true);
+    productoSelect.parentNode.replaceChild(nuevoProductoSelect, productoSelect);
+    const nuevoProductoSelectRef = document.getElementById('id_producto_entrada');
+    
+    // Listener para cuando se selecciona un proveedor
+    nuevoProveedorSelectRef.addEventListener('change', function() {
+        const proveedorId = this.value;
+        console.log('🔄 Proveedor seleccionado:', proveedorId);
+        
+        if (!proveedorId) {
+            nuevoProductoSelectRef.innerHTML = '<option value="">-- Seleccione un proveedor primero --</option>';
+            nuevoProductoSelectRef.disabled = true;
+            precioUnitarioInput.value = '0.00';
+            productosProveedorMap = {};
+            return;
+        }
+        
+        nuevoProductoSelectRef.innerHTML = '<option value="">Cargando productos...</option>';
+        nuevoProductoSelectRef.disabled = true;
+        
+        const url = `{% url "entradas_productos_por_proveedor_ajax" %}?proveedor_id=${encodeURIComponent(proveedorId)}`;
+        console.log('📡 Cargando productos de proveedor desde:', url);
+        
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('📦 Productos de proveedor recibidos:', data);
+            
+            if (data.error) {
+                console.error('❌ Error:', data.error);
+                nuevoProductoSelectRef.innerHTML = '<option value="">Error al cargar productos</option>';
+                alert('Error al cargar productos: ' + data.error);
+                return;
+            }
+            
+            nuevoProductoSelectRef.innerHTML = '<option value="">-- Seleccione un producto --</option>';
+            productosProveedorMap = {};
+            
+            if (data.productos && data.productos.length > 0) {
+                console.log(`✅ Cargando ${data.productos.length} productos de proveedor`);
+                
+                data.productos.forEach((productoProveedor) => {
+                    productosProveedorMap[productoProveedor.id] = productoProveedor;
+                    
+                    // Mostrar TODOS los productos de proveedor, no solo los que tienen inventario
+                    const option = document.createElement('option');
+                    
+                    // Si tiene producto en inventario, usar ese ID, si no, usar el ID del ProductoProveedor
+                    // y lo manejaremos en el backend para crear el producto automáticamente
+                    if (productoProveedor.tiene_inventario && productoProveedor.producto_inventario_id) {
+                        option.value = productoProveedor.producto_inventario_id;
+                    } else {
+                        // Usar un valor especial que indique que es un ProductoProveedor sin Producto
+                        // Usaremos el formato: "pp_{id}" para identificarlo
+                        option.value = `pp_${productoProveedor.id}`;
+                    }
+                    
+                    // Solo mostrar el nombre del producto, sin descripción
+                    option.textContent = productoProveedor.nombre;
+                    const precio = productoProveedor.precio_compra_actual || productoProveedor.precio_unitario || '0';
+                    option.dataset.precio = precio;
+                    option.dataset.producto_proveedor_id = productoProveedor.id;
+                    option.dataset.tiene_inventario = productoProveedor.tiene_inventario ? 'true' : 'false';
+                    if (productoProveedor.producto_inventario_id) {
+                        option.dataset.producto_inventario_id = productoProveedor.producto_inventario_id;
+                    }
+                    nuevoProductoSelectRef.appendChild(option);
+                });
+                
+                nuevoProductoSelectRef.disabled = false;
+                console.log('✅ Productos cargados exitosamente');
+            } else {
+                nuevoProductoSelectRef.innerHTML = '<option value="">No hay productos disponibles</option>';
+                nuevoProductoSelectRef.disabled = true;
+            }
+        })
+        .catch(error => {
+            console.error('❌ Error al cargar productos:', error);
+            nuevoProductoSelectRef.innerHTML = '<option value="">Error al cargar productos</option>';
+            nuevoProductoSelectRef.disabled = true;
+        });
+    });
+    
+    // Listener para cuando se selecciona un producto
+    nuevoProductoSelectRef.addEventListener('change', function() {
+        const selectedOption = this.options[this.selectedIndex];
+        console.log('🔄 Producto seleccionado:', selectedOption.value);
+        
+        if (!selectedOption.value) {
+            precioUnitarioInput.value = '0.00';
+            return;
+        }
+        
+        const productoProveedorId = selectedOption.dataset.producto_proveedor_id;
+        if (productoProveedorId && productosProveedorMap[productoProveedorId]) {
+            const productoProveedor = productosProveedorMap[productoProveedorId];
+            const precio = productoProveedor.precio_compra_actual || productoProveedor.precio_unitario || '0';
+            precioUnitarioInput.value = parseFloat(precio).toFixed(2);
+            console.log('💰 Precio unitario actualizado:', precioUnitarioInput.value);
+        } else {
+            const precio = selectedOption.dataset.precio || '0';
+            precioUnitarioInput.value = parseFloat(precio).toFixed(2);
+            console.log('💰 Precio unitario actualizado desde dataset:', precioUnitarioInput.value);
+        }
+    });
+}
+
+// Inicializar formulario de crear entrada
+function initializeEntradaCrearForm() {
+    const form = document.getElementById('form-entrada-crear');
+    if (form) {
+        // Remover event listeners previos si existen
+        const newForm = form.cloneNode(true);
+        form.parentNode.replaceChild(newForm, form);
+        
+        const formElement = document.getElementById('form-entrada-crear');
+        if (!formElement) return;
+        
+        const cancelBtn = formElement.querySelector('button[onclick*="closeDrawerEntradaCrear"]');
+        if (cancelBtn) {
+            cancelBtn.setAttribute('onclick', 'closeDrawerEntradaCrear(); return false;');
+        }
+        
+        // Inicializar autocomplete de productos de proveedor
+        inicializarAutocompleteProductosProveedor();
+        
+        formElement.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(formElement);
+            const submitBtn = formElement.querySelector('button[type="submit"]');
+            const originalText = submitBtn ? submitBtn.innerHTML : '';
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Guardando...';
+            }
+            
+            // Obtener CSRF token
+            const csrfToken = formElement.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                             document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
+                             (typeof csrftoken !== 'undefined' ? csrftoken : '');
+            
+            fetch(formElement.action || '{% url "entradas_crear" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': csrfToken
+                }
+            })
+            .then(response => {
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    return response.json();
+                } else {
+                    return response.text().then(html => ({ html: html, isHtml: true }));
+                }
+            })
+            .then(data => {
+                if (data.success) {
+                    closeDrawerEntradaCrear();
+                    
+                    const entradasUrl = '{% url "entradas_lista" %}';
+                    fetch(entradasUrl, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.text())
+                    .then(html => {
+                        const contentArea = document.getElementById('main-content-area');
+                        if (contentArea) {
+                            contentArea.innerHTML = html;
+                            const alertDiv = document.createElement('div');
+                            alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                            alertDiv.innerHTML = '<i class="fas fa-check-circle me-2"></i>' + (data.message || 'Entrada creada exitosamente') + '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                            contentArea.insertBefore(alertDiv, contentArea.firstChild);
+                        }
+                    });
+                } else if (data.isHtml) {
+                    const drawerBody = document.getElementById('drawerEntradaCrearBody');
+                    if (drawerBody) {
+                        drawerBody.innerHTML = data.html;
+                        drawerBody.dataset.loaded = 'true';
+                        initializeEntradaCrearForm();
+                    }
+                } else if (data.errors) {
+                    let errorHtml = '<div class="alert alert-danger"><ul class="mb-0">';
+                    for (let field in data.errors) {
+                        if (Array.isArray(data.errors[field])) {
+                            data.errors[field].forEach(error => {
+                                errorHtml += '<li>' + error + '</li>';
+                            });
+                        } else {
+                            errorHtml += '<li>' + data.errors[field] + '</li>';
+                        }
+                    }
+                    errorHtml += '</ul></div>';
+                    const drawerBody = document.getElementById('drawerEntradaCrearBody');
+                    if (drawerBody) {
+                        drawerBody.insertAdjacentHTML('afterbegin', errorHtml);
+                    }
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalText;
+                    }
+                } else {
+                    alert('Error al guardar la entrada');
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalText;
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al guardar la entrada');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                }
+            });
+        });
+    }
+}
+
+// Cerrar drawer con tecla ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const drawer = document.getElementById('drawerEntradaCrear');
+        if (drawer && drawer.classList.contains('active')) {
+            closeDrawerEntradaCrear();
+        }
+    }
+});
+
+// Función para actualizar contador de resultados
+function updateResultsCountEntradas() {
+    const visibleRows = document.querySelectorAll('.table-data tbody tr:not([style*="display: none"])');
+    // Excluir la fila de "No hay entradas de inventario registradas" (tiene colspan="9")
+    let count = 0;
+    visibleRows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        // Si la fila tiene menos de 9 celdas o tiene colspan, es la fila de "No hay entradas"
+        if (cells.length >= 9 && !cells[0].hasAttribute('colspan')) {
+            count++;
+        }
+    });
+    const resultadosText = document.getElementById('resultados-text-entradas');
+    
+    if (resultadosText) {
+        resultadosText.textContent = `${count} entrada${count !== 1 ? 's' : ''}`;
+        resultadosText.style.transform = 'scale(1.1)';
+        resultadosText.style.transition = 'transform 0.2s ease';
+        setTimeout(() => {
+            resultadosText.style.transform = 'scale(1)';
+        }, 200);
+    }
+}
+
+
+// Sistema completo de filtrado dinámico para entradas
+(function() {
+    'use strict';
+    
+    let searchTimeout;
+    const DEBOUNCE_DELAY = 500; // 500ms de delay para mejor rendimiento
+    
+    // Función para inicializar el toggle de filtros
+    function inicializarToggleFiltros() {
+        const toggleHeader = document.getElementById('filter-toggle-header-entradas');
+        const filterContent = document.getElementById('filter-content-area-entradas');
+        const toggleBtn = document.getElementById('btn-toggle-filters-entradas');
+        
+        if (!toggleHeader || !filterContent) {
+            return false;
+        }
+        
+        // Remover listeners anteriores si existen
+        if (toggleHeader._toggleHandler) {
+            toggleHeader.removeEventListener('click', toggleHeader._toggleHandler);
+        }
+        if (toggleBtn && toggleBtn._toggleHandler) {
+            toggleBtn.removeEventListener('click', toggleBtn._toggleHandler);
+        }
+        
+        toggleHeader.style.display = 'flex';
+        toggleHeader.style.visibility = 'visible';
+        
+        // Restaurar estado desde localStorage (por defecto oculto)
+        const savedState = localStorage.getItem('filtros-entradas-visible');
+        const isVisible = savedState === 'true';
+        
+        if (!isVisible) {
+            filterContent.classList.remove('filter-content-visible');
+            filterContent.classList.add('filter-content-hidden');
+            toggleHeader.classList.add('collapsed');
+            if (toggleBtn) {
+                const chevron = toggleBtn.querySelector('.toggle-icon');
+                if (chevron) {
+                    chevron.classList.remove('fa-chevron-down');
+                    chevron.classList.add('fa-chevron-up');
+                }
+            }
+        } else {
+            filterContent.classList.remove('filter-content-hidden');
+            filterContent.classList.add('filter-content-visible');
+            toggleHeader.classList.remove('collapsed');
+            if (toggleBtn) {
+                const chevron = toggleBtn.querySelector('.toggle-icon');
+                if (chevron) {
+                    chevron.classList.remove('fa-chevron-up');
+                    chevron.classList.add('fa-chevron-down');
+                }
+            }
+        }
+        
+        function toggleFilters() {
+            const isVisible = filterContent.classList.contains('filter-content-visible');
+            
+            if (isVisible) {
+                filterContent.classList.remove('filter-content-visible');
+                filterContent.classList.add('filter-content-hidden');
+                toggleHeader.classList.add('collapsed');
+                localStorage.setItem('filtros-entradas-visible', 'false');
+                if (toggleBtn) {
+                    const chevron = toggleBtn.querySelector('.toggle-icon');
+                    if (chevron) {
+                        chevron.classList.remove('fa-chevron-down');
+                        chevron.classList.add('fa-chevron-up');
+                    }
+                }
+            } else {
+                filterContent.classList.remove('filter-content-hidden');
+                filterContent.classList.add('filter-content-visible');
+                toggleHeader.classList.remove('collapsed');
+                localStorage.setItem('filtros-entradas-visible', 'true');
+                if (toggleBtn) {
+                    const chevron = toggleBtn.querySelector('.toggle-icon');
+                    if (chevron) {
+                        chevron.classList.remove('fa-chevron-up');
+                        chevron.classList.add('fa-chevron-down');
+                    }
+                }
+            }
+        }
+        
+        // Handler para el header
+        const headerClickHandler = function(e) {
+            if (e.target.closest('.btn-clear-filters') || e.target.closest('.btn-toggle-filters')) {
+                return;
+            }
+            toggleFilters();
+        };
+        
+        toggleHeader._toggleHandler = headerClickHandler;
+        toggleHeader.addEventListener('click', headerClickHandler);
+        
+        // Handler para el botón toggle
+        if (toggleBtn) {
+            const btnClickHandler = function(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                toggleFilters();
+            };
+            
+            toggleBtn._toggleHandler = btnClickHandler;
+            toggleBtn.addEventListener('click', btnClickHandler);
+        }
+        
+        return true;
+    }
+    
+    // Función para inicializar el filtrado dinámico
+    function inicializarFiltrado() {
+        const filtroForm = document.getElementById('filtro-form');
+        const searchProducto = filtroForm ? filtroForm.querySelector('input[name="producto"]') : null;
+        const searchProveedor = filtroForm ? filtroForm.querySelector('input[name="proveedor"]') : null;
+        const searchFechaDesde = filtroForm ? filtroForm.querySelector('input[name="fecha_desde"]') : null;
+        const searchFechaHasta = filtroForm ? filtroForm.querySelector('input[name="fecha_hasta"]') : null;
+        const btnLimpiar = document.getElementById('btn-limpiar-filtros-entradas');
+        
+        if (!filtroForm) {
+            console.log('⚠️ Formulario de filtros no encontrado');
+            return false;
+        }
+        
+        // Remover listeners anteriores si existen
+        if (searchProducto && searchProducto._inputHandler) {
+            searchProducto.removeEventListener('input', searchProducto._inputHandler);
+            searchProducto._inputHandler = null;
+        }
+        if (searchProveedor && searchProveedor._inputHandler) {
+            searchProveedor.removeEventListener('input', searchProveedor._inputHandler);
+            searchProveedor._inputHandler = null;
+        }
+        if (searchFechaDesde && searchFechaDesde._changeHandler) {
+            searchFechaDesde.removeEventListener('change', searchFechaDesde._changeHandler);
+            searchFechaDesde._changeHandler = null;
+        }
+        if (searchFechaHasta && searchFechaHasta._changeHandler) {
+            searchFechaHasta.removeEventListener('change', searchFechaHasta._changeHandler);
+            searchFechaHasta._changeHandler = null;
+        }
+        if (btnLimpiar && btnLimpiar._clearHandler) {
+            btnLimpiar.removeEventListener('click', btnLimpiar._clearHandler);
+            btnLimpiar._clearHandler = null;
+        }
+        if (filtroForm._submitHandler) {
+            filtroForm.removeEventListener('submit', filtroForm._submitHandler);
+            filtroForm._submitHandler = null;
+        }
+        
+        function loadDataViaAjax() {
+            if (!filtroForm) {
+                console.error('❌ Formulario no disponible para filtrar');
+                return;
+            }
+            
+            const formData = new FormData(filtroForm);
+            const urlParams = new URLSearchParams();
+            
+            for (const [key, value] of formData.entries()) {
+                if (value) {
+                    urlParams.append(key, value);
+                }
+            }
+            
+            const url = filtroForm.action + (urlParams.toString() ? '?' + urlParams.toString() : '');
+            
+            const loadingIndicator = document.getElementById('loading-indicator-entradas');
+            if (loadingIndicator) {
+                loadingIndicator.style.display = 'block';
+            }
+            
+            console.log('🔍 Filtrando entradas:', url);
+            
+            fetch(url, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                const contentArea = document.getElementById('main-content-area');
+                if (contentArea) {
+                    contentArea.innerHTML = html;
+                    console.log('✅ Contenido actualizado');
+                    
+                    // Disparar evento contentLoaded primero
+                    try {
+                        if (typeof jQuery !== 'undefined' && typeof $ !== 'undefined') {
+                            $(document).trigger('contentLoaded');
+                        } else {
+                            const event = new Event('contentLoaded');
+                            document.dispatchEvent(event);
+                        }
+                    } catch (e) {
+                        const event = new Event('contentLoaded');
+                        document.dispatchEvent(event);
+                    }
+                }
+            })
+            .catch(error => {
+                console.error('❌ Error al filtrar:', error);
+            })
+            .finally(() => {
+                const loadingIndicator = document.getElementById('loading-indicator-entradas');
+                if (loadingIndicator) {
+                    loadingIndicator.style.display = 'none';
+                }
+            });
+        }
+        
+        function debounceFilter() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(loadDataViaAjax, DEBOUNCE_DELAY);
+        }
+        
+        // Agregar listeners con referencias guardadas
+        if (searchProducto) {
+            searchProducto._inputHandler = debounceFilter;
+            searchProducto.addEventListener('input', debounceFilter);
+            console.log('✅ Listener de producto agregado');
+        }
+        
+        if (searchProveedor) {
+            searchProveedor._inputHandler = debounceFilter;
+            searchProveedor.addEventListener('input', debounceFilter);
+            console.log('✅ Listener de proveedor agregado');
+        }
+        
+        if (searchFechaDesde) {
+            searchFechaDesde._changeHandler = loadDataViaAjax;
+            searchFechaDesde.addEventListener('change', loadDataViaAjax);
+            console.log('✅ Listener de fecha desde agregado');
+        }
+        
+        if (searchFechaHasta) {
+            searchFechaHasta._changeHandler = loadDataViaAjax;
+            searchFechaHasta.addEventListener('change', loadDataViaAjax);
+            console.log('✅ Listener de fecha hasta agregado');
+        }
+        
+        if (btnLimpiar) {
+            const clearHandler = function(e) {
+                e.preventDefault();
+                if (searchProducto) searchProducto.value = '';
+                if (searchProveedor) searchProveedor.value = '';
+                if (searchFechaDesde) searchFechaDesde.value = '';
+                if (searchFechaHasta) searchFechaHasta.value = '';
+                loadDataViaAjax();
+            };
+            btnLimpiar._clearHandler = clearHandler;
+            btnLimpiar.addEventListener('click', clearHandler);
+            console.log('✅ Listener de limpiar agregado');
+        }
+        
+        if (filtroForm) {
+            const submitHandler = function(e) {
+                e.preventDefault();
+                loadDataViaAjax();
+            };
+            filtroForm._submitHandler = submitHandler;
+            filtroForm.addEventListener('submit', submitHandler);
+            console.log('✅ Listener de submit agregado');
+        }
+        
+        console.log('✅ Filtrado inicializado correctamente');
+        return true;
+    }
+    
+    // Variable para evitar múltiples inicializaciones simultáneas
+    let inicializando = false;
+    
+    // Función principal de inicialización con reintentos
+    function inicializarTodo(intentos) {
+        // Evitar múltiples inicializaciones simultáneas
+        if (inicializando) {
+            console.log('⏸️ Inicialización ya en curso, omitiendo...');
+            return false;
+        }
+        
+        intentos = intentos || 0;
+        const maxIntentos = 5;
+        
+        inicializando = true;
+        
+        try {
+            const toggleOk = inicializarToggleFiltros();
+            const filtroOk = inicializarFiltrado();
+            
+            if (!toggleOk || !filtroOk) {
+                if (intentos < maxIntentos) {
+                    console.log(`⏳ Reintentando inicialización (${intentos + 1}/${maxIntentos})...`);
+                    inicializando = false;
+                    setTimeout(function() {
+                        inicializarTodo(intentos + 1);
+                    }, 200);
+                    return false;
+                } else {
+                    console.warn('⚠️ No se pudo inicializar completamente después de', maxIntentos, 'intentos');
+                    inicializando = false;
+                    return false;
+                }
+            }
+            
+            console.log('✅ Inicialización completa exitosa');
+            inicializando = false;
+            return true;
+        } catch (error) {
+            console.error('❌ Error durante inicialización:', error);
+            inicializando = false;
+            return false;
+        }
+    }
+    
+    // Función para inicializar de forma segura
+    function inicializarSeguro() {
+        if (!inicializando) {
+            setTimeout(function() {
+                inicializarTodo();
+            }, 150);
+        }
+    }
+    
+    // Inicializar cuando el DOM esté listo
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', inicializarSeguro);
+    } else {
+        inicializarSeguro();
+    }
+    
+    // Reinicializar después de cargar contenido vía AJAX (con debounce)
+    let reinicializarTimeout;
+    function reinicializarDespuesDeCarga() {
+        clearTimeout(reinicializarTimeout);
+        reinicializarTimeout = setTimeout(function() {
+            console.log('📥 Reinicializando filtros después de recarga...');
+            inicializarSeguro();
+        }, 300);
+    }
+    
+    document.addEventListener('contentLoaded', reinicializarDespuesDeCarga);
+    
+    // También usar jQuery si está disponible
+    try {
+        if (typeof jQuery !== 'undefined' && typeof $ !== 'undefined') {
+            $(document).on('contentLoaded', reinicializarDespuesDeCarga);
+        }
+    } catch (e) {
+        // jQuery no disponible, continuar sin él
+    }
+    
+    // También ejecutar después de delays como respaldo
+    setTimeout(inicializarSeguro, 300);
+    setTimeout(inicializarSeguro, 600);
+})();
+
+// Inicializar contador también cuando se carga la página
+(function() {
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(updateResultsCountEntradas, 200);
+        });
+    } else {
+        setTimeout(updateResultsCountEntradas, 200);
+    }
+})();
+</script>
+

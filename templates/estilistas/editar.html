@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+
+{% block titulo %}Editar Empleado{% endblock %}
+
+{% block contenido %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h1 class="h3 mb-4">Editar Empleado</h1>
+            
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            <div class="card">
+                <div class="card-body p-4">
+                    <form method="POST" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        {% if formulario.non_field_errors %}
+                            <div class="alert alert-danger">
+                                {{ formulario.non_field_errors }}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ formulario.nombre.id_for_label }}" class="form-label">{{ formulario.nombre.label }}</label>
+                                {{ formulario.nombre }}
+                                {% if formulario.nombre.errors %}
+                                    <div class="text-danger small">{{ formulario.nombre.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ formulario.apellido.id_for_label }}" class="form-label">{{ formulario.apellido.label }}</label>
+                                {{ formulario.apellido }}
+                                {% if formulario.apellido.errors %}
+                                    <div class="text-danger small">{{ formulario.apellido.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ formulario.email.id_for_label }}" class="form-label">{{ formulario.email.label }}</label>
+                                {{ formulario.email }}
+                                {% if formulario.email.errors %}
+                                    <div class="text-danger small">{{ formulario.email.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ formulario.telefono.id_for_label }}" class="form-label">{{ formulario.telefono.label }}</label>
+                                {{ formulario.telefono }}
+                                {% if formulario.telefono.errors %}
+                                    <div class="text-danger small">{{ formulario.telefono.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="{{ formulario.foto.id_for_label }}" class="form-label">{{ formulario.foto.label }}</label>
+                            {% if estilista.foto %}
+                                <div class="mb-2">
+                                    <img src="{{ estilista.foto.url }}" alt="Foto actual" style="max-width: 150px; max-height: 150px; border-radius: 8px; border: 2px solid #dee2e6;">
+                                    <p class="text-muted small mt-1">Foto actual</p>
+                                </div>
+                            {% endif %}
+                            {{ formulario.foto }}
+                            {% if formulario.foto.help_text %}
+                                <small class="form-text text-muted">{{ formulario.foto.help_text }}</small>
+                            {% endif %}
+                            {% if formulario.foto.errors %}
+                                <div class="text-danger small">{{ formulario.foto.errors }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ formulario.disponibilidad.id_for_label }}" class="form-label">{{ formulario.disponibilidad.label }}</label>
+                                {{ formulario.disponibilidad }}
+                                {% if formulario.disponibilidad.errors %}
+                                    <div class="text-danger small">{{ formulario.disponibilidad.errors }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ formulario.experiencia_anos.id_for_label }}" class="form-label">{{ formulario.experiencia_anos.label }}</label>
+                                {{ formulario.experiencia_anos }}
+                                {% if formulario.experiencia_anos.errors %}
+                                    <div class="text-danger small">{{ formulario.experiencia_anos.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="{{ formulario.cargo.id_for_label }}" class="form-label">{{ formulario.cargo.label }}</label>
+                                {{ formulario.cargo }}
+                                {% if formulario.cargo.errors %}
+                                    <div class="text-danger small">{{ formulario.cargo.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    {{ formulario.activo }}
+                                    <label class="form-check-label" for="{{ formulario.activo.id_for_label }}">
+                                        {{ formulario.activo.label }}
+                                    </label>
+                                    {% if formulario.activo.errors %}
+                                        <div class="text-danger small">{{ formulario.activo.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr class="my-4">
+                        <h5 class="mb-3"><i class="fas fa-user-shield me-2"></i>Gestionar Usuario para Inicio de Sesión</h5>
+                        
+                        {% if estilista.user %}
+                            <div class="alert alert-info mb-3">
+                                <i class="fas fa-info-circle me-2"></i>
+                                Este empleado ya tiene un usuario asociado: <strong>{{ estilista.user.username }}</strong>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                {{ formulario.crear_usuario }}
+                                <label class="form-check-label" for="{{ formulario.crear_usuario.id_for_label }}">
+                                    {{ formulario.crear_usuario.label|default:"Crear o actualizar usuario" }}
+                                </label>
+                                {% if formulario.crear_usuario.help_text %}
+                                    <small class="form-text text-muted d-block">{{ formulario.crear_usuario.help_text }}</small>
+                                {% endif %}
+                                {% if formulario.crear_usuario.errors %}
+                                    <div class="text-danger small">{{ formulario.crear_usuario.errors }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div id="usuario_fields" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ formulario.username.id_for_label }}" class="form-label">{{ formulario.username.label }}</label>
+                                    {{ formulario.username }}
+                                    {% if formulario.username.help_text %}
+                                        <small class="form-text text-muted">{{ formulario.username.help_text }}</small>
+                                    {% endif %}
+                                    {% if formulario.username.errors %}
+                                        <div class="text-danger small">{{ formulario.username.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ formulario.password.id_for_label }}" class="form-label">{{ formulario.password.label }}</label>
+                                    {{ formulario.password }}
+                                    {% if formulario.password.help_text %}
+                                        <small class="form-text text-muted">{{ formulario.password.help_text }}</small>
+                                    {% endif %}
+                                    <small class="form-text text-muted d-block">Deja en blanco si no deseas cambiar la contraseña</small>
+                                    {% if formulario.password.errors %}
+                                        <div class="text-danger small">{{ formulario.password.errors }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label for="{{ formulario.password_confirm.id_for_label }}" class="form-label">{{ formulario.password_confirm.label }}</label>
+                                    {{ formulario.password_confirm }}
+                                    {% if formulario.password_confirm.help_text %}
+                                        <small class="form-text text-muted">{{ formulario.password_confirm.help_text }}</small>
+                                    {% endif %}
+                                    {% if formulario.password_confirm.errors %}
+                                        <div class="text-danger small">{{ formulario.password_confirm.errors }}</div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">Actualizar</button>
+                            <a href="{% url 'empleados_lista' %}" class="btn btn-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const crearUsuarioCheck = document.getElementById('{{ formulario.crear_usuario.id_for_label }}');
+        const usuarioFields = document.getElementById('usuario_fields');
+        
+        if (crearUsuarioCheck) {
+            crearUsuarioCheck.addEventListener('change', function() {
+                if (this.checked) {
+                    usuarioFields.style.display = 'block';
+                    document.getElementById('{{ formulario.username.id_for_label }}').required = true;
+                } else {
+                    usuarioFields.style.display = 'none';
+                    document.getElementById('{{ formulario.username.id_for_label }}').required = false;
+                    document.getElementById('{{ formulario.password.id_for_label }}').required = false;
+                    document.getElementById('{{ formulario.password_confirm.id_for_label }}').required = false;
+                }
+            });
+            
+            // Verificar estado inicial
+            if (crearUsuarioCheck.checked) {
+                usuarioFields.style.display = 'block';
+            }
+        }
+    });
+</script>
+{% endblock %}

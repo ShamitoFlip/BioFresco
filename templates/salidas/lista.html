@@ -1,0 +1,12 @@
+{% extends 'base_admin.html' %}
+
+{% block titulo %}Salidas / Facturas - BioFresco{% endblock %}
+
+{% block content %}
+<div id="main-content-area">
+    {% if user.is_staff %}
+        {% include 'salidas/lista_fragment.html' %}
+    {% endif %}
+</div>
+{% endblock %}
+

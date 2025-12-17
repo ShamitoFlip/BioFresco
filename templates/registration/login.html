@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block titulo %} Login {% endblock %}
+
+{% block contenido %}
+
+<div class="card">
+    <div class="card-header">
+        Login
+    </div>
+    <div class="card-body">
+        {% if messages %}
+            {% for message in messages %}
+                {% if 'suspendida' in message %}
+                <div class="alert alert-danger alert-prominent" role="alert">
+                    <i class="fas fa-ban me-2"></i>
+                    <strong>Cuenta suspendida:</strong> {{ message }}
+                </div>
+                {% else %}
+                <div class="alert alert-danger" role="alert">
+                    {{ message }}
+                </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST" action="{% url 'login' %}" autocomplete="off" novalidate>
+            {% csrf_token %}
+            <!-- Anti-autofill dummy fields: browsers will often fill these instead of the real inputs -->
+            <div style="position:absolute; left:-9999px; top:-9999px;">
+                <input type="text" name="username" id="dummy_username" autocomplete="username">
+                <input type="password" name="password" id="dummy_password" autocomplete="current-password">
+            </div>
+            <div class="mb-3">
+                <label for="username" class="form-label">Usuario:</label>
+                <input type="text" class="form-control" name="real_username" id="username" autocomplete="off" required>
+            </div>
+            <div class="mb-3">
+                <label for="password" class="form-label">Contraseña:</label>
+                <input type="password" class="form-control" name="real_password" id="password" autocomplete="new-password" required>
+            </div>
+            <div class="mb-3">
+                <a href="{% url 'password_reset_request' %}" class="text-decoration-none small">
+                    <i class="fas fa-key me-1"></i>¿Olvidaste tu contraseña?
+                </a>
+            </div>
+            <button type="submit" class="btn btn-primary">Entrar</button>
+        </form>
+    </div>
+</div>
+
+<script>
+// Asegurar que el token CSRF se envíe correctamente
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.querySelector('form[method="POST"]');
+    if (form) {
+        // Verificar que el token CSRF esté presente
+        const csrfToken = form.querySelector('input[name="csrfmiddlewaretoken"]');
+        if (!csrfToken) {
+            console.error('Token CSRF no encontrado en el formulario');
+        } else {
+            console.log('Token CSRF encontrado:', csrfToken.value.substring(0, 20) + '...');
+        }
+        
+        // Asegurar que el formulario envíe el token
+        form.addEventListener('submit', function(e) {
+            const token = form.querySelector('input[name="csrfmiddlewaretoken"]');
+            if (!token || !token.value) {
+                e.preventDefault();
+                alert('Error: Token de seguridad no encontrado. Por favor, recarga la página e intenta nuevamente.');
+                return false;
+            }
+        });
+    }
+});
+</script>
+
+{% endblock %}

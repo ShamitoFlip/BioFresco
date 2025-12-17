@@ -1,0 +1,375 @@
+<!-- Formulario para Producto Propio (Editar) -->
+<div class="form-header mb-3">
+    <h5 class="mb-0">
+        <i class="fas fa-box text-success me-2"></i>Editar Producto Propio
+    </h5>
+</div>
+
+<div class="row g-3">
+    <!-- Nombre del Producto -->
+    <div class="col-12">
+        <label for="id_nombre_edit" class="form-label">
+            Nombre del Producto <span class="text-danger">*</span>
+        </label>
+        <input type="text" 
+               class="form-control" 
+               id="id_nombre_edit" 
+               name="nombre" 
+               value="{{ producto.nombre }}"
+               required
+               data-required="true">
+        <small class="form-text text-muted">Ingrese el nombre del producto manualmente</small>
+    </div>
+
+    <!-- Categoría -->
+    <div class="col-md-6">
+        <label for="id_categoria_edit" class="form-label">
+            <i class="fas fa-layer-group me-2"></i>Categoría
+        </label>
+        <select class="form-control" 
+                id="id_categoria_edit" 
+                name="categoria">
+            <option value="">-- Seleccione una categoría --</option>
+            <option value="frutas" {% if producto.categoria == 'frutas' %}selected{% endif %}>Frutas</option>
+            <option value="verduras" {% if producto.categoria == 'verduras' %}selected{% endif %}>Verduras</option>
+            <option value="frutos_secos" {% if producto.categoria == 'frutos_secos' %}selected{% endif %}>Frutos Secos</option>
+            <option value="preelaborados" {% if producto.categoria == 'preelaborados' %}selected{% endif %}>Preelaborados</option>
+        </select>
+        <small class="form-text text-muted">Categoría del producto</small>
+    </div>
+
+    <!-- Stock Mínimo -->
+    <div class="col-md-6">
+        <label for="id_stock_minimo_edit" class="form-label">
+            Stock Mínimo <span class="text-danger">*</span>
+        </label>
+        <input type="number" 
+               class="form-control" 
+               id="id_stock_minimo_edit" 
+               name="stock_minimo" 
+               value="{{ producto.stock_minimo }}"
+               min="0"
+               required
+               data-required="true">
+        <small class="form-text text-muted">Ayuda a personalizar el stock de alerta del producto</small>
+    </div>
+
+    <!-- Cantidad Existente -->
+    <div class="col-md-6">
+        <label for="id_cantidad_edit" class="form-label">
+            Cantidad Existente <span class="text-danger">*</span>
+        </label>
+        <input type="number" 
+               class="form-control" 
+               id="id_cantidad_edit" 
+               name="cantidad" 
+               value="{{ producto.cantidad }}"
+               min="0"
+               required
+               data-required="true">
+    </div>
+
+    <!-- Precio Venta -->
+    <div class="col-md-6">
+        <label for="id_precio_edit" class="form-label">
+            Precio Venta <span class="text-danger">*</span>
+        </label>
+        <input type="number" 
+               class="form-control" 
+               id="id_precio_edit" 
+               name="precio" 
+               value="{{ producto.precio|default:0 }}"
+               min="0"
+               step="1"
+               required
+               data-required="true">
+    </div>
+
+    <!-- Precio de Producción / Coste -->
+    <div class="col-md-6">
+        <label for="id_costo_promedio_actual_edit" class="form-label">
+            Precio de Producción / Coste <span class="text-danger">*</span>
+        </label>
+        <input type="number" 
+               class="form-control" 
+               id="id_costo_promedio_actual_edit" 
+               name="costo_promedio_actual" 
+               value="{{ producto.costo_promedio_actual|default:0 }}"
+               min="0"
+               step="0.01"
+               required
+               data-required="true">
+    </div>
+
+    <!-- Unidad de Medida -->
+    <div class="col-md-6">
+        <label for="id_unidad_medida_edit" class="form-label">
+            Unidad de Medida
+        </label>
+        <input type="text" 
+               class="form-control" 
+               id="id_unidad_medida_edit" 
+               name="unidad_medida" 
+               value="{{ producto.unidad_medida|default:'' }}"
+               placeholder="Ej: kg, unidades, cajas">
+        <small class="form-text text-muted">Unidad de medida del producto</small>
+    </div>
+
+    <!-- Zona -->
+    <div class="col-md-6">
+        <label for="id_zona_select_edit" class="form-label">
+            Zona
+        </label>
+        <div class="input-group">
+            <select class="form-control" 
+                    id="id_zona_select_edit" 
+                    name="zona">
+                <option value="">-- Seleccione una zona --</option>
+                {% for zona in zonas %}
+                    <option value="{{ zona.id }}" {% if producto.zona and producto.zona.id == zona.id %}selected{% endif %}>
+                        {{ zona.nombre }}
+                    </option>
+                {% endfor %}
+            </select>
+            <button type="button" 
+                    class="btn btn-outline-primary" 
+                    id="btn-crear-zona-edit"
+                    title="Crear nueva zona">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+        <small class="form-text text-muted">Zona o ubicación donde se almacena el producto</small>
+    </div>
+
+    <!-- Descripción -->
+    <div class="col-12">
+        <label for="id_descripcion_edit" class="form-label">
+            Descripción del Producto
+        </label>
+        <textarea class="form-control" 
+                  id="id_descripcion_edit" 
+                  name="descripcion" 
+                  rows="4"
+                  placeholder="Ingrese una descripción del producto">{{ producto.descripcion|default:'' }}</textarea>
+    </div>
+
+    <!-- Imagen del Producto -->
+    <div class="col-12">
+        <label for="id_imagen_edit" class="form-label">
+            Imagen del Producto
+        </label>
+        {% if producto.imagen %}
+            <div class="mb-2">
+                <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" style="max-width: 200px; max-height: 200px;" class="img-thumbnail">
+                <p class="text-muted small mt-1">Imagen actual</p>
+            </div>
+        {% endif %}
+        <input type="file" 
+               class="form-control" 
+               id="id_imagen_edit" 
+               name="imagen" 
+               accept="image/*">
+        <small class="form-text text-muted">Deje en blanco para mantener la imagen actual</small>
+    </div>
+
+    <!-- Activo -->
+    <div class="col-12">
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="id_activo_edit" name="activo" {% if producto.activo %}checked{% endif %}>
+            <label class="form-check-label" for="id_activo_edit">
+                Producto Activo
+            </label>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    'use strict';
+    
+    function inicializarModalCrearZonaEdit() {
+        const btnCrearZona = document.getElementById('btn-crear-zona-edit');
+        const selectZona = document.getElementById('id_zona_select_edit');
+        
+        if (!btnCrearZona) {
+            return false;
+        }
+        
+        const nuevoBtn = btnCrearZona.cloneNode(true);
+        btnCrearZona.parentNode.replaceChild(nuevoBtn, btnCrearZona);
+        
+        const btnActual = document.getElementById('btn-crear-zona-edit');
+        
+        btnActual.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            let modalEl = document.getElementById('modalCrearZonaEdit');
+            
+            if (!modalEl) {
+                modalEl = document.createElement('div');
+                modalEl.id = 'modalCrearZonaEdit';
+                modalEl.className = 'modal fade';
+                modalEl.setAttribute('tabindex', '-1');
+                modalEl.setAttribute('aria-labelledby', 'modalCrearZonaEditLabel');
+                modalEl.setAttribute('aria-hidden', 'true');
+                modalEl.style.zIndex = '9999';
+                
+                modalEl.innerHTML = `
+                    <div class="modal-dialog modal-dialog-centered" style="z-index: 10000;">
+                        <div class="modal-content">
+                            <div class="modal-header" style="background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%); color: white;">
+                                <h5 class="modal-title" id="modalCrearZonaEditLabel">
+                                    <i class="fas fa-map-marker-alt me-2"></i>Crear Nueva Zona
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="form-crear-zona-edit">
+                                    <div class="mb-3">
+                                        <label for="nombre_zona_nueva_edit" class="form-label">Nombre de la Zona *</label>
+                                        <input type="text" 
+                                               class="form-control" 
+                                               id="nombre_zona_nueva_edit" 
+                                               name="nombre" 
+                                               placeholder="Ej: Almacén A, Estantería 3, Zona Fría"
+                                               required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="descripcion_zona_nueva_edit" class="form-label">Descripción (Opcional)</label>
+                                        <textarea class="form-control" 
+                                                  id="descripcion_zona_nueva_edit" 
+                                                  name="descripcion" 
+                                                  rows="3"
+                                                  placeholder="Descripción de la zona"></textarea>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                    <i class="fas fa-times me-2"></i>Cancelar
+                                </button>
+                                <button type="button" class="btn btn-success" id="btn-guardar-zona-edit">
+                                    <i class="fas fa-save me-2"></i>Guardar Zona
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modalEl);
+            }
+            
+            const modalOptions = {
+                backdrop: true,
+                keyboard: true,
+                focus: true
+            };
+            
+            const bsModal = new bootstrap.Modal(modalEl, modalOptions);
+            
+            const btnGuardarZona = document.getElementById('btn-guardar-zona-edit');
+            if (btnGuardarZona) {
+                const nuevoBtnGuardar = btnGuardarZona.cloneNode(true);
+                btnGuardarZona.parentNode.replaceChild(nuevoBtnGuardar, btnGuardarZona);
+                
+                const btnGuardarActual = document.getElementById('btn-guardar-zona-edit');
+                
+                btnGuardarActual.addEventListener('click', function() {
+                    const nombre = document.getElementById('nombre_zona_nueva_edit').value.trim();
+                    
+                    if (!nombre) {
+                        if (typeof showAlertModal === 'function') {
+                            showAlertModal('El nombre de la zona es obligatorio', 'error');
+                        } else {
+                            alert('El nombre de la zona es obligatorio');
+                        }
+                        return;
+                    }
+                    
+                    const formData = new FormData();
+                    formData.append('nombre', nombre);
+                    formData.append('descripcion', document.getElementById('descripcion_zona_nueva_edit').value.trim());
+                    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+                    if (csrfToken) {
+                        formData.append('csrfmiddlewaretoken', csrfToken.value);
+                    }
+                    
+                    btnGuardarActual.disabled = true;
+                    btnGuardarActual.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Guardando...';
+                    
+                    fetch('{% url "zona_crear_ajax" %}', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            if (selectZona) {
+                                const option = document.createElement('option');
+                                option.value = data.zona.id;
+                                option.textContent = data.zona.nombre;
+                                option.selected = true;
+                                selectZona.appendChild(option);
+                            }
+                            
+                            bsModal.hide();
+                            document.getElementById('form-crear-zona-edit').reset();
+                            
+                            if (typeof showAlertModal === 'function') {
+                                showAlertModal(data.message, 'success');
+                            } else {
+                                alert(data.message);
+                            }
+                        } else {
+                            if (typeof showAlertModal === 'function') {
+                                showAlertModal(data.error || 'Error al crear la zona', 'error');
+                            } else {
+                                alert(data.error || 'Error al crear la zona');
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        if (typeof showAlertModal === 'function') {
+                            showAlertModal('Error al crear la zona. Por favor, intenta nuevamente.', 'error');
+                        } else {
+                            alert('Error al crear la zona. Por favor, intenta nuevamente.');
+                        }
+                    })
+                    .finally(() => {
+                        btnGuardarActual.disabled = false;
+                        btnGuardarActual.innerHTML = '<i class="fas fa-save me-2"></i>Guardar Zona';
+                    });
+                });
+            }
+            
+            bsModal.show();
+            
+            setTimeout(() => {
+                const backdrop = document.querySelector('.modal-backdrop:last-of-type');
+                if (backdrop) {
+                    backdrop.style.zIndex = '9998';
+                }
+                if (modalEl) {
+                    modalEl.style.zIndex = '9999';
+                }
+            }, 100);
+        });
+        
+        return true;
+    }
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', inicializarModalCrearZonaEdit);
+    } else {
+        inicializarModalCrearZonaEdit();
+    }
+    
+    setTimeout(inicializarModalCrearZonaEdit, 500);
+})();
+</script>
+

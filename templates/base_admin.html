@@ -1,0 +1,890 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block titulo %}Panel de Administración - BioFresco{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Google Fonts - Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Google Fonts - Alfa Slab One -->
+    <link href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&display=swap" rel="stylesheet">
+    <!-- Admin Styles -->
+    <link rel="stylesheet" href="{% static 'css/admin_styles.css' %}">
+    
+    <!-- Estilos específicos del Header para sobrescribir Bootstrap -->
+    <style>
+        /* FORZAR estilos del header - Máxima prioridad - COLOR VERDE LIMA CLARO */
+        html body header.admin-header,
+        html body .admin-header,
+        body header.admin-header,
+        body .admin-header,
+        header.admin-header,
+        .admin-header {
+            background: #9fc01a !important;
+            background-color: #9fc01a !important;
+            background-image: none !important;
+            min-height: 60px !important;
+        }
+        
+        /* Asegurar que el color se aplique incluso después de cargar */
+        header.admin-header::before,
+        header.admin-header::after {
+            display: none !important;
+        }
+        
+        header.admin-header .header-content {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            width: 100% !important;
+            padding: 0 20px !important;
+            box-sizing: border-box !important;
+        }
+        
+        header.admin-header .header-brand-main {
+            display: flex !important;
+            align-items: center !important;
+            color: white !important;
+        }
+        
+        header.admin-header .header-brand {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: flex-start !important;
+        }
+        
+        header.admin-header .header-title {
+            margin: 0 !important;
+            font-size: 1.5em !important;
+            font-weight: normal !important;
+            font-family: 'Alfa Slab One', sans-serif !important;
+            letter-spacing: 0.5px !important;
+        }
+
+        /* Remove any underline/border/pseudo-element under the title */
+        header.admin-header .header-title,
+        header.admin-header .title-inventario,
+        header.admin-header .title-system,
+        header.admin-header .header-brand-link {
+            text-decoration: none !important;
+            border-bottom: none !important;
+            box-shadow: none !important;
+            background-image: none !important;
+        }
+
+        header.admin-header .header-title::after,
+        header.admin-header .header-brand::after {
+            display: none !important;
+            content: none !important;
+        }
+        
+        header.admin-header .title-inventario {
+            color: rgba(0, 0, 0, 0.5) !important;
+        }
+        
+        header.admin-header .title-system {
+            color: #000000 !important;
+        }
+        
+        header.admin-header .header-tagline {
+            margin: 5px 0 0 0 !important;
+            font-size: 0.75em !important;
+            font-weight: bold !important;
+            color: #000000 !important;
+        }
+        
+        /* CRÍTICO: Forzar estilos del botón Inicio */
+        header.admin-header .header-right a.header-link-home,
+        header.admin-header .header-link-home {
+            color: #ffffff !important;
+            text-decoration: none !important;
+            font-size: 1.2em !important;
+            padding: 10px !important;
+            display: flex !important;
+            align-items: center !important;
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+        
+        header.admin-header .header-right a.header-link-home:link,
+        header.admin-header .header-right a.header-link-home:visited,
+        header.admin-header .header-right a.header-link-home:hover,
+        header.admin-header .header-right a.header-link-home:active,
+        header.admin-header .header-right a.header-link-home:focus {
+            color: #ffffff !important;
+            text-decoration: none !important;
+            background: transparent !important;
+            border: none !important;
+        }
+        
+        header.admin-header .header-link-home i,
+        header.admin-header .header-link-home .fas {
+            color: #ffffff !important;
+            margin-right: 5px !important;
+            font-size: 1.1em !important;
+        }
+        
+        header.admin-header .header-link-home span {
+            color: #ffffff !important;
+            text-decoration: none !important;
+        }
+        
+        /* OCULTAR botón hamburguesa en pantallas grandes (PC/Notebook) */
+        header.admin-header .navbar-toggler,
+        html body header.admin-header .navbar-toggler {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+            width: 0 !important;
+            height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden !important;
+        }
+        
+        /* Mostrar botón hamburguesa SOLO en móviles */
+        @media (max-width: 768px) {
+            header.admin-header .navbar-toggler,
+            html body header.admin-header .navbar-toggler {
+                display: flex !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+                pointer-events: auto !important;
+                width: 44px !important;
+                height: 44px !important;
+                min-width: 44px !important;
+                min-height: 44px !important;
+            }
+        }
+    </style>
+    /* Inline override to ensure hamburger visuals load immediately */
+    <style>
+        header.admin-header .navbar-toggler#mobileMenuToggle {
+            width: 44px !important;
+            height: 44px !important;
+            padding: 8px !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            background: transparent !important;
+            border: none !important;
+            position: absolute !important;
+            right: 12px !important;
+            top: 8px !important;
+            transform: none !important;
+            z-index: 2001 !important;
+        }
+        header.admin-header .navbar-toggler#mobileMenuToggle .hamburger-line {
+            display: block !important;
+            width: 100% !important;
+            height: 3px !important;
+            background-color: #ffffff !important;
+            border-radius: 2px !important;
+            transition: transform .32s cubic-bezier(.2,.8,.2,1), opacity .2s ease !important;
+            transform-origin: center center !important;
+        }
+        header.admin-header .navbar-toggler#mobileMenuToggle.is-active .hamburger-line:nth-child(1),
+        header.admin-header .navbar-toggler#mobileMenuToggle.active .hamburger-line:nth-child(1),
+        header.admin-header .navbar-toggler#mobileMenuToggle[aria-expanded="true"] .hamburger-line:nth-child(1) {
+            transform: translateY(10px) rotate(45deg) !important;
+        }
+        header.admin-header .navbar-toggler#mobileMenuToggle.is-active .hamburger-line:nth-child(2),
+        header.admin-header .navbar-toggler#mobileMenuToggle.active .hamburger-line:nth-child(2),
+        header.admin-header .navbar-toggler#mobileMenuToggle[aria-expanded="true"] .hamburger-line:nth-child(2) {
+            opacity: 0 !important;
+            transform: scaleX(0.2) !important;
+        }
+        header.admin-header .navbar-toggler#mobileMenuToggle.is-active .hamburger-line:nth-child(3),
+        header.admin-header .navbar-toggler#mobileMenuToggle.active .hamburger-line:nth-child(3),
+        header.admin-header .navbar-toggler#mobileMenuToggle[aria-expanded="true"] .hamburger-line:nth-child(3) {
+            transform: translateY(-10px) rotate(-45deg) !important;
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="admin-body">
+    <!-- Header Superior Verde -->
+    <header class="admin-header">
+        <div class="header-content">
+            <!-- Logo Principal: InventarioSystem (click sends to inicio) -->
+            <a href="{% url 'inicio' %}" class="header-brand-main header-brand-link" aria-label="Inicio">
+                <div class="header-brand">
+                    <h1 class="header-title">
+                        <span class="title-inventario">Inventario</span><span class="title-system">System</span>
+                    </h1>
+                    <p class="header-tagline">Control. Gestion. Eficiencia.</p>
+                </div>
+            </a>
+            
+            <!-- Botón Hamburguesa (Solo visible en móviles) -->
+            <button class="navbar-toggler" id="mobileMenuToggle" aria-label="Toggle menu" aria-expanded="false">
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+                <span class="hamburger-line"></span>
+            </button>
+            
+            <!-- Botón de Inicio removed (now header brand links to inicio) -->
+            <div class="header-right">
+                <a href="{% url 'inicio' %}" class="header-link-home">
+                    <i class="fas fa-home"></i>
+                    <span class="header-link-text">Inicio</span>
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenedor Principal: Sidebar + Content -->
+    <div class="admin-container">
+        <!-- Overlay para móviles cuando el sidebar está abierto -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+        
+        <!-- Sidebar Lateral -->
+        <aside class="admin-sidebar" id="adminSidebar" style="top: calc(60px + 5px); height: calc(100vh - 65px);">
+            <!-- Perfil de Usuario - Acordeón -->
+            <div class="user-info-accordion" id="user-info-accordion">
+                <!-- Header del Usuario (Siempre Visible) -->
+                <div class="user-info-header" id="user-info-header">
+                    <div class="profile-avatar-container">
+                        <div class="profile-avatar" id="profile-avatar">
+                            {% if user.empleado and user.empleado.foto %}
+                                <img src="{{ user.empleado.foto.url }}" alt="Avatar" id="avatar-img">
+                            {% else %}
+                                <img src="https://ui-avatars.com/api/?name={{ user.get_full_name|urlencode }}&background=2e7d32&color=fff&size=80" alt="Avatar" id="avatar-img">
+                            {% endif %}
+                            <div class="profile-avatar-overlay">
+                                <i class="fas fa-camera"></i>
+                                <span>Editar</span>
+                            </div>
+                        </div>
+                        <input type="file" id="avatar-upload" accept="image/*" style="display: none;">
+                    </div>
+                    <div class="profile-info">
+                        <h6 class="profile-role">
+                            {% if user.empleado and user.empleado.cargo %}
+                                {{ user.empleado.cargo.nombre }}
+                            {% else %}
+                                Administrador
+                            {% endif %}
+                        </h6>
+                        <h6 class="profile-name">{{ user.get_full_name|default:user.username }}</h6>
+                        <small class="profile-email">{{ user.email }}</small>
+                    </div>
+                    <div class="profile-dropdown-container">
+                        <i class="fas fa-chevron-down profile-dropdown-icon" id="profile-dropdown-btn"></i>
+                    </div>
+                </div>
+                
+                <!-- Detalles del Usuario (Oculto por Defecto) -->
+                <div class="user-info-details" id="user-info-details">
+                    <div class="profile-details-divider-top"></div>
+                    <div class="profile-details-grid">
+                        <div class="profile-details-item">
+                            <div class="profile-details-icon">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div class="profile-details-info">
+                                <div class="profile-details-label">NOMBRE</div>
+                                <div class="profile-details-value">{{ user.get_full_name|default:user.username }}</div>
+                            </div>
+                        </div>
+                        <div class="profile-details-item">
+                            <div class="profile-details-icon">
+                                <i class="fas fa-briefcase"></i>
+                            </div>
+                            <div class="profile-details-info">
+                                <div class="profile-details-label">CARGO</div>
+                                <div class="profile-details-value">
+                                    {% if user.empleado and user.empleado.cargo %}
+                                        {{ user.empleado.cargo.nombre }}
+                                    {% else %}
+                                        Administrador
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="profile-details-item">
+                            <div class="profile-details-icon">
+                                <i class="fas fa-envelope"></i>
+                            </div>
+                            <div class="profile-details-info">
+                                <div class="profile-details-label">CORREO</div>
+                                <div class="profile-details-value">{{ user.email }}</div>
+                            </div>
+                        </div>
+                        {% if user.empleado and user.empleado.telefono %}
+                        <div class="profile-details-item">
+                            <div class="profile-details-icon">
+                                <i class="fas fa-phone"></i>
+                            </div>
+                            <div class="profile-details-info">
+                                <div class="profile-details-label">TELÉFONO</div>
+                                <div class="profile-details-value">{{ user.empleado.telefono }}</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="profile-details-actions">
+                        <a href="{% url 'logout' %}" class="profile-action-btn profile-action-logout">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Cerrar Sesión</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navegación Principal -->
+            <nav class="admin-nav" id="main-navigation">
+                <div class="nav-title nav-title-toggle" id="nav-toggle">
+                    <span>NAVEGACIÓN PRINCIPAL</span>
+                    <i class="fas fa-chevron-down nav-title-chevron"></i>
+                </div>
+                <div class="nav-links-container" id="nav-links-container">
+                
+                <a href="{% url 'admin_panel' %}" class="nav-link nav-link-ajax {% if request.resolver_match.url_name == 'admin_panel' %}active{% endif %}" data-url="{% url 'admin_panel' %}">
+                    <i class="fas fa-th-large nav-icon"></i>
+                    <span>Dashboard</span>
+                </a>
+                
+                <a href="{% url 'inventario_lista' %}" class="nav-link nav-link-ajax {% if 'inventario' in request.resolver_match.url_name %}active{% endif %}" data-url="{% url 'inventario_lista' %}">
+                    <i class="fas fa-boxes nav-icon"></i>
+                    <span>Inventario</span>
+                </a>
+                
+                <a href="{% url 'empleados_lista' %}" class="nav-link nav-link-ajax {% if 'empleados' in request.resolver_match.url_name %}active{% endif %}" data-url="{% url 'empleados_lista' %}">
+                    <i class="fas fa-user-cog nav-icon"></i>
+                    <span>Gestion de Empleados</span>
+                </a>
+                
+                <!-- Gestión de Proveedores con Submenú -->
+                <div class="nav-item-dropdown">
+                    <a href="#" class="nav-link nav-link-dropdown {% if 'proveedores' in request.resolver_match.url_name or 'productos_proveedor' in request.resolver_match.url_name %}active{% endif %}" id="dropdown-proveedores">
+                        <i class="fas fa-truck nav-icon"></i>
+                        <span>Gestion de Proveedores</span>
+                        <i class="fas fa-chevron-down nav-chevron"></i>
+                    </a>
+                    <div class="nav-submenu" id="submenu-proveedores">
+                        <a href="{% url 'proveedores_lista' %}" class="nav-submenu-link nav-link-ajax {% if 'proveedores' in request.resolver_match.url_name and 'productos_proveedor' not in request.resolver_match.url_name %}active{% endif %}" data-url="{% url 'proveedores_lista' %}">
+                            <i class="fas fa-building nav-icon"></i>
+                            <span>Proveedores</span>
+                        </a>
+                        <a href="{% url 'productos_proveedor_lista' %}" class="nav-submenu-link nav-link-ajax {% if 'productos_proveedor' in request.resolver_match.url_name %}active{% endif %}" data-url="{% url 'productos_proveedor_lista' %}">
+                            <i class="fas fa-box nav-icon"></i>
+                            <span>Productos de Proveedores</span>
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Gestión de Existencias con Submenú -->
+                <div class="nav-item-dropdown">
+                    <a href="#" class="nav-link nav-link-dropdown {% if 'entradas' in request.resolver_match.url_name or 'salidas' in request.resolver_match.url_name %}active{% endif %}" id="dropdown-existencias">
+                        <i class="fas fa-clipboard-check nav-icon"></i>
+                        <span>Gestion de Existencias</span>
+                        <i class="fas fa-chevron-down nav-chevron"></i>
+                    </a>
+                    <div class="nav-submenu" id="submenu-existencias">
+                        <a href="{% url 'entradas_lista' %}" class="nav-submenu-link nav-link-ajax {% if 'entradas' in request.resolver_match.url_name %}active{% endif %}" data-url="{% url 'entradas_lista' %}">
+                            <i class="fas fa-arrow-down nav-icon"></i>
+                            <span>Entradas</span>
+                        </a>
+                        <!-- Salidas / Facturas link removed as functionality disabled -->
+                    </div>
+                </div>
+                
+                <!-- Gestión de Auditoría con Submenú -->
+                <div class="nav-item-dropdown">
+                    <a href="#" class="nav-link nav-link-dropdown {% if 'auditoria' in request.resolver_match.url_name %}active{% endif %}" id="dropdown-auditoria">
+                        <i class="fas fa-search nav-icon"></i>
+                        <span>Auditoría de Inventario</span>
+                        <i class="fas fa-chevron-down nav-chevron"></i>
+                    </a>
+                    <div class="nav-submenu" id="submenu-auditoria">
+                        <a href="{% url 'auditoria_revisiones' %}" class="nav-submenu-link nav-link-ajax {% if 'auditoria_revisiones' in request.resolver_match.url_name %}active{% endif %}" data-url="{% url 'auditoria_revisiones' %}">
+                            <i class="fas fa-clipboard-check nav-icon"></i>
+                            <span>Revisiones</span>
+                        </a>
+                        <a href="{% url 'auditoria_lista' %}" class="nav-submenu-link nav-link-ajax {% if 'auditoria_lista' in request.resolver_match.url_name %}active{% endif %}" data-url="{% url 'auditoria_lista' %}">
+                            <i class="fas fa-history nav-icon"></i>
+                            <span>Historial</span>
+                        </a>
+                    </div>
+                </div>
+                
+                {% if user.is_superuser %}
+                <a href="{% url 'cargos_lista' %}" class="nav-link nav-link-ajax {% if 'cargos' in request.resolver_match.url_name %}active{% endif %}" data-url="{% url 'cargos_lista' %}">
+                    <i class="fas fa-user-shield nav-icon"></i>
+                    <span>Roles y Permisos</span>
+                </a>
+                {% endif %}
+                </div>
+            </nav>
+
+            <!-- Logo/Brand -->
+            <div class="admin-brand">
+                <img src="{% static 'Imagenes/biofresco.png' %}" alt="BioFresco" class="admin-brand-logo">
+            </div>
+        </aside>
+
+        <!-- Contenido Principal -->
+        <main class="admin-content" id="main-content-area">
+            {% if messages %}
+                <div class="messages-container">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    
+    <!-- Drawers para Inventario -->
+    <div class="drawer-overlay" id="drawerOverlayInventarioCrear" onclick="closeDrawerInventarioCrear()"></div>
+    <div class="drawer" id="drawerInventarioCrear">
+        <div class="drawer-header">
+            <h5 class="drawer-title" id="drawerInventarioCrearTitle">
+                <i class="fas fa-plus me-2"></i>Crear Producto
+            </h5>
+            <button type="button" class="drawer-close" onclick="closeDrawerInventarioCrear()" aria-label="Cerrar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="drawer-body" id="drawerInventarioCrearBody">
+            <div class="text-center py-4">
+                <div class="spinner-border text-success" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+                <p class="mt-3 text-muted">Cargando formulario...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="drawer-overlay" id="drawerOverlayInventarioEditar" onclick="closeDrawerInventarioEditar()"></div>
+    <div class="drawer" id="drawerInventarioEditar">
+        <div class="drawer-header">
+            <h5 class="drawer-title">
+                <i class="fas fa-edit me-2"></i>Editar Producto
+            </h5>
+            <button type="button" class="drawer-close" onclick="closeDrawerInventarioEditar()" aria-label="Cerrar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="drawer-body" id="drawerInventarioEditarBody">
+            <div class="text-center py-4">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+                <p class="mt-3 text-muted">Cargando formulario...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="drawer-overlay" id="drawerOverlayInventarioEliminar" onclick="closeDrawerInventarioEliminar()"></div>
+    <div class="drawer" id="drawerInventarioEliminar">
+        <div class="drawer-header">
+            <h5 class="drawer-title">
+                <i class="fas fa-trash me-2"></i>Eliminar Producto
+            </h5>
+            <button type="button" class="drawer-close" onclick="closeDrawerInventarioEliminar()" aria-label="Cerrar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="drawer-body" id="drawerInventarioEliminarBody">
+            <div class="text-center py-4">
+                <div class="spinner-border text-danger" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+                <p class="mt-3 text-muted">Cargando...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- CSRF Token para AJAX -->
+    <script>
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        const csrftoken = getCookie('csrftoken');
+        
+        // Funciones para abrir y cerrar drawers de inventario
+        window.closeDrawerInventarioCrear = function() {
+            const drawer = document.getElementById('drawerInventarioCrear');
+            const overlay = document.getElementById('drawerOverlayInventarioCrear');
+            if (drawer && overlay) {
+                overlay.classList.remove('active');
+                drawer.classList.remove('active', 'show');
+                document.body.style.overflow = '';
+            }
+        };
+        
+        window.closeDrawerInventarioEditar = function() {
+            const drawer = document.getElementById('drawerInventarioEditar');
+            const overlay = document.getElementById('drawerOverlayInventarioEditar');
+            if (drawer && overlay) {
+                overlay.classList.remove('active');
+                drawer.classList.remove('active', 'show');
+                document.body.style.overflow = '';
+            }
+        };
+        
+        window.closeDrawerInventarioEliminar = function() {
+            const drawer = document.getElementById('drawerInventarioEliminar');
+            const overlay = document.getElementById('drawerOverlayInventarioEliminar');
+            if (drawer && overlay) {
+                overlay.classList.remove('active');
+                drawer.classList.remove('active', 'show');
+                document.body.style.overflow = '';
+            }
+        };
+    </script>
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Admin AJAX Navigation -->
+    <script src="{% static 'js/admin_ajax.js' %}"></script>
+    
+    <!-- Script de prueba para dropdown -->
+    <script>
+        $(document).ready(function() {
+            // Asegurar que el dropdown funcione
+            setTimeout(function() {
+                // Verificar que los elementos existan
+                const $dropdown = $('.nav-item-dropdown');
+                const $dropdownLink = $('.nav-link-dropdown');
+                
+                console.log('Dropdown elements found:', {
+                    dropdowns: $dropdown.length,
+                    links: $dropdownLink.length
+                });
+                
+                // Agregar handler directo como respaldo
+                $dropdownLink.on('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const $link = $(this);
+                    const $parent = $link.closest('.nav-item-dropdown');
+                    
+                    // Toggle
+                    $parent.toggleClass('open');
+                    
+                    console.log('Dropdown toggled manually, is open:', $parent.hasClass('open'));
+                    
+                    return false;
+                });
+            }, 500);
+        });
+    </script>
+    
+    <!-- Script para menú hamburguesa móvil -->
+    <script>
+        (function() {
+            'use strict';
+            
+            const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+            const adminSidebar = document.getElementById('adminSidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            
+            function isMobile() {
+                return window.innerWidth <= 768;
+            }
+            
+            function toggleSidebar() {
+                if (adminSidebar && sidebarOverlay) {
+                    const isOpen = adminSidebar.classList.contains('open');
+                    
+                    if (isOpen) {
+                        closeSidebar();
+                    } else {
+                        openSidebar();
+                    }
+                }
+            }
+            
+            function openSidebar() {
+                if (adminSidebar && sidebarOverlay) {
+                    adminSidebar.classList.add('open');
+                    sidebarOverlay.classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                    if (mobileMenuToggle) {
+                        mobileMenuToggle.classList.add('active');
+                        mobileMenuToggle.setAttribute('aria-expanded', 'true');
+                    }
+                }
+            }
+            
+            function closeSidebar() {
+                if (adminSidebar && sidebarOverlay) {
+                    adminSidebar.classList.remove('open');
+                    sidebarOverlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                    if (mobileMenuToggle) {
+                        mobileMenuToggle.classList.remove('active');
+                        mobileMenuToggle.setAttribute('aria-expanded', 'false');
+                    }
+                }
+            }
+            
+            // Event listeners del menú hamburguesa
+            if (mobileMenuToggle) {
+                mobileMenuToggle.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    if (isMobile()) {
+                        toggleSidebar();
+                    }
+                });
+            }
+            
+            if (sidebarOverlay) {
+                sidebarOverlay.addEventListener('click', closeSidebar);
+            }
+            
+            // Cerrar sidebar al hacer clic en un enlace (solo en móviles)
+            function setupNavLinks() {
+                if (isMobile()) {
+                    const navLinks = document.querySelectorAll('.admin-sidebar .nav-link, .admin-sidebar .nav-submenu-link');
+                    navLinks.forEach(function(link) {
+                        link.removeEventListener('click', handleNavLinkClick);
+                        link.addEventListener('click', handleNavLinkClick);
+                    });
+                }
+            }
+            
+            function handleNavLinkClick(e) {
+                const isDropdown = e.currentTarget.classList.contains('nav-link-dropdown');
+                if (!isDropdown && isMobile()) {
+                    setTimeout(closeSidebar, 200);
+                }
+            }
+            
+            // Inicializar listeners de enlaces cuando el DOM esté listo
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', setupNavLinks);
+            } else {
+                setupNavLinks();
+            }
+            
+            // Reconfigurar cuando se cargue contenido dinámicamente (AJAX)
+            if (typeof jQuery !== 'undefined') {
+                $(document).on('ajaxComplete', function() {
+                    setTimeout(setupNavLinks, 100);
+                });
+            }
+            
+            // Cerrar sidebar al redimensionar la ventana si es mayor a 768px
+            let resizeTimer;
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(function() {
+                    if (!isMobile() && adminSidebar && adminSidebar.classList.contains('open')) {
+                        closeSidebar();
+                    }
+                    setupNavLinks();
+                }, 250);
+            });
+            
+            // Cerrar sidebar con tecla ESC
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && adminSidebar && adminSidebar.classList.contains('open')) {
+                    closeSidebar();
+                }
+            });
+        })();
+    </script>
+    
+    <!-- Script para auto-ocultar mensajes después de 3 segundos -->
+    <script>
+    (function() {
+        'use strict';
+        
+        // Función para ocultar un mensaje
+        function ocultarMensaje(alertElement) {
+            if (alertElement && alertElement.classList) {
+                // Usar Bootstrap para cerrar el alert con animación
+                if (typeof bootstrap !== 'undefined' && bootstrap.Alert) {
+                    const bsAlert = new bootstrap.Alert(alertElement);
+                    bsAlert.close();
+                } else {
+                    // Fallback: ocultar manualmente
+                    alertElement.classList.remove('show');
+                    alertElement.classList.add('fade');
+                    setTimeout(function() {
+                        if (alertElement.parentNode) {
+                            alertElement.parentNode.removeChild(alertElement);
+                        }
+                    }, 150);
+                }
+            }
+        }
+        
+        // Función para inicializar auto-ocultar en un mensaje
+        function inicializarAutoOcultar(alertElement) {
+            if (!alertElement || alertElement.dataset.autoHideInitialized) {
+                return;
+            }
+            
+            // Marcar como inicializado para evitar múltiples timers
+            alertElement.dataset.autoHideInitialized = 'true';
+            
+            // Ocultar después de 3 segundos
+            setTimeout(function() {
+                ocultarMensaje(alertElement);
+            }, 3000);
+        }
+        
+        // Inicializar mensajes existentes al cargar la página
+        function inicializarMensajesExistentes() {
+            const mensajes = document.querySelectorAll('.alert.alert-dismissible, .alert[role="alert"]');
+            mensajes.forEach(function(mensaje) {
+                inicializarAutoOcultar(mensaje);
+            });
+        }
+        
+        // Observer para detectar nuevos mensajes creados dinámicamente
+        function crearObserver() {
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    mutation.addedNodes.forEach(function(node) {
+                        if (node.nodeType === 1) { // Element node
+                            // Verificar si el nodo es un alert
+                            if (node.classList && (node.classList.contains('alert') || node.classList.contains('alert-dismissible'))) {
+                                inicializarAutoOcultar(node);
+                            }
+                            // Verificar si el nodo contiene alerts
+                            const alerts = node.querySelectorAll && node.querySelectorAll('.alert.alert-dismissible, .alert[role="alert"]');
+                            if (alerts) {
+                                alerts.forEach(function(alert) {
+                                    inicializarAutoOcultar(alert);
+                                });
+                            }
+                        }
+                    });
+                });
+            });
+            
+            // Observar cambios en el área de contenido principal
+            const contentArea = document.getElementById('main-content-area');
+            if (contentArea) {
+                observer.observe(contentArea, {
+                    childList: true,
+                    subtree: true
+                });
+            }
+            
+            // También observar el body por si se agregan mensajes en otros lugares
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+        }
+        
+        // Inicializar cuando el DOM esté listo
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                inicializarMensajesExistentes();
+                crearObserver();
+            });
+        } else {
+            inicializarMensajesExistentes();
+            crearObserver();
+        }
+        
+        // Función global para crear mensajes con auto-ocultar
+        window.crearMensajeAutoOcultar = function(mensaje, tipo, contenedor) {
+            tipo = tipo || 'success';
+            contenedor = contenedor || document.getElementById('main-content-area');
+            
+            if (!contenedor) return null;
+            
+            const alertDiv = document.createElement('div');
+            alertDiv.className = 'alert alert-' + tipo + ' alert-dismissible fade show';
+            alertDiv.setAttribute('role', 'alert');
+            
+            const icono = tipo === 'success' ? 'fa-check-circle' : 
+                         tipo === 'danger' ? 'fa-exclamation-triangle' : 
+                         tipo === 'warning' ? 'fa-exclamation-circle' : 'fa-info-circle';
+            
+            alertDiv.innerHTML = '<i class="fas ' + icono + ' me-2"></i>' + mensaje + 
+                                '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>';
+            
+            contenedor.insertBefore(alertDiv, contenedor.firstChild);
+            inicializarAutoOcultar(alertDiv);
+            
+            return alertDiv;
+        };
+    })();
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+    <!-- Remove/restore desktop 'Inicio' link from DOM depending on screen width (remove on <=768px, restore on >768px) -->
+    <script>
+    (function(){
+        'use strict';
+        function debounce(fn, wait){ let t; return function(){ clearTimeout(t); t = setTimeout(fn, wait); }; }
+
+        const selector = '.header-link-home';
+        const parentSelector = '.header-right';
+        let savedHTML = null;
+
+        function toggleHomeElement(){
+            try{
+                const parent = document.querySelector(parentSelector);
+                if(!parent) return;
+                const el = document.querySelector(selector);
+
+                if(window.innerWidth <= 768){
+                    if(el){
+                        // save markup to restore later
+                        savedHTML = el.outerHTML;
+                        el.remove();
+                    }
+                } else {
+                    if(!el && savedHTML){
+                        // restore at the beginning of header-right (same place it was)
+                        parent.insertAdjacentHTML('afterbegin', savedHTML);
+                        // ensure savedHTML stays available in case of future removes
+                    }
+                }
+            }catch(e){ console.error('toggleHomeElement error', e); }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', toggleHomeElement);
+        } else {
+            toggleHomeElement();
+        }
+
+        window.addEventListener('resize', debounce(toggleHomeElement, 120));
+    })();
+    </script>
+</body>
+</html>
+

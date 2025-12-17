@@ -1,0 +1,78 @@
+<!-- Formulario de Editar Producto (sin opción de cambiar tipo) -->
+<form id="producto-editar-form" method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    
+    <!-- Campo oculto para tipo_producto (no se puede cambiar) -->
+    <input type="hidden" name="tipo_producto" id="tipo_producto_hidden_edit" value="{{ producto.tipo_producto }}">
+
+    <!-- Contenedor para el formulario según el tipo de producto -->
+    <div id="formulario-contenedor-edit">
+        {% if producto.tipo_producto == 'propio' %}
+            <!-- Formulario Propio -->
+            <div id="formulario-propio-edit" style="display: block; visibility: visible;">
+                {% include 'inventario/editar_propio_fragment.html' %}
+            </div>
+        {% else %}
+            <!-- Formulario Proveedor -->
+            <div id="formulario-proveedor-edit" style="display: block; visibility: visible;">
+                {% include 'inventario/editar_proveedor_fragment.html' %}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Botones de acción -->
+    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+        <button type="button" class="btn btn-secondary" onclick="closeDrawerProductoEditar()">
+            <i class="fas fa-times me-2"></i>Cancelar
+        </button>
+        <button type="submit" class="btn btn-primary-admin">
+            <i class="fas fa-save me-2"></i>Guardar Cambios
+        </button>
+    </div>
+</form>
+
+<script>
+console.log('✅ Script de editar_fragment.html cargado');
+
+// Inicializar script de proveedor si es necesario
+(function() {
+    'use strict';
+    
+    const tipoProducto = '{{ producto.tipo_producto }}';
+    
+    // Si es producto de proveedor, inicializar el script de proveedor
+    if (tipoProducto === 'proveedor') {
+        function intentarInicializarScriptProveedor(intentos) {
+            if (typeof window.inicializarScriptProveedorEdit === 'function') {
+                console.log('✅ Inicializando script de proveedor edit...');
+                window.inicializarScriptProveedorEdit();
+                return true;
+            } else if (intentos < 20) {
+                console.log(`⏳ Esperando inicializarScriptProveedorEdit (intento ${intentos})...`);
+                setTimeout(function() {
+                    intentarInicializarScriptProveedor(intentos + 1);
+                }, 150);
+                return false;
+            } else {
+                console.warn('⚠️ inicializarScriptProveedorEdit no está disponible después de 20 intentos');
+                return false;
+            }
+        }
+        
+        // Ejecutar cuando el DOM esté listo
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                setTimeout(function() {
+                    intentarInicializarScriptProveedor(1);
+                }, 200);
+            });
+        } else {
+            setTimeout(function() {
+                intentarInicializarScriptProveedor(1);
+            }, 200);
+        }
+    }
+    
+    console.log('✅ Script de editar_fragment.html configurado completamente');
+})();
+</script>

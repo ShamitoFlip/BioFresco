@@ -1,0 +1,989 @@
+<!-- Page Header -->
+<div class="page-header">
+    <h1 class="page-title">Gestión de Empleados</h1>
+    {% if estilistas %}
+    <div class="d-flex gap-2">
+        <button type="button" class="btn btn-primary-admin" id="btn-crear-empleado" onclick="openDrawerEmpleadoCrear()">
+            <i class="fas fa-plus me-2"></i>Empleado nuevo
+        </button>
+    </div>
+    {% endif %}
+</div>
+
+<div class="admin-content-body">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Search Container -->
+    <div class="search-container-enhanced">
+        <div class="filter-toggle-header" id="filter-toggle-header-empleados">
+            <div class="filter-title">
+                <i class="fas fa-filter"></i>
+                <span>Filtros de Búsqueda</span>
+            </div>
+            <div class="filter-actions">
+                <button type="button" class="btn-clear-filters" id="btn-limpiar-filtros-empleados" title="Limpiar todos los filtros">
+                    <i class="fas fa-redo"></i>
+                    <span>Limpiar</span>
+                </button>
+                <button type="button" class="btn-toggle-filters" id="btn-toggle-filters-empleados" title="Mostrar/Ocultar filtros">
+                    <i class="fas fa-chevron-down toggle-icon"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div id="filter-content-area-empleados" class="filter-content-visible">
+            <form method="GET" action="{% url 'empleados_lista' %}" id="filtroEmpleadosForm">
+                <div class="search-row-enhanced">
+                    <div class="search-field-enhanced">
+                        <div class="field-label">
+                            <i class="fas fa-user"></i>
+                            <span>Nombre</span>
+                        </div>
+                        <div class="input-wrapper">
+                            <i class="fas fa-search input-icon"></i>
+                            <input type="text" id="search-nombre" name="nombre" value="{{ nombre_filtro }}" placeholder="Buscar por nombre..." class="form-control-enhanced" autocomplete="off">
+                        </div>
+                    </div>
+                    
+                    <div class="search-field-enhanced">
+                        <div class="field-label">
+                            <i class="fas fa-briefcase"></i>
+                            <span>Cargo</span>
+                        </div>
+                        <div class="input-wrapper">
+                            <i class="fas fa-briefcase input-icon"></i>
+                            <input type="text" id="search-cargo" name="cargo" value="{{ cargo_filtro }}" placeholder="Buscar por cargo..." class="form-control-enhanced" autocomplete="off">
+                        </div>
+                    </div>
+                </div>
+            </form>
+            
+            <div class="filter-footer-enhanced">
+                <div class="results-info-enhanced">
+                    <div class="results-icon">
+                        <i class="fas fa-user-cog"></i>
+                    </div>
+                    <div class="results-content">
+                        <span class="results-label">Resultados encontrados:</span>
+                        <span id="resultados-text-empleados" class="results-number">{{ estilistas.paginator.count }} empleado{{ estilistas.paginator.count|pluralize }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="loading-indicator-empleados" class="loading-indicator-enhanced" style="display: none;">
+                <div class="spinner-wrapper">
+                    <div class="spinner"></div>
+                </div>
+                <span class="loading-text">Filtrando resultados...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Table Container -->
+    <div class="data-table-container">
+        <table class="table-data">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Cargo</th>
+                    <th>Experiencia</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for empleado in estilistas %}
+                <tr>
+                    <td><strong>{{ empleado.nombre }} {% if empleado.apellido %}{{ empleado.apellido }}{% endif %}</strong></td>
+                    <td>{{ empleado.email|default:"-" }}</td>
+                    <td>
+                        {% if empleado.cargo %}
+                            <span class="badge bg-info">{{ empleado.cargo }}</span>
+                        {% else %}
+                            <span class="text-muted">Sin cargo</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ empleado.experiencia_anos|default:0 }} año{{ empleado.experiencia_anos|pluralize }}</td>
+                    <td>
+                        {% if empleado.activo %}
+                            <span class="badge bg-success">Activo</span>
+                        {% else %}
+                            <span class="badge bg-danger">Inactivo</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="d-flex gap-2">
+                            <button type="button" class="btn btn-sm btn-primary btn-editar-empleado" 
+                                    data-empleado-id="{{ empleado.id }}" 
+                                    onclick="openDrawerEmpleadoEditar({{ empleado.id }})"
+                                    title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <a href="{% url 'empleados_eliminar' empleado.id %}" class="btn btn-sm btn-danger" title="Eliminar" onclick="return confirm('¿Estás seguro de eliminar este empleado?');">
+                                <i class="fas fa-trash-alt"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center" style="padding: 3rem; color: #757575;">
+                        <i class="fas fa-inbox fa-3x mb-3" style="opacity: 0.3;"></i>
+                        <p style="margin-bottom: 1rem; font-size: 1rem;">No hay empleados registrados</p>
+                        <div class="d-flex gap-2 justify-content-center">
+                            <button type="button" class="btn btn-primary-admin mt-3" id="btn-crear-empleado-empty" onclick="openDrawerEmpleadoCrear()">
+                                <i class="fas fa-plus me-2"></i>Crear Primer Empleado
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Paginación -->
+    {% if estilistas.has_other_pages %}
+    <div class="pagination-wrapper-historial" style="display: flex !important; justify-content: center !important; align-items: center !important; gap: 12px !important; flex-wrap: wrap !important; margin-top: 10px !important; margin-bottom: 10px !important; padding: 0 !important; width: 100% !important;">
+        {% if estilistas.has_previous %}
+            <a href="?page=1" 
+               class="pagination-btn pagination-btn-nav ajax-link" 
+               data-url="{% url 'empleados_lista' %}?page=1" 
+               style="display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 8px !important; padding: 0.75rem 1.5rem !important; border-radius: 12px !important; font-weight: 600 !important; font-size: 0.9rem !important; text-decoration: none !important; transition: all 0.2s ease !important; border: none !important; cursor: pointer !important; white-space: nowrap !important; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08) !important; background: linear-gradient(135deg, #757575 0%, #9e9e9e 100%) !important; color: #ffffff !important;">
+                <i class="fas fa-angle-double-left"></i> Primera
+            </a>
+            <a href="?page={{ estilistas.previous_page_number }}" 
+               class="pagination-btn pagination-btn-nav ajax-link" 
+               data-url="{% url 'empleados_lista' %}?page={{ estilistas.previous_page_number }}" 
+               style="display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 8px !important; padding: 0.75rem 1.5rem !important; border-radius: 12px !important; font-weight: 600 !important; font-size: 0.9rem !important; text-decoration: none !important; transition: all 0.2s ease !important; border: none !important; cursor: pointer !important; white-space: nowrap !important; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08) !important; background: linear-gradient(135deg, #757575 0%, #9e9e9e 100%) !important; color: #ffffff !important;">
+                <i class="fas fa-angle-left"></i> Anterior
+            </a>
+        {% endif %}
+
+        <span class="pagination-info-historial" style="display: inline-flex !important; align-items: center !important; justify-content: center !important; padding: 0.75rem 1.5rem !important; background: linear-gradient(135deg, #ffffff 0%, #f5f5f5 100%) !important; border: 2px solid #e0e0e0 !important; border-radius: 12px !important; font-weight: 600 !important; font-size: 0.9rem !important; color: #212121 !important; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08) !important; min-width: 140px !important; text-align: center !important;">
+            Página {{ estilistas.number }} de {{ estilistas.paginator.num_pages }}
+        </span>
+
+        {% if estilistas.has_next %}
+            <a href="?page={{ estilistas.next_page_number }}" 
+               class="pagination-btn pagination-btn-nav ajax-link" 
+               data-url="{% url 'empleados_lista' %}?page={{ estilistas.next_page_number }}" 
+               style="display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 8px !important; padding: 0.75rem 1.5rem !important; border-radius: 12px !important; font-weight: 600 !important; font-size: 0.9rem !important; text-decoration: none !important; transition: all 0.2s ease !important; border: none !important; cursor: pointer !important; white-space: nowrap !important; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08) !important; background: linear-gradient(135deg, #757575 0%, #9e9e9e 100%) !important; color: #ffffff !important;">
+                Siguiente <i class="fas fa-angle-right"></i>
+            </a>
+            <a href="?page={{ estilistas.paginator.num_pages }}" 
+               class="pagination-btn pagination-btn-nav ajax-link" 
+               data-url="{% url 'empleados_lista' %}?page={{ estilistas.paginator.num_pages }}" 
+               style="display: inline-flex !important; align-items: center !important; justify-content: center !important; gap: 8px !important; padding: 0.75rem 1.5rem !important; border-radius: 12px !important; font-weight: 600 !important; font-size: 0.9rem !important; text-decoration: none !important; transition: all 0.2s ease !important; border: none !important; cursor: pointer !important; white-space: nowrap !important; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08) !important; background: linear-gradient(135deg, #757575 0%, #9e9e9e 100%) !important; color: #ffffff !important;">
+                Última <i class="fas fa-angle-double-right"></i>
+            </a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- Drawer para crear empleado -->
+<div class="drawer-overlay" id="drawerOverlayEmpleadoCrear" onclick="closeDrawerEmpleadoCrear()"></div>
+<div class="drawer" id="drawerEmpleadoCrear">
+    <div class="drawer-header">
+        <h5 class="drawer-title">
+            <i class="fas fa-user-plus me-2"></i>Nuevo Empleado
+        </h5>
+        <button type="button" class="drawer-close" onclick="closeDrawerEmpleadoCrear()" aria-label="Cerrar">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <div class="drawer-body" id="drawerEmpleadoCrearBody">
+        <div class="text-center py-4">
+            <div class="spinner-border text-success" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-3 text-muted">Cargando formulario...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Drawer para editar empleado -->
+<div class="drawer-overlay" id="drawerOverlayEmpleadoEditar" onclick="closeDrawerEmpleadoEditar()"></div>
+<div class="drawer" id="drawerEmpleadoEditar">
+    <div class="drawer-header">
+        <h5 class="drawer-title">
+            <i class="fas fa-edit me-2"></i>Editar Empleado
+        </h5>
+        <button type="button" class="drawer-close" onclick="closeDrawerEmpleadoEditar()" aria-label="Cerrar">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <div class="drawer-body" id="drawerEmpleadoEditarBody">
+        <div class="text-center py-4">
+            <div class="spinner-border text-success" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-3 text-muted">Cargando formulario...</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Manejar el toggle de mostrar/ocultar filtros
+    (function() {
+        const toggleHeader = document.getElementById('filter-toggle-header-empleados');
+        const filterContent = document.getElementById('filter-content-area-empleados');
+        const toggleBtn = document.getElementById('btn-toggle-filters-empleados');
+        
+        if (toggleHeader && filterContent) {
+            // Asegurar que el header siempre esté visible
+            toggleHeader.style.display = 'flex';
+            toggleHeader.style.visibility = 'visible';
+            
+            // Verificar estado guardado en localStorage
+            const savedState = localStorage.getItem('filtros-empleados-visible');
+            const isVisible = savedState === null ? true : savedState === 'true';
+            
+            if (!isVisible) {
+                filterContent.classList.remove('filter-content-visible');
+                filterContent.classList.add('filter-content-hidden');
+                toggleHeader.classList.add('collapsed');
+            } else {
+                filterContent.classList.remove('filter-content-hidden');
+                filterContent.classList.add('filter-content-visible');
+                toggleHeader.classList.remove('collapsed');
+            }
+            
+            function toggleFilters() {
+                const isVisible = filterContent.classList.contains('filter-content-visible');
+                
+                if (isVisible) {
+                    filterContent.classList.remove('filter-content-visible');
+                    filterContent.classList.add('filter-content-hidden');
+                    toggleHeader.classList.add('collapsed');
+                    localStorage.setItem('filtros-empleados-visible', 'false');
+                } else {
+                    filterContent.classList.remove('filter-content-hidden');
+                    filterContent.classList.add('filter-content-visible');
+                    toggleHeader.classList.remove('collapsed');
+                    localStorage.setItem('filtros-empleados-visible', 'true');
+                }
+            }
+            
+            // Click en el header (excepto en botones)
+            toggleHeader.addEventListener('click', function(e) {
+                if (e.target.closest('.btn-clear-filters') || e.target.closest('.btn-toggle-filters')) {
+                    return;
+                }
+                toggleFilters();
+            });
+            
+            // Click específico en el botón toggle
+            if (toggleBtn) {
+                toggleBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    toggleFilters();
+                });
+            }
+        }
+    })();
+
+    // Sistema de filtrado dinámico con AJAX
+    (function() {
+        'use strict';
+        
+        let searchTimeout;
+        const DEBOUNCE_DELAY = 500;
+        
+        const filtroForm = document.getElementById('filtroEmpleadosForm');
+        const searchNombre = document.getElementById('search-nombre');
+        const searchCargo = document.getElementById('search-cargo');
+        const btnLimpiar = document.getElementById('btn-limpiar-filtros-empleados');
+        const loadingIndicator = document.getElementById('loading-indicator-empleados');
+        
+        if (!filtroForm) {
+            console.log('⚠️ Formulario de filtros no encontrado');
+            return;
+        }
+        
+        // Remover listeners anteriores si existen
+        if (searchNombre && searchNombre._changeHandler) {
+            searchNombre.removeEventListener('input', searchNombre._changeHandler);
+            searchNombre._changeHandler = null;
+        }
+        if (searchCargo && searchCargo._changeHandler) {
+            searchCargo.removeEventListener('input', searchCargo._changeHandler);
+            searchCargo._changeHandler = null;
+        }
+        if (btnLimpiar && btnLimpiar._clearHandler) {
+            btnLimpiar.removeEventListener('click', btnLimpiar._clearHandler);
+            btnLimpiar._clearHandler = null;
+        }
+        
+        function loadDataViaAjax() {
+            if (!filtroForm) {
+                console.error('❌ Formulario no disponible para filtrar');
+                return;
+            }
+            
+            const formData = new FormData(filtroForm);
+            const urlParams = new URLSearchParams();
+            
+            for (const [key, value] of formData.entries()) {
+                if (value) {
+                    urlParams.append(key, value);
+                }
+            }
+            
+            const url = filtroForm.action + (urlParams.toString() ? '?' + urlParams.toString() : '');
+            
+            if (loadingIndicator) {
+                loadingIndicator.style.display = 'block';
+            }
+            
+            console.log('🔍 Filtrando empleados:', url);
+            
+            // Usar AdminAjax si está disponible, sino usar fetch
+            if (window.AdminAjax && typeof window.AdminAjax.loadContent === 'function') {
+                window.AdminAjax.loadContent(url, function(response) {
+                    if (loadingIndicator) {
+                        loadingIndicator.style.display = 'none';
+                    }
+                });
+            } else {
+                fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    const contentArea = document.getElementById('main-content-area');
+                    if (contentArea) {
+                        contentArea.innerHTML = html;
+                        if (typeof jQuery !== 'undefined' && typeof $ !== 'undefined') {
+                            $(document).trigger('contentLoaded');
+                        } else {
+                            const event = new Event('contentLoaded');
+                            document.dispatchEvent(event);
+                        }
+                    }
+                    if (loadingIndicator) {
+                        loadingIndicator.style.display = 'none';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al filtrar:', error);
+                    if (loadingIndicator) {
+                        loadingIndicator.style.display = 'none';
+                    }
+                });
+            }
+        }
+        
+        function debounceFilter() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(loadDataViaAjax, DEBOUNCE_DELAY);
+        }
+        
+        function inicializarFiltrado() {
+            // Agregar listeners con referencias guardadas
+            if (searchNombre) {
+                searchNombre._changeHandler = debounceFilter;
+                searchNombre.addEventListener('input', debounceFilter);
+            }
+            
+            if (searchCargo) {
+                searchCargo._changeHandler = debounceFilter;
+                searchCargo.addEventListener('input', debounceFilter);
+            }
+            
+            if (btnLimpiar) {
+                const clearHandler = function(e) {
+                    e.preventDefault();
+                    if (searchNombre) searchNombre.value = '';
+                    if (searchCargo) searchCargo.value = '';
+                    loadDataViaAjax();
+                };
+                btnLimpiar._clearHandler = clearHandler;
+                btnLimpiar.addEventListener('click', clearHandler);
+            }
+            
+            return true;
+        }
+        
+        // Inicializar cuando el DOM esté listo
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', inicializarFiltrado);
+        } else {
+            inicializarFiltrado();
+        }
+        
+        // También inicializar cuando se cargue contenido vía AJAX
+        if (typeof jQuery !== 'undefined' && typeof $ !== 'undefined') {
+            $(document).on('contentLoaded', inicializarFiltrado);
+        } else {
+            document.addEventListener('contentLoaded', inicializarFiltrado);
+        }
+    })();
+    
+    // Event delegation como respaldo para el toggle (funciona incluso si se carga vía AJAX)
+    // Verificar que jQuery esté disponible antes de usarlo
+    if (typeof jQuery !== 'undefined' && typeof $ !== 'undefined') {
+        $(document).on('click', '#btn-toggle-filters-empleados', function(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            
+            const toggleHeader = document.getElementById('filter-toggle-header-empleados');
+            const filterContent = document.getElementById('filter-content-area-empleados');
+            
+            if (toggleHeader && filterContent) {
+                const isVisible = filterContent.classList.contains('filter-content-visible');
+                
+                if (isVisible) {
+                    filterContent.classList.remove('filter-content-visible');
+                    filterContent.classList.add('filter-content-hidden');
+                    toggleHeader.classList.add('collapsed');
+                    localStorage.setItem('filtros-empleados-visible', 'false');
+                } else {
+                    filterContent.classList.remove('filter-content-hidden');
+                    filterContent.classList.add('filter-content-visible');
+                    toggleHeader.classList.remove('collapsed');
+                    localStorage.setItem('filtros-empleados-visible', 'true');
+                }
+            }
+        });
+        
+        // Event delegation para el header también
+        $(document).on('click', '#filter-toggle-header-empleados', function(e) {
+            if (e.target.closest('.btn-clear-filters') || e.target.closest('.btn-toggle-filters')) {
+                return;
+            }
+            
+            const filterContent = document.getElementById('filter-content-area-empleados');
+            const toggleHeader = document.getElementById('filter-toggle-header-empleados');
+            
+            if (filterContent && toggleHeader) {
+                const isVisible = filterContent.classList.contains('filter-content-visible');
+                
+                if (isVisible) {
+                    filterContent.classList.remove('filter-content-visible');
+                    filterContent.classList.add('filter-content-hidden');
+                    toggleHeader.classList.add('collapsed');
+                    localStorage.setItem('filtros-empleados-visible', 'false');
+                } else {
+                    filterContent.classList.remove('filter-content-hidden');
+                    filterContent.classList.add('filter-content-visible');
+                    toggleHeader.classList.remove('collapsed');
+                    localStorage.setItem('filtros-empleados-visible', 'true');
+                }
+            }
+        });
+    } else {
+        // Fallback sin jQuery usando event delegation nativa
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('#btn-toggle-filters-empleados')) {
+                e.stopPropagation();
+                e.preventDefault();
+                
+                const toggleHeader = document.getElementById('filter-toggle-header-empleados');
+                const filterContent = document.getElementById('filter-content-area-empleados');
+                
+                if (toggleHeader && filterContent) {
+                    const isVisible = filterContent.classList.contains('filter-content-visible');
+                    
+                    if (isVisible) {
+                        filterContent.classList.remove('filter-content-visible');
+                        filterContent.classList.add('filter-content-hidden');
+                        toggleHeader.classList.add('collapsed');
+                        localStorage.setItem('filtros-empleados-visible', 'false');
+                    } else {
+                        filterContent.classList.remove('filter-content-hidden');
+                        filterContent.classList.add('filter-content-visible');
+                        toggleHeader.classList.remove('collapsed');
+                        localStorage.setItem('filtros-empleados-visible', 'true');
+                    }
+                }
+            }
+            
+            if (e.target.closest('#filter-toggle-header-empleados') && 
+                !e.target.closest('.btn-clear-filters') && 
+                !e.target.closest('.btn-toggle-filters')) {
+                
+                const filterContent = document.getElementById('filter-content-area-empleados');
+                const toggleHeader = document.getElementById('filter-toggle-header-empleados');
+                
+                if (filterContent && toggleHeader) {
+                    const isVisible = filterContent.classList.contains('filter-content-visible');
+                    
+                    if (isVisible) {
+                        filterContent.classList.remove('filter-content-visible');
+                        filterContent.classList.add('filter-content-hidden');
+                        toggleHeader.classList.add('collapsed');
+                        localStorage.setItem('filtros-empleados-visible', 'false');
+                    } else {
+                        filterContent.classList.remove('filter-content-hidden');
+                        filterContent.classList.add('filter-content-visible');
+                        toggleHeader.classList.remove('collapsed');
+                        localStorage.setItem('filtros-empleados-visible', 'true');
+                    }
+                }
+            }
+        });
+    }
+
+    // Funciones para abrir y cerrar drawers de empleados
+    window.openDrawerEmpleadoCrear = function() {
+        const drawer = document.getElementById('drawerEmpleadoCrear');
+        const overlay = document.getElementById('drawerOverlayEmpleadoCrear');
+        const drawerBody = document.getElementById('drawerEmpleadoCrearBody');
+        
+        if (drawer && overlay) {
+            if (drawerBody.innerHTML.includes('Cargando formulario')) {
+                loadDrawerEmpleadoCrearForm();
+            }
+            
+            overlay.classList.add('active');
+            drawer.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+    };
+    
+    window.closeDrawerEmpleadoCrear = function() {
+        const drawer = document.getElementById('drawerEmpleadoCrear');
+        const overlay = document.getElementById('drawerOverlayEmpleadoCrear');
+        
+        if (drawer && overlay) {
+            overlay.classList.remove('active');
+            drawer.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    };
+    
+    window.openDrawerEmpleadoEditar = function(empleadoId) {
+        const drawer = document.getElementById('drawerEmpleadoEditar');
+        const overlay = document.getElementById('drawerOverlayEmpleadoEditar');
+        
+        if (drawer && overlay && empleadoId) {
+            drawer.setAttribute('data-empleado-id', empleadoId);
+            loadDrawerEmpleadoEditarForm(empleadoId);
+            
+            overlay.classList.add('active');
+            drawer.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+    };
+    
+    window.closeDrawerEmpleadoEditar = function() {
+        const drawer = document.getElementById('drawerEmpleadoEditar');
+        const overlay = document.getElementById('drawerOverlayEmpleadoEditar');
+        
+        if (drawer && overlay) {
+            overlay.classList.remove('active');
+            drawer.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    };
+    
+    // Función auxiliar para inicializar campos de usuario en crear
+    function initializeUsuarioFieldsCrear() {
+        const crearUsuarioCheck = document.querySelector('#drawerEmpleadoCrear input[name="crear_usuario"]');
+        const usuarioFields = document.querySelector('#drawerEmpleadoCrear #usuario_fields');
+        
+        if (crearUsuarioCheck && usuarioFields) {
+            function toggleUsuarioFields() {
+                if (crearUsuarioCheck.checked) {
+                    usuarioFields.style.display = 'block';
+                    const usernameField = document.querySelector('#drawerEmpleadoCrear input[name="username"]');
+                    const passwordField = document.querySelector('#drawerEmpleadoCrear input[name="password"]');
+                    const passwordConfirmField = document.querySelector('#drawerEmpleadoCrear input[name="password_confirm"]');
+                    
+                    if (usernameField) usernameField.required = true;
+                    if (passwordField) passwordField.required = true;
+                    if (passwordConfirmField) passwordConfirmField.required = true;
+                } else {
+                    usuarioFields.style.display = 'none';
+                    const usernameField = document.querySelector('#drawerEmpleadoCrear input[name="username"]');
+                    const passwordField = document.querySelector('#drawerEmpleadoCrear input[name="password"]');
+                    const passwordConfirmField = document.querySelector('#drawerEmpleadoCrear input[name="password_confirm"]');
+                    
+                    if (usernameField) usernameField.required = false;
+                    if (passwordField) passwordField.required = false;
+                    if (passwordConfirmField) passwordConfirmField.required = false;
+                }
+            }
+            
+            crearUsuarioCheck.removeEventListener('change', toggleUsuarioFields);
+            crearUsuarioCheck.addEventListener('change', toggleUsuarioFields);
+            toggleUsuarioFields();
+        }
+    }
+    
+    // Cargar formulario de crear
+    function loadDrawerEmpleadoCrearForm() {
+        const drawerBody = document.getElementById('drawerEmpleadoCrearBody');
+        
+        if (drawerBody) {
+            fetch('{% url "empleados_crear" %}', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                drawerBody.innerHTML = html;
+                // Esperar un momento para que el DOM se actualice antes de inicializar
+                setTimeout(() => {
+                    initializeEmpleadoCrearForm();
+                    // También inicializar los campos de usuario manualmente
+                    initializeUsuarioFieldsCrear();
+                }, 150);
+            })
+            .catch(error => {
+                console.error('Error al cargar formulario:', error);
+                drawerBody.innerHTML = '<div class="alert alert-danger">Error al cargar el formulario. Por favor, intenta nuevamente.</div>';
+            });
+        }
+    }
+    
+    // Función auxiliar para inicializar campos de usuario en editar
+    function initializeUsuarioFieldsEditar() {
+        const crearUsuarioCheck = document.querySelector('#drawerEmpleadoEditar input[name="crear_usuario"]');
+        const usuarioFields = document.querySelector('#drawerEmpleadoEditar #usuario_fields');
+        
+        if (crearUsuarioCheck && usuarioFields) {
+            function toggleUsuarioFields() {
+                if (crearUsuarioCheck.checked) {
+                    usuarioFields.style.display = 'block';
+                    const usernameField = document.querySelector('#drawerEmpleadoEditar input[name="username"]');
+                    const passwordField = document.querySelector('#drawerEmpleadoEditar input[name="password"]');
+                    const passwordConfirmField = document.querySelector('#drawerEmpleadoEditar input[name="password_confirm"]');
+                    
+                    if (usernameField) usernameField.required = true;
+                    // En modo edición, la contraseña es opcional si el usuario ya existe
+                    const tieneUsuario = document.querySelector('#drawerEmpleadoEditar .alert-info');
+                    if (tieneUsuario) {
+                        // Si ya tiene usuario, la contraseña es opcional
+                        if (passwordField) passwordField.required = false;
+                        if (passwordConfirmField) passwordConfirmField.required = false;
+                    } else {
+                        // Si no tiene usuario, la contraseña es obligatoria
+                        if (passwordField) passwordField.required = true;
+                        if (passwordConfirmField) passwordConfirmField.required = true;
+                    }
+                } else {
+                    usuarioFields.style.display = 'none';
+                    const usernameField = document.querySelector('#drawerEmpleadoEditar input[name="username"]');
+                    const passwordField = document.querySelector('#drawerEmpleadoEditar input[name="password"]');
+                    const passwordConfirmField = document.querySelector('#drawerEmpleadoEditar input[name="password_confirm"]');
+                    
+                    if (usernameField) usernameField.required = false;
+                    if (passwordField) passwordField.required = false;
+                    if (passwordConfirmField) passwordConfirmField.required = false;
+                }
+            }
+            
+            crearUsuarioCheck.removeEventListener('change', toggleUsuarioFields);
+            crearUsuarioCheck.addEventListener('change', toggleUsuarioFields);
+            toggleUsuarioFields();
+        }
+    }
+    
+    // Cargar formulario de editar
+    function loadDrawerEmpleadoEditarForm(empleadoId) {
+        const drawerBody = document.getElementById('drawerEmpleadoEditarBody');
+        
+        if (drawerBody && empleadoId) {
+            drawerBody.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-success" role="status"><span class="visually-hidden">Cargando...</span></div><p class="mt-3 text-muted">Cargando formulario...</p></div>';
+            
+            fetch(`/empleados/editar/${empleadoId}/`, {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error al cargar el formulario');
+                }
+                return response.text();
+            })
+            .then(html => {
+                drawerBody.innerHTML = html;
+                // Esperar un momento para que el DOM se actualice antes de inicializar
+                setTimeout(() => {
+                    initializeEmpleadoEditarForm(empleadoId);
+                    // También inicializar los campos de usuario manualmente
+                    initializeUsuarioFieldsEditar();
+                }, 150);
+            })
+            .catch(error => {
+                console.error('Error al cargar formulario:', error);
+                drawerBody.innerHTML = '<div class="alert alert-danger"><i class="fas fa-exclamation-triangle me-2"></i>Error al cargar el formulario. Por favor, intenta nuevamente.</div>';
+            });
+        }
+    }
+    
+    // Inicializar formulario de crear
+    function initializeEmpleadoCrearForm() {
+        const form = document.getElementById('empleado-crear-form');
+        if (form) {
+            // Remover event listeners previos si existen
+            const newForm = form.cloneNode(true);
+            form.parentNode.replaceChild(newForm, form);
+            const formElement = document.getElementById('empleado-crear-form');
+            if (!formElement) return;
+            
+            const cancelBtn = formElement.querySelector('button[onclick*="closeDrawerEmpleadoCrear"]');
+            if (cancelBtn) {
+                cancelBtn.setAttribute('onclick', 'closeDrawerEmpleadoCrear(); return false;');
+            }
+            
+            formElement.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(formElement);
+                const submitBtn = formElement.querySelector('button[type="submit"]');
+                const originalText = submitBtn ? submitBtn.innerHTML : '';
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Guardando...';
+                }
+                
+                // Obtener CSRF token
+                const csrfToken = formElement.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                                 document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
+                                 (typeof csrftoken !== 'undefined' ? csrftoken : '');
+                
+                fetch('{% url "empleados_crear" %}', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': csrfToken
+                    }
+                })
+                .then(response => {
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        return response.json();
+                    } else {
+                        return response.text().then(html => ({ html: html, isHtml: true }));
+                    }
+                })
+                .then(data => {
+                    if (data && data.success) {
+                        closeDrawerEmpleadoCrear();
+                        
+                        const empleadosUrl = '{% url "empleados_lista" %}';
+                        fetch(empleadosUrl, {
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
+                        .then(response => response.text())
+                        .then(html => {
+                            const contentArea = document.getElementById('main-content-area');
+                            if (contentArea) {
+                                contentArea.innerHTML = html;
+                                const alertDiv = document.createElement('div');
+                                alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                                alertDiv.innerHTML = '<i class="fas fa-check-circle me-2"></i>' + data.message + '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                                contentArea.insertBefore(alertDiv, contentArea.firstChild);
+                            }
+                        });
+                    } else if (data && data.isHtml) {
+                        const drawerBody = document.getElementById('drawerEmpleadoCrearBody');
+                        if (drawerBody) {
+                            drawerBody.innerHTML = data.html;
+                            // Esperar un momento para que el DOM se actualice
+                            setTimeout(() => {
+                                initializeEmpleadoCrearForm();
+                            }, 100);
+                        }
+                    } else if (data && data.errors) {
+                        // Mostrar errores
+                        let errorHtml = '<div class="alert alert-danger"><ul class="mb-0">';
+                        for (const field in data.errors) {
+                            if (Array.isArray(data.errors[field])) {
+                                data.errors[field].forEach(error => {
+                                    errorHtml += '<li>' + error + '</li>';
+                                });
+                            } else {
+                                errorHtml += '<li>' + data.errors[field] + '</li>';
+                            }
+                        }
+                        errorHtml += '</ul></div>';
+                        const drawerBody = document.getElementById('drawerEmpleadoCrearBody');
+                        if (drawerBody) {
+                            drawerBody.insertAdjacentHTML('afterbegin', errorHtml);
+                        }
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalText;
+                        }
+                    } else {
+                        alert('Error al crear el empleado. Por favor, intenta nuevamente.');
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalText;
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al crear el empleado. Por favor, intenta nuevamente.');
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalText;
+                    }
+                });
+            });
+        }
+    }
+    
+    // Inicializar formulario de editar
+    function initializeEmpleadoEditarForm(empleadoId) {
+        const form = document.getElementById('empleado-editar-form');
+        const drawer = document.getElementById('drawerEmpleadoEditar');
+        
+        if (form) {
+            const id = empleadoId || drawer.getAttribute('data-empleado-id');
+            
+            // Remover event listeners previos si existen
+            const newForm = form.cloneNode(true);
+            form.parentNode.replaceChild(newForm, form);
+            const formElement = document.getElementById('empleado-editar-form');
+            if (!formElement) return;
+            
+            const cancelBtn = formElement.querySelector('button[onclick*="closeDrawerEmpleadoEditar"]');
+            if (cancelBtn) {
+                cancelBtn.setAttribute('onclick', 'closeDrawerEmpleadoEditar(); return false;');
+            }
+            
+            formElement.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(formElement);
+                const submitBtn = formElement.querySelector('button[type="submit"]');
+                const originalText = submitBtn ? submitBtn.innerHTML : '';
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Actualizando...';
+                }
+                
+                // Obtener CSRF token
+                const csrfToken = formElement.querySelector('[name=csrfmiddlewaretoken]')?.value || 
+                                 document.querySelector('[name=csrfmiddlewaretoken]')?.value ||
+                                 (typeof csrftoken !== 'undefined' ? csrftoken : '');
+                
+                fetch(`/empleados/editar/${id}/`, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': csrfToken
+                    }
+                })
+                .then(response => {
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        return response.json();
+                    } else {
+                        return response.text().then(html => ({ html: html, isHtml: true }));
+                    }
+                })
+                .then(data => {
+                    if (data && data.success) {
+                        closeDrawerEmpleadoEditar();
+                        
+                        const empleadosUrl = '{% url "empleados_lista" %}';
+                        fetch(empleadosUrl, {
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
+                        .then(response => response.text())
+                        .then(html => {
+                            const contentArea = document.getElementById('main-content-area');
+                            if (contentArea) {
+                                contentArea.innerHTML = html;
+                                const alertDiv = document.createElement('div');
+                                alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                                alertDiv.innerHTML = '<i class="fas fa-check-circle me-2"></i>' + data.message + '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                                contentArea.insertBefore(alertDiv, contentArea.firstChild);
+                            }
+                        });
+                    } else if (data && data.isHtml) {
+                        const drawerBody = document.getElementById('drawerEmpleadoEditarBody');
+                        if (drawerBody) {
+                            drawerBody.innerHTML = data.html;
+                            // Esperar un momento para que el DOM se actualice
+                            setTimeout(() => {
+                                initializeEmpleadoEditarForm(id);
+                            }, 100);
+                        }
+                    } else if (data && data.errors) {
+                        let errorHtml = '<div class="alert alert-danger"><ul class="mb-0">';
+                        for (const field in data.errors) {
+                            data.errors[field].forEach(error => {
+                                errorHtml += '<li>' + error + '</li>';
+                            });
+                        }
+                        errorHtml += '</ul></div>';
+                        const drawerBody = document.getElementById('drawerEmpleadoEditarBody');
+                        if (drawerBody) {
+                            drawerBody.insertAdjacentHTML('afterbegin', errorHtml);
+                        }
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalText;
+                    } else {
+                        alert('Error al actualizar el empleado. Por favor, intenta nuevamente.');
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalText;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al actualizar el empleado. Por favor, intenta nuevamente.');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                });
+            });
+        }
+    }
+    
+    // Cerrar drawers con tecla ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const drawerCrear = document.getElementById('drawerEmpleadoCrear');
+            const drawerEditar = document.getElementById('drawerEmpleadoEditar');
+            if (drawerCrear && drawerCrear.classList.contains('active')) {
+                closeDrawerEmpleadoCrear();
+            }
+            if (drawerEditar && drawerEditar.classList.contains('active')) {
+                closeDrawerEmpleadoEditar();
+            }
+        }
+    });
+    
+    // Estilos adicionales para paginación
+    if (!document.getElementById('pagination-styles')) {
+        const style = document.createElement('style');
+        style.id = 'pagination-styles';
+        style.textContent = `
+            .pagination-btn-nav:hover {
+                background: linear-gradient(135deg, #616161 0%, #757575 100%) !important;
+                transform: translateY(-2px) !important;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+                color: #ffffff !important;
+                text-decoration: none !important;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+</script>

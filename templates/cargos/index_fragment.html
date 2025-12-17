@@ -1,0 +1,288 @@
+<!-- Page Header -->
+<div class="page-header">
+    <h1 class="page-title">Roles y Permisos</h1>
+    {% if cargos %}
+    <div class="d-flex gap-2">
+        <button type="button" class="btn btn-primary-admin" id="btn-crear-cargo" onclick="openDrawer()">
+            <i class="fas fa-plus me-2"></i>Nuevo Rol
+        </button>
+    </div>
+    {% endif %}
+</div>
+
+<div class="admin-content-body">
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% if cargos %}
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-data">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre del Rol</th>
+                            <th>Descripción</th>
+                            <th>Permisos</th>
+                            <th>Empleados</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cargo in cargos %}
+                        <tr>
+                            <td>{{ cargo.id }}</td>
+                            <td><strong>{{ cargo.nombre }}</strong></td>
+                            <td>
+                                {% if cargo.descripcion %}
+                                    <span class="small">{{ cargo.descripcion|truncatewords:10 }}</span>
+                                {% else %}
+                                    <span class="text-muted small">Sin descripción</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex flex-wrap gap-1">
+                                    {% if cargo.puede_agendar %}
+                                        <span class="badge bg-success" title="Puede agendar citas">Agendar</span>
+                                    {% endif %}
+                                    {% if cargo.puede_gestionar_inventario %}
+                                        <span class="badge bg-warning text-dark" title="Puede gestionar inventario">Inventario</span>
+                                    {% endif %}
+                                    {% if cargo.puede_ver_compras %}
+                                        <span class="badge bg-primary" title="Puede ver compras">Compras</span>
+                                    {% endif %}
+                                    {% if cargo.puede_gestionar_empleados_servicios_proveedores %}
+                                        <span class="badge bg-dark" title="Puede gestionar empleados, servicios y proveedores">Gestión</span>
+                                    {% endif %}
+                                    {% if not cargo.puede_agendar and not cargo.puede_gestionar_inventario and not cargo.puede_ver_compras and not cargo.puede_gestionar_empleados_servicios_proveedores %}
+                                        <span class="text-muted small">Sin permisos</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-info">{{ cargo.cantidad_empleados }} empleado{{ cargo.cantidad_empleados|pluralize }}</span>
+                            </td>
+                            <td>
+                                {% if cargo.activo %}
+                                    <span class="badge bg-success">Activo</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Inactivo</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="d-flex gap-2">
+                                    <a href="{% url 'cargos_editar' cargo.id %}" class="btn btn-sm btn-primary" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <a href="{% url 'cargos_eliminar' cargo.id %}" class="btn btn-sm btn-danger" title="Eliminar" onclick="return confirm('¿Estás seguro de eliminar el rol \"{{ cargo.nombre }}\"? Esta acción no se puede deshacer.');">
+                                        <i class="fas fa-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="card shadow-sm">
+        <div class="card-body text-center py-5">
+            <i class="fas fa-user-shield fa-3x text-muted mb-3"></i>
+            <h4 class="alert-heading">No hay roles registrados</h4>
+            <p class="mb-3 text-muted">Crea tu primer rol para comenzar a gestionar permisos.</p>
+            <button type="button" class="btn btn-success" id="btn-crear-cargo-empty" onclick="openDrawer()">
+                <i class="fas fa-plus me-2"></i>Crear Primer Rol
+            </button>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Drawer para crear cargo/rol -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawerCargoCrear">
+    <div class="drawer-header">
+        <h5 class="drawer-title">
+            <i class="fas fa-user-shield me-2"></i>Nuevo Rol
+        </h5>
+        <button type="button" class="drawer-close" onclick="closeDrawer()" aria-label="Cerrar">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <div class="drawer-body" id="drawerCargoCrearBody">
+        <div class="text-center py-4">
+            <div class="spinner-border text-success" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="mt-3 text-muted">Cargando formulario...</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Asegurar que las funciones estén disponibles globalmente
+    window.openDrawer = function() {
+        const drawer = document.getElementById('drawerCargoCrear');
+        const overlay = document.getElementById('drawerOverlay');
+        const drawerBody = document.getElementById('drawerCargoCrearBody');
+        
+        if (drawer && overlay) {
+            // Cargar formulario si no está cargado
+            if (drawerBody.innerHTML.includes('Cargando formulario')) {
+                loadDrawerForm();
+            }
+            
+            overlay.classList.add('active');
+            drawer.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+    };
+    
+    window.closeDrawer = function() {
+        const drawer = document.getElementById('drawerCargoCrear');
+        const overlay = document.getElementById('drawerOverlay');
+        
+        if (drawer && overlay) {
+            overlay.classList.remove('active');
+            drawer.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    };
+    
+    // Cargar formulario en el drawer
+    function loadDrawerForm() {
+        const drawerBody = document.getElementById('drawerCargoCrearBody');
+        
+        if (drawerBody) {
+            fetch('{% url "cargos_crear" %}', {
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.text())
+            .then(html => {
+                drawerBody.innerHTML = html;
+                initializeCargoForm();
+            })
+            .catch(error => {
+                console.error('Error al cargar formulario:', error);
+                drawerBody.innerHTML = '<div class="alert alert-danger">Error al cargar el formulario. Por favor, intenta nuevamente.</div>';
+            });
+        }
+    }
+    
+    // Inicializar formulario de cargo
+    function initializeCargoForm() {
+        const form = document.getElementById('cargo-crear-form');
+        if (form) {
+            // Reemplazar botón de cerrar modal por cerrar drawer
+            const cancelBtn = form.querySelector('button[data-bs-dismiss="modal"]');
+            if (cancelBtn) {
+                cancelBtn.setAttribute('onclick', 'closeDrawer(); return false;');
+                cancelBtn.removeAttribute('data-bs-dismiss');
+            }
+            
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(form);
+                const submitBtn = form.querySelector('button[type="submit"]');
+                const originalText = submitBtn.innerHTML;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Guardando...';
+                
+                fetch('{% url "cargos_crear" %}', {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    const contentType = response.headers.get('content-type');
+                    if (contentType && contentType.includes('application/json')) {
+                        return response.json();
+                    } else {
+                        return response.text().then(html => ({ html: html, isHtml: true }));
+                    }
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Éxito: cerrar drawer y recargar lista
+                        closeDrawer();
+                        
+                        // Recargar la lista de cargos
+                        const cargosUrl = '{% url "cargos_lista" %}';
+                        fetch(cargosUrl, {
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
+                        .then(response => response.text())
+                        .then(html => {
+                            const contentArea = document.getElementById('main-content-area');
+                            if (contentArea) {
+                                contentArea.innerHTML = html;
+                                // Mostrar mensaje de éxito
+                                const alertDiv = document.createElement('div');
+                                alertDiv.className = 'alert alert-success alert-dismissible fade show';
+                                alertDiv.innerHTML = '<i class="fas fa-check-circle me-2"></i>' + data.message + '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                                contentArea.insertBefore(alertDiv, contentArea.firstChild);
+                            }
+                        });
+                    } else if (data.isHtml) {
+                        // Hay errores: actualizar el contenido del drawer
+                        const drawerBody = document.getElementById('drawerCargoCrearBody');
+                        if (drawerBody) {
+                            drawerBody.innerHTML = data.html;
+                            initializeCargoForm();
+                        }
+                    } else if (data.errors) {
+                        // Mostrar errores
+                        let errorHtml = '<div class="alert alert-danger"><ul class="mb-0">';
+                        for (const field in data.errors) {
+                            data.errors[field].forEach(error => {
+                                errorHtml += '<li>' + error + '</li>';
+                            });
+                        }
+                        errorHtml += '</ul></div>';
+                        const drawerBody = document.getElementById('drawerCargoCrearBody');
+                        if (drawerBody) {
+                            drawerBody.insertAdjacentHTML('afterbegin', errorHtml);
+                        }
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalText;
+                    } else {
+                        alert('Error al crear el rol. Por favor, intenta nuevamente.');
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalText;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al crear el rol. Por favor, intenta nuevamente.');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                });
+            });
+        }
+    }
+    
+    // Cerrar drawer con tecla ESC
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            window.closeDrawer();
+        }
+    });
+</script>
+

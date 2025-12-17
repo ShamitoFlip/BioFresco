@@ -1,0 +1,92 @@
+<!-- Salidas / Facturas - Funcionalidad eliminada -->
+<div class="page-header">
+    <h1 class="page-title">Salidas / Facturas</h1>
+</div>
+<div style="padding: 2rem; text-align: center; color: #666;">
+    <p>La funcionalidad de <strong>Salidas / Facturas</strong> ha sido deshabilitada en este sistema.</p>
+    <p>Si necesitas restaurarla, contacta al administrador del sistema.</p>
+    <a href="{% url 'inventario_lista' %}" class="btn btn-primary mt-3">Volver a Inventario</a>
+</div>
+                }
+            }
+        }
+        
+        function loadDataViaAjax() {
+            if (isLoading) return;
+            
+            setLoading(true);
+            const formData = new FormData(filtroForm);
+            const params = new URLSearchParams(formData);
+            const url = filtroForm.action + (params.toString() ? '?' + params.toString() : '');
+            
+            if (window.AdminAjax && typeof window.AdminAjax.loadContent === 'function') {
+                window.AdminAjax.loadContent(url, function() {
+                    setLoading(false);
+                    updateResultsCountSalidas();
+                });
+            } else {
+                fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    const contentArea = document.getElementById('main-content-area');
+                    if (contentArea) {
+                        contentArea.innerHTML = html;
+                        setLoading(false);
+                        $(document).trigger('contentLoaded');
+                        setTimeout(() => {
+                            updateResultsCountSalidas();
+                        }, 100);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al filtrar:', error);
+                    setLoading(false);
+                });
+            }
+        }
+        
+        if (filtroForm) {
+            filtroForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                loadDataViaAjax();
+            });
+        }
+        
+        if (btnLimpiar) {
+            btnLimpiar.addEventListener('click', function(e) {
+                e.preventDefault();
+                filtroForm.reset();
+                const url = filtroForm.action;
+                if (window.AdminAjax && typeof window.AdminAjax.loadContent === 'function') {
+                    window.AdminAjax.loadContent(url, function() {
+                        updateResultsCountSalidas();
+                    });
+                } else {
+                    fetch(url, {
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.text())
+                    .then(html => {
+                        const contentArea = document.getElementById('main-content-area');
+                        if (contentArea) {
+                            contentArea.innerHTML = html;
+                            $(document).trigger('contentLoaded');
+                            setTimeout(() => {
+                                updateResultsCountSalidas();
+                            }, 100);
+                        }
+                    });
+                }
+            });
+        }
+        
+        updateResultsCountSalidas();
+    })();
+</script>
+

@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block titulo %}Eliminar Cargo - Administrador{% endblock %}
+
+{% block contenido %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h1 class="display-5 mb-4">
+                <i class="fas fa-exclamation-triangle text-danger me-2"></i>Confirmar Eliminación
+            </h1>
+
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    <div class="alert alert-warning" role="alert">
+                        <h4 class="alert-heading">¿Estás seguro?</h4>
+                        <p>Estás a punto de eliminar el cargo: <strong>{{ cargo.nombre }}</strong></p>
+                    </div>
+
+                    {% if cantidad_empleados > 0 %}
+                    <div class="alert alert-danger" role="alert">
+                        <h5 class="alert-heading">¡No se puede eliminar!</h5>
+                        <p>Este cargo está asignado a <strong>{{ cantidad_empleados }}</strong> empleado(s).</p>
+                        <p class="mb-0">Primero debes cambiar el cargo de todos los empleados antes de poder eliminarlo.</p>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info" role="alert">
+                        <p class="mb-0">Este cargo no está asignado a ningún empleado. La eliminación es segura.</p>
+                    </div>
+                    {% endif %}
+
+                    {% if cargo.descripcion %}
+                    <div class="mb-3">
+                        <strong>Descripción:</strong>
+                        <p class="text-muted">{{ cargo.descripcion }}</p>
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <strong>Permisos:</strong>
+                        <ul class="list-unstyled ms-3">
+                            {% if cargo.puede_agendar %}<li>✓ Puede agendar citas</li>{% endif %}
+                            {% if cargo.puede_gestionar_inventario %}<li>✓ Puede gestionar inventario</li>{% endif %}
+                            {% if cargo.puede_ver_compras %}<li>✓ Puede ver compras</li>{% endif %}
+                            {% if not cargo.puede_agendar and not cargo.puede_gestionar_inventario and not cargo.puede_ver_compras %}
+                                <li class="text-muted">Sin permisos especiales</li>
+                            {% endif %}
+                        </ul>
+                    </div>
+
+                    <form method="POST" class="mt-4">
+                        {% csrf_token %}
+                        <div class="d-flex gap-2">
+                            {% if cantidad_empleados == 0 %}
+                            <button type="submit" class="btn btn-danger btn-lg">
+                                <i class="fas fa-trash me-2"></i>Sí, Eliminar
+                            </button>
+                            {% endif %}
+                            <a href="{% url 'cargos_lista' %}" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="mt-4">
+                <a href="{% url 'cargos_lista' %}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left me-2"></i>Volver a la lista
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

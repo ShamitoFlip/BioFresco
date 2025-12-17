@@ -1,0 +1,531 @@
+<!-- Page Header -->
+<div class="page-header">
+    <h1 class="page-title">Revisiones de Auditoría</h1>
+    <div class="d-flex gap-2">
+        <a href="{% url 'auditoria_crear' %}" class="btn btn-primary-admin ajax-link" data-url="{% url 'auditoria_crear' %}">
+            <i class="fas fa-plus me-2"></i>Nueva Auditoría
+        </a>
+    </div>
+</div>
+
+<!-- Estadísticas -->
+<div class="stats-container mb-4">
+    <div class="stat-card">
+        <div class="stat-icon bg-info">
+            <i class="fas fa-spinner"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-label">Auditorías en Proceso</div>
+            <div class="stat-value">{{ total_auditorias }}</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon bg-success">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-label">Productos Revisados</div>
+            <div class="stat-value">{{ productos_revisados_total }}</div>
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon bg-warning">
+            <i class="fas fa-clock"></i>
+        </div>
+        <div class="stat-content">
+            <div class="stat-label">Productos Pendientes</div>
+            <div class="stat-value">{{ productos_pendientes_total }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="search-container-enhanced mb-4">
+    <div class="filter-toggle-header" id="filter-toggle-header-revisiones">
+        <div class="filter-title">
+            <i class="fas fa-filter"></i>
+            <span>Filtros de Búsqueda</span>
+        </div>
+        <div class="filter-actions">
+            <button type="button" class="btn-clear-filters" id="btn-limpiar-filtros-revisiones" title="Limpiar todos los filtros">
+                <i class="fas fa-redo"></i>
+                <span>Limpiar</span>
+            </button>
+            <button type="button" class="btn-toggle-filters" id="btn-toggle-filters-revisiones" title="Mostrar/Ocultar filtros">
+                <i class="fas fa-chevron-down toggle-icon"></i>
+            </button>
+        </div>
+    </div>
+    
+    <div id="filter-content-area-revisiones" class="filter-content-hidden">
+        <form method="GET" action="{% url 'auditoria_revisiones' %}" id="filtroRevisionesForm">
+            <div class="search-row-enhanced">
+                <div class="search-field-enhanced">
+                    <div class="field-label">
+                        <i class="fas fa-calendar"></i>
+                        <span>Fecha Desde</span>
+                    </div>
+                    <div class="input-wrapper">
+                        <i class="fas fa-calendar input-icon"></i>
+                        <input type="date" name="fecha_desde" id="search-fecha-desde" value="{{ fecha_desde }}" class="form-control-enhanced">
+                    </div>
+                </div>
+                
+                <div class="search-field-enhanced">
+                    <div class="field-label">
+                        <i class="fas fa-calendar"></i>
+                        <span>Fecha Hasta</span>
+                    </div>
+                    <div class="input-wrapper">
+                        <i class="fas fa-calendar input-icon"></i>
+                        <input type="date" name="fecha_hasta" id="search-fecha-hasta" value="{{ fecha_hasta }}" class="form-control-enhanced">
+                    </div>
+                </div>
+            </div>
+        </form>
+        
+        <div class="filter-footer-enhanced">
+            <div class="results-info-enhanced">
+                <div class="results-icon">
+                    <i class="fas fa-clipboard-check"></i>
+                </div>
+                <div class="results-content">
+                    <span class="results-label">Auditorías pendientes:</span>
+                    <span id="resultados-text-revisiones" class="results-number">{{ total_auditorias }} auditoría{{ total_auditorias|pluralize:"s" }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="loading-indicator-revisiones" class="loading-indicator-enhanced" style="display: none;">
+        <div class="spinner-wrapper">
+            <div class="spinner"></div>
+        </div>
+        <span class="loading-text">Filtrando resultados...</span>
+    </div>
+</div>
+
+<!-- Tabla de Auditorías en Proceso -->
+<div class="data-table-container">
+    <table class="table-data">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Fecha Auditoría</th>
+                <th>Usuario</th>
+                <th>Productos</th>
+                <th>Revisados</th>
+                <th>Pendientes</th>
+                <th>Progreso</th>
+                <th>Fecha Creación</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% if auditorias %}
+                {% for auditoria in auditorias %}
+                <tr>
+                    <td>#{{ auditoria.id }}</td>
+                    <td>{{ auditoria.fecha_auditoria|date:"d/m/Y" }}</td>
+                    <td>
+                        {% if auditoria.usuario %}
+                            {{ auditoria.usuario.get_full_name|default:auditoria.usuario.username }}
+                        {% else %}
+                            <span class="text-muted">Sin usuario</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ auditoria.total_productos }}</td>
+                    <td>
+                        <span class="badge bg-success">{{ auditoria.productos_revisados }}</span>
+                    </td>
+                    <td>
+                        <span class="badge bg-warning">{{ auditoria.productos_pendientes }}</span>
+                    </td>
+                    <td>
+                        <div class="progress" style="height: 20px; width: 100px;">
+                            {% widthratio auditoria.productos_revisados auditoria.total_productos 100 as porcentaje %}
+                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ porcentaje }}%" aria-valuenow="{{ porcentaje }}" aria-valuemin="0" aria-valuemax="100">
+                                {{ porcentaje }}%
+                            </div>
+                        </div>
+                    </td>
+                    <td>{{ auditoria.fecha_creacion|date:"d/m/Y H:i" }}</td>
+                    <td>
+                        <a href="{% url 'auditoria_detalle' auditoria.id %}" class="btn btn-action btn-view ajax-link" data-url="{% url 'auditoria_detalle' auditoria.id %}" title="Revisar">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="{% url 'auditoria_completar' auditoria.id %}" class="btn btn-action btn-success" title="Completar" onclick="return confirm('¿Está seguro de completar esta auditoría?');">
+                            <i class="fas fa-check"></i>
+                        </a>
+                        <a href="{% url 'auditoria_cancelar' auditoria.id %}" class="btn btn-action btn-danger" title="Cancelar" onclick="return confirm('¿Está seguro de cancelar esta auditoría?');">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="9" class="text-center" style="padding: 3rem; color: #757575;">
+                        <i class="fas fa-inbox fa-3x mb-3" style="opacity: 0.3;"></i>
+                        <p style="margin-bottom: 1rem; font-size: 1rem;">No hay auditorías en proceso</p>
+                        <div class="d-flex gap-2 justify-content-center">
+                            <a href="{% url 'auditoria_crear' %}" class="btn btn-primary-admin mt-3 ajax-link" data-url="{% url 'auditoria_crear' %}">
+                                <i class="fas fa-plus me-2"></i>Crear Nueva Auditoría
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+// Sistema completo de filtrado dinámico para revisiones
+(function() {
+    'use strict';
+    
+    let searchTimeout;
+    const DEBOUNCE_DELAY = 500;
+    
+    // Función para inicializar el toggle de filtros
+    function inicializarToggleFiltros() {
+        const toggleHeader = document.getElementById('filter-toggle-header-revisiones');
+        const filterContent = document.getElementById('filter-content-area-revisiones');
+        const toggleBtn = document.getElementById('btn-toggle-filters-revisiones');
+        
+        if (!toggleHeader || !filterContent) {
+            return false;
+        }
+        
+        // Remover listeners anteriores si existen
+        if (toggleHeader._toggleHandler) {
+            toggleHeader.removeEventListener('click', toggleHeader._toggleHandler);
+        }
+        if (toggleBtn && toggleBtn._toggleHandler) {
+            toggleBtn.removeEventListener('click', toggleBtn._toggleHandler);
+        }
+        
+        toggleHeader.style.display = 'flex';
+        toggleHeader.style.visibility = 'visible';
+        
+        // Restaurar estado desde localStorage (por defecto oculto)
+        const savedState = localStorage.getItem('filtros-revisiones-visible');
+        const isVisible = savedState === 'true';
+        
+        if (!isVisible) {
+            filterContent.classList.remove('filter-content-visible');
+            filterContent.classList.add('filter-content-hidden');
+            toggleHeader.classList.add('collapsed');
+            if (toggleBtn) {
+                const chevron = toggleBtn.querySelector('.toggle-icon');
+                if (chevron) {
+                    chevron.classList.remove('fa-chevron-down');
+                    chevron.classList.add('fa-chevron-up');
+                }
+            }
+        } else {
+            filterContent.classList.remove('filter-content-hidden');
+            filterContent.classList.add('filter-content-visible');
+            toggleHeader.classList.remove('collapsed');
+            if (toggleBtn) {
+                const chevron = toggleBtn.querySelector('.toggle-icon');
+                if (chevron) {
+                    chevron.classList.remove('fa-chevron-up');
+                    chevron.classList.add('fa-chevron-down');
+                }
+            }
+        }
+        
+        function toggleFilters() {
+            const isVisible = filterContent.classList.contains('filter-content-visible');
+            
+            if (isVisible) {
+                filterContent.classList.remove('filter-content-visible');
+                filterContent.classList.add('filter-content-hidden');
+                toggleHeader.classList.add('collapsed');
+                localStorage.setItem('filtros-revisiones-visible', 'false');
+                if (toggleBtn) {
+                    const chevron = toggleBtn.querySelector('.toggle-icon');
+                    if (chevron) {
+                        chevron.classList.remove('fa-chevron-down');
+                        chevron.classList.add('fa-chevron-up');
+                    }
+                }
+            } else {
+                filterContent.classList.remove('filter-content-hidden');
+                filterContent.classList.add('filter-content-visible');
+                toggleHeader.classList.remove('collapsed');
+                localStorage.setItem('filtros-revisiones-visible', 'true');
+                if (toggleBtn) {
+                    const chevron = toggleBtn.querySelector('.toggle-icon');
+                    if (chevron) {
+                        chevron.classList.remove('fa-chevron-up');
+                        chevron.classList.add('fa-chevron-down');
+                    }
+                }
+            }
+        }
+        
+        // Handler para el header
+        const headerClickHandler = function(e) {
+            if (e.target.closest('.btn-clear-filters') || e.target.closest('.btn-toggle-filters')) {
+                return;
+            }
+            toggleFilters();
+        };
+        
+        toggleHeader._toggleHandler = headerClickHandler;
+        toggleHeader.addEventListener('click', headerClickHandler);
+        
+        // Handler para el botón toggle
+        if (toggleBtn) {
+            const btnClickHandler = function(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                toggleFilters();
+            };
+            
+            toggleBtn._toggleHandler = btnClickHandler;
+            toggleBtn.addEventListener('click', btnClickHandler);
+        }
+        
+        return true;
+    }
+    
+    // Función para inicializar el filtrado dinámico
+    function inicializarFiltrado() {
+        const filtroForm = document.getElementById('filtroRevisionesForm');
+        const btnLimpiar = document.getElementById('btn-limpiar-filtros-revisiones');
+        const loadingIndicator = document.getElementById('loading-indicator-revisiones');
+        
+        if (!filtroForm) {
+            console.log('⚠️ Formulario de filtros no encontrado');
+            return false;
+        }
+        
+        // Remover listeners anteriores si existen
+        if (filtroForm._submitHandler) {
+            filtroForm.removeEventListener('submit', filtroForm._submitHandler);
+            filtroForm._submitHandler = null;
+        }
+        if (btnLimpiar && btnLimpiar._clearHandler) {
+            btnLimpiar.removeEventListener('click', btnLimpiar._clearHandler);
+            btnLimpiar._clearHandler = null;
+        }
+        
+        function loadDataViaAjax() {
+            if (!filtroForm) {
+                console.error('❌ Formulario no disponible para filtrar');
+                return;
+            }
+            
+            const formData = new FormData(filtroForm);
+            const urlParams = new URLSearchParams();
+            
+            for (const [key, value] of formData.entries()) {
+                if (value) {
+                    urlParams.append(key, value);
+                }
+            }
+            
+            const url = filtroForm.action + (urlParams.toString() ? '?' + urlParams.toString() : '');
+            
+            if (loadingIndicator) {
+                loadingIndicator.style.display = 'block';
+            }
+            
+            console.log('🔍 Filtrando revisiones:', url);
+            
+            // Usar AdminAjax si está disponible, sino usar fetch
+            if (window.AdminAjax && typeof window.AdminAjax.loadContent === 'function') {
+                window.AdminAjax.loadContent(url, function(response) {
+                    if (loadingIndicator) {
+                        loadingIndicator.style.display = 'none';
+                    }
+                    // Actualizar contador de resultados
+                    actualizarContadorResultados();
+                });
+            } else {
+                fetch(url, {
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    const contentArea = document.getElementById('main-content-area');
+                    if (contentArea) {
+                        contentArea.innerHTML = html;
+                        console.log('✅ Contenido actualizado');
+                        
+                        // Disparar evento contentLoaded
+                        try {
+                            if (typeof jQuery !== 'undefined' && typeof $ !== 'undefined') {
+                                $(document).trigger('contentLoaded');
+                            } else {
+                                const event = new Event('contentLoaded');
+                                document.dispatchEvent(event);
+                            }
+                        } catch (e) {
+                            const event = new Event('contentLoaded');
+                            document.dispatchEvent(event);
+                        }
+                    }
+                    if (loadingIndicator) {
+                        loadingIndicator.style.display = 'none';
+                    }
+                    actualizarContadorResultados();
+                })
+                .catch(error => {
+                    console.error('Error al filtrar:', error);
+                    if (loadingIndicator) {
+                        loadingIndicator.style.display = 'none';
+                    }
+                });
+            }
+        }
+        
+        // Función para actualizar contador de resultados
+        function actualizarContadorResultados() {
+            const resultadosText = document.getElementById('resultados-text-revisiones');
+            if (resultadosText) {
+                const tabla = document.querySelector('.table-data tbody');
+                if (tabla) {
+                    // Contar solo filas que no sean el mensaje vacío
+                    const filas = Array.from(tabla.querySelectorAll('tr')).filter(tr => {
+                        const colspan = tr.querySelector('td[colspan]');
+                        return !colspan || colspan.getAttribute('colspan') !== '9';
+                    });
+                    const count = filas.length;
+                    resultadosText.textContent = count + ' auditoría' + (count !== 1 ? 's' : '');
+                }
+            }
+        }
+        
+        // Handler para submit del formulario
+        const submitHandler = function(e) {
+            e.preventDefault();
+            clearTimeout(searchTimeout);
+            loadDataViaAjax();
+        };
+        
+        filtroForm._submitHandler = submitHandler;
+        filtroForm.addEventListener('submit', submitHandler);
+        
+        // Filtrar automáticamente al cambiar los campos de fecha
+        const dateInputs = filtroForm.querySelectorAll('input[type="date"]');
+        dateInputs.forEach(input => {
+            // Remover listener anterior si existe
+            if (input._changeHandler) {
+                input.removeEventListener('change', input._changeHandler);
+            }
+            
+            const changeHandler = function() {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(function() {
+                    loadDataViaAjax();
+                }, DEBOUNCE_DELAY);
+            };
+            
+            input._changeHandler = changeHandler;
+            input.addEventListener('change', changeHandler);
+        });
+        
+        // Handler para limpiar filtros
+        if (btnLimpiar) {
+            const clearHandler = function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                filtroForm.reset();
+                const url = filtroForm.action;
+                if (window.AdminAjax && typeof window.AdminAjax.loadContent === 'function') {
+                    window.AdminAjax.loadContent(url);
+                } else {
+                    window.location.href = url;
+                }
+            };
+            
+            btnLimpiar._clearHandler = clearHandler;
+            btnLimpiar.addEventListener('click', clearHandler);
+        }
+        
+        // Actualizar contador inicial
+        actualizarContadorResultados();
+        
+        return true;
+    }
+    
+    // Inicializar cuando el DOM esté listo
+    function inicializar() {
+        inicializarToggleFiltros();
+        inicializarFiltrado();
+    }
+    
+    // Inicializar inmediatamente
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', inicializar);
+    } else {
+        inicializar();
+    }
+    
+    // También escuchar el evento contentLoaded para reinicializar después de AJAX
+    document.addEventListener('contentLoaded', inicializar);
+    if (typeof jQuery !== 'undefined' && typeof $ !== 'undefined') {
+        $(document).on('contentLoaded', inicializar);
+    }
+})();
+</script>
+
+<style>
+.stats-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.stat-content {
+    flex: 1;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: #757575;
+    margin-bottom: 0.25rem;
+}
+
+.stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #212121;
+}
+</style>
+

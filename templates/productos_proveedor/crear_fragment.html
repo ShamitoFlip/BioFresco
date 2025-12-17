@@ -1,0 +1,413 @@
+<!-- Fragmento HTML para carga AJAX - Formulario de crear producto de proveedor (para drawer) -->
+<form method="POST" id="producto-proveedor-crear-form" autocomplete="off" novalidate>
+    {% csrf_token %}
+
+    <div class="row">
+        <div class="col-md-12 mb-3">
+            <label for="proveedor" class="form-label">Proveedor *</label>
+            <div class="autocomplete-wrapper" style="position: relative;">
+                <input type="text" 
+                       class="form-control" 
+                       id="proveedor" 
+                       name="proveedor_display" 
+                       autocomplete="off"
+                       placeholder="Escriba para buscar proveedor..."
+                       required>
+                <input type="hidden" id="proveedor_id" name="proveedor" required>
+                <div id="proveedor-autocomplete-list" class="autocomplete-items"></div>
+            </div>
+            <small class="text-muted">Escriba el nombre del proveedor para filtrar la lista de abajo</small>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12 mb-3">
+            <label for="nombre" class="form-label">Nombre del Producto *</label>
+            <input type="text" class="form-control" id="nombre" name="nombre" 
+                   value="{{ nombre|default:'' }}" placeholder="Producto ABC" required>
+            <small class="text-muted">Ingrese el nombre del producto que ofrece el proveedor</small>
+        </div>
+    </div>
+    
+
+    <div class="mb-3">
+        <label for="descripcion" class="form-label">Descripción</label>
+        <textarea class="form-control" id="descripcion" name="descripcion" rows="3" 
+                  placeholder="Descripción detallada del producto">{{ descripcion|default:'' }}</textarea>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label for="precio_unitario" class="form-label">Precio Unitario</label>
+            <input type="number" step="0.01" class="form-control" id="precio_unitario" name="precio_unitario" 
+                   value="{{ precio_unitario|default:'' }}" placeholder="0.00">
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label for="precio_compra_actual" class="form-label">Precio de Compra Actual</label>
+            <input type="number" step="0.01" class="form-control" id="precio_compra_actual" name="precio_compra_actual" 
+                   value="{{ precio_compra_actual|default:'' }}" placeholder="0.00">
+            <small class="text-muted">Precio actual que cobra este proveedor</small>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label for="unidad_medida" class="form-label">Unidad de Medida</label>
+            <input type="text" class="form-control" id="unidad_medida" name="unidad_medida" 
+                   value="{{ unidad_medida|default:'' }}" placeholder="Ej: kg, unidades, cajas">
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label for="codigo_producto" class="form-label">Código del Producto</label>
+        <input type="text" class="form-control" id="codigo_producto" name="codigo_producto" 
+               value="{{ codigo_producto|default:'' }}" placeholder="Código único del producto">
+        <small class="text-muted">Código único del producto (opcional, pero debe ser único si se proporciona)</small>
+    </div>
+
+    <div class="mb-3">
+        <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="activo" name="activo" checked>
+            <label class="form-check-label" for="activo">
+                Producto Activo
+            </label>
+        </div>
+    </div>
+    
+    <div class="d-flex gap-2 justify-content-end">
+        <button type="button" class="btn btn-secondary" onclick="closeDrawerProductoProveedorCrear(); return false;">Cancelar</button>
+        <button type="submit" class="btn btn-primary-admin">Guardar Producto</button>
+    </div>
+</form>
+
+<style>
+#producto-proveedor-crear-form .form-control,
+#producto-proveedor-crear-form .form-select {
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 0.75rem 1rem;
+    transition: border-color 0.2s;
+    background: #fafafa;
+}
+
+#producto-proveedor-crear-form .form-control:focus,
+#producto-proveedor-crear-form .form-select:focus {
+    outline: none;
+    border-color: #4caf50;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+}
+
+#producto-proveedor-crear-form .form-label {
+    font-weight: 600;
+    color: #212121;
+    margin-bottom: 0.5rem;
+    font-size: 0.9rem;
+}
+
+/* Estilos para autocomplete */
+.autocomplete-wrapper {
+    position: relative;
+}
+
+.autocomplete-items {
+    position: relative;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    background-color: white;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 1000;
+    width: 100%;
+    margin-top: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: block !important;
+    visibility: visible !important;
+}
+
+.autocomplete-items div {
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    border-bottom: 1px solid #f0f0f0;
+    transition: background-color 0.2s;
+}
+
+.autocomplete-items div:hover {
+    background-color: #f5f5f5;
+}
+
+.autocomplete-items div:last-child {
+    border-bottom: none;
+}
+
+.autocomplete-items .autocomplete-active {
+    background-color: #4caf50 !important;
+    color: white;
+}
+
+.autocomplete-items .autocomplete-active:hover {
+    background-color: #45a049 !important;
+}
+
+.autocomplete-items .proveedor-seleccionado {
+    background-color: #e8f5e9 !important;
+    border-left: 4px solid #4caf50;
+}
+</style>
+
+<script>
+(function() {
+    // Lista de proveedores (se cargará desde el servidor)
+    let proveedores = [
+        {% for proveedor in proveedores %}
+        {id: {{ proveedor.id }}, nombre: "{{ proveedor.nombre|escapejs }}"}{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+    
+    console.log('Proveedores cargados:', proveedores.length, proveedores);
+    
+    let currentFocus = -1;
+    
+    // Función para limpiar campos cuando cambia el proveedor
+    function limpiarCampos() {
+        const inputNombre = document.getElementById('nombre');
+        const descripcionField = document.getElementById('descripcion');
+        const precioUnitarioField = document.getElementById('precio_unitario');
+        const precioCompraField = document.getElementById('precio_compra_actual');
+        const unidadMedidaField = document.getElementById('unidad_medida');
+        const codigoProductoField = document.getElementById('codigo_producto');
+        
+        if (inputNombre) inputNombre.value = '';
+        if (descripcionField) descripcionField.value = '';
+        if (precioUnitarioField) precioUnitarioField.value = '';
+        if (precioCompraField) precioCompraField.value = '';
+        if (unidadMedidaField) unidadMedidaField.value = '';
+        if (codigoProductoField) codigoProductoField.value = '';
+    }
+    
+    // Función para mostrar todos los proveedores
+    function mostrarTodosProveedores() {
+        const autocompleteList = document.getElementById('proveedor-autocomplete-list');
+        const input = document.getElementById('proveedor');
+        const proveedorIdInput = document.getElementById('proveedor_id');
+        
+        if (!autocompleteList || !input) {
+            console.warn('Elementos del autocomplete no encontrados:', {
+                autocompleteList: !!autocompleteList,
+                input: !!input
+            });
+            return;
+        }
+        
+        console.log('Mostrando todos los proveedores:', proveedores.length);
+        
+        // Limpiar lista anterior
+        autocompleteList.innerHTML = '';
+        currentFocus = -1;
+        
+        // Si no hay proveedores, mostrar mensaje
+        if (proveedores.length === 0) {
+            const div = document.createElement('div');
+            div.innerHTML = '<em style="color: #999;">No hay proveedores disponibles</em>';
+            div.style.padding = '0.75rem 1rem';
+            div.style.textAlign = 'center';
+            autocompleteList.appendChild(div);
+            return;
+        }
+        
+        // Mostrar todos los proveedores
+        proveedores.forEach((proveedor, index) => {
+            const div = document.createElement('div');
+            div.innerHTML = '<strong>' + proveedor.nombre + '</strong>';
+            div.style.cursor = 'pointer';
+            div.addEventListener('click', function() {
+                input.value = proveedor.nombre;
+                proveedorIdInput.value = proveedor.id;
+                currentFocus = -1;
+                limpiarCampos();
+                // Resaltar el seleccionado
+                const items = autocompleteList.getElementsByTagName('div');
+                for (let i = 0; i < items.length; i++) {
+                    items[i].classList.remove('proveedor-seleccionado');
+                }
+                div.classList.add('proveedor-seleccionado');
+            });
+            autocompleteList.appendChild(div);
+        });
+    }
+    
+    // Función para filtrar proveedores
+    function filtrarProveedores(valor) {
+        const input = document.getElementById('proveedor');
+        const autocompleteList = document.getElementById('proveedor-autocomplete-list');
+        const proveedorIdInput = document.getElementById('proveedor_id');
+        
+        if (!input || !autocompleteList) return;
+        
+        // Limpiar lista anterior
+        autocompleteList.innerHTML = '';
+        currentFocus = -1;
+        
+        // Si no hay valor, mostrar todos
+        if (!valor || valor.trim() === '') {
+            mostrarTodosProveedores();
+            proveedorIdInput.value = '';
+            return;
+        }
+        
+        // Filtrar proveedores
+        const valorLower = valor.toLowerCase();
+        const proveedoresFiltrados = proveedores.filter(prov => 
+            prov.nombre.toLowerCase().includes(valorLower)
+        );
+        
+        // Si no hay resultados, mostrar mensaje
+        if (proveedoresFiltrados.length === 0) {
+            const div = document.createElement('div');
+            div.innerHTML = '<em style="color: #999;">No se encontraron proveedores</em>';
+            div.style.padding = '0.75rem 1rem';
+            div.style.textAlign = 'center';
+            autocompleteList.appendChild(div);
+            proveedorIdInput.value = '';
+            return;
+        }
+        
+        // Mostrar resultados filtrados
+        proveedoresFiltrados.forEach((proveedor, index) => {
+            const div = document.createElement('div');
+            // Resaltar el texto buscado
+            const nombreResaltado = proveedor.nombre.replace(
+                new RegExp('(' + valor.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi'), 
+                '<mark style="background-color: #ffeb3b; padding: 2px 4px;">$1</mark>'
+            );
+            div.innerHTML = '<strong>' + nombreResaltado + '</strong>';
+            div.style.cursor = 'pointer';
+            div.addEventListener('click', function() {
+                input.value = proveedor.nombre;
+                proveedorIdInput.value = proveedor.id;
+                currentFocus = -1;
+                limpiarCampos();
+                // Resaltar el seleccionado
+                const items = autocompleteList.getElementsByTagName('div');
+                for (let i = 0; i < items.length; i++) {
+                    items[i].classList.remove('proveedor-seleccionado');
+    }
+                div.classList.add('proveedor-seleccionado');
+            });
+            autocompleteList.appendChild(div);
+        });
+    }
+    
+    // Función para inicializar el formulario
+    function inicializarFormulario() {
+        // Esperar un momento para asegurar que el DOM esté completamente renderizado
+        setTimeout(function() {
+            ejecutarInicializacion();
+        }, 100);
+    }
+    
+    function ejecutarInicializacion() {
+        const inputProveedor = document.getElementById('proveedor');
+        const proveedorIdInput = document.getElementById('proveedor_id');
+        const inputNombre = document.getElementById('nombre');
+        const autocompleteList = document.getElementById('proveedor-autocomplete-list');
+        
+        console.log('Inicializando formulario de producto proveedor:', {
+            inputProveedor: !!inputProveedor,
+            proveedorIdInput: !!proveedorIdInput,
+            autocompleteList: !!autocompleteList,
+            proveedoresCount: proveedores.length
+        });
+        
+        if (!inputProveedor || !proveedorIdInput) {
+            console.error('Elementos del formulario no encontrados');
+            return;
+        }
+        
+        // Listener para escribir en el campo de proveedor
+        inputProveedor.addEventListener('input', function() {
+            filtrarProveedores(this.value);
+        });
+        
+        // Listener para teclas en el campo de proveedor
+        inputProveedor.addEventListener('keydown', function(e) {
+            const items = autocompleteList ? autocompleteList.getElementsByTagName('div') : [];
+            
+            if (e.keyCode === 40) { // Flecha abajo
+                e.preventDefault();
+                currentFocus++;
+                addActive(items);
+            } else if (e.keyCode === 38) { // Flecha arriba
+                e.preventDefault();
+                currentFocus--;
+                addActive(items);
+            } else if (e.keyCode === 13) { // Enter
+                e.preventDefault();
+                if (currentFocus > -1 && items[currentFocus]) {
+                    items[currentFocus].click();
+                }
+            } else if (e.keyCode === 27) { // Escape
+                if (autocompleteList) {
+                    autocompleteList.style.display = 'none';
+                }
+                currentFocus = -1;
+            }
+        });
+        
+        // Inicializar mostrando todos los proveedores
+        mostrarTodosProveedores();
+        
+        // Función para agregar clase activa
+        function addActive(items) {
+            if (!items) return false;
+            removeActive(items);
+            if (currentFocus >= items.length) currentFocus = 0;
+            if (currentFocus < 0) currentFocus = items.length - 1;
+            items[currentFocus].classList.add('autocomplete-active');
+            return false;
+        }
+        
+        function removeActive(items) {
+            for (let i = 0; i < items.length; i++) {
+                items[i].classList.remove('autocomplete-active');
+            }
+        }
+        
+        // Validación del formulario antes de enviar
+        const form = document.getElementById('producto-proveedor-crear-form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                // Validar que se haya seleccionado un proveedor
+                if (!proveedorIdInput.value) {
+                    e.preventDefault();
+                    alert('Por favor, seleccione un proveedor de la lista.');
+                    if (inputProveedor) inputProveedor.focus();
+                    return false;
+                }
+                
+                const nombreNuevo = inputNombre ? inputNombre.value.trim() : '';
+                
+                // Validar que haya un nombre de producto
+                if (!nombreNuevo) {
+                    e.preventDefault();
+                    alert('Por favor, ingrese el nombre del producto.');
+                    if (inputNombre) inputNombre.focus();
+                    return false;
+                }
+            });
+        }
+    }
+    
+    // Esperar a que el DOM esté listo o ejecutar inmediatamente si ya está listo
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            inicializarFormulario();
+        });
+    } else {
+        // Si el DOM ya está listo, esperar un momento para asegurar que el HTML se haya insertado
+        setTimeout(function() {
+            inicializarFormulario();
+        }, 200);
+    }
+})();
+</script>
+

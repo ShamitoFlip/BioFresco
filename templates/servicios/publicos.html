@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block titulo %}Servicios - Clínica Estética{% endblock %}
+
+{% block contenido %}
+<div class="container py-5">
+    <div class="row justify-content-center mb-5">
+        <div class="col-lg-8">
+            <h1 class="text-center display-5 fw-bold mb-3">Nuestros Servicios</h1>
+            <p class="text-center lead text-muted">
+                Descubre todos nuestros tratamientos estéticos de última generación. 
+                Contamos con profesionales certificados y tecnología de punta para brindarte los mejores resultados.
+            </p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        {% for servicio in servicios %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm h-100 transition" style="transition: transform 0.3s ease;">
+                {% if servicio.imagen %}
+                <img src="{{ servicio.imagen }}" class="card-img-top" alt="{{ servicio.nombre }}" style="height:200px;object-fit:cover;">
+                {% else %}
+                <div class="bg-primary p-4 d-flex align-items-center justify-content-center" style="height: 200px;">
+                    <i class="fas fa-concierge-bell fa-4x text-white"></i>
+                </div>
+                {% endif %}
+                <div class="card-body text-center">
+                    <h5 class="card-title fw-bold">{{ servicio.nombre }}</h5>
+                    <p class="card-text">{{ servicio.descripcion }}</p>
+                    {% if servicio.precio %}
+                    <p class="mb-1"><strong>Precio:</strong> ${{ servicio.precio }}</p>
+                    {% endif %}
+                    {% if servicio.duracion_minutos %}
+                    <p class="text-muted">Duración aproximada: {{ servicio.duracion_minutos }} min</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="alert alert-info" role="alert">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h4 class="alert-heading mb-2"><i class="fas fa-calendar-alt me-2"></i>¿Te interesa alguno de nuestros servicios?</h4>
+                        <p class="mb-0">Agenda una consulta con nuestros profesionales. Estaremos encantados de atenderte y resolver tus dudas.</p>
+                    </div>
+                    <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'agendar_cita' %}" class="btn btn-primary btn-lg">
+                                <i class="fas fa-calendar-check me-2"></i>Agendar Cita
+                            </a>
+                        {% else %}
+                            <a href="{% url 'login' %}" class="btn btn-primary btn-lg">
+                                <i class="fas fa-sign-in-alt me-2"></i>Iniciar Sesión
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Additional Info Section -->
+    <div class="row mt-5 g-4">
+        <div class="col-md-4">
+            <div class="text-center">
+                <div class="mb-3">
+                    <i class="fas fa-certificate fa-3x text-primary"></i>
+                </div>
+                <h5>Profesionales Certificados</h5>
+                <p class="text-muted">Nuestro equipo cuenta con amplias certificaciones y experiencia en el sector estético.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="text-center">
+                <div class="mb-3">
+                    <i class="fas fa-microscope fa-3x text-success"></i>
+                </div>
+                <h5>Tecnología Avanzada</h5>
+                <p class="text-muted">Utilizamos equipos de última generación para garantizar resultados excepcionales.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="text-center">
+                <div class="mb-3">
+                    <i class="fas fa-heart fa-3x text-danger"></i>
+                </div>
+                <h5>Cuidado Personalizado</h5>
+                <p class="text-muted">Cada tratamiento se adapta a las necesidades y características de tu piel.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends 'base_admin.html' %}
+
+{% block titulo %}Entradas de Inventario - BioFresco{% endblock %}
+
+{% block content %}
+<div id="main-content-area">
+    {% if user.is_staff %}
+        {% include 'entradas/lista_fragment.html' %}
+    {% endif %}
+</div>
+{% endblock %}
+

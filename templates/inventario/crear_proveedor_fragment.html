@@ -1,0 +1,690 @@
+<!-- Formulario para Producto de Proveedor -->
+<div class="form-header mb-3">
+    <h5 class="mb-0">
+        <i class="fas fa-truck text-info me-2"></i>Agregar Producto
+    </h5>
+</div>
+
+<div class="row g-3">
+    <!-- Nombre de Proveedor -->
+    <div class="col-12">
+        <label for="id_proveedor_seleccionado" class="form-label">
+            Nombre de Proveedor <span class="text-danger">*</span>
+        </label>
+        <select class="form-control" 
+                id="id_proveedor_seleccionado" 
+                name="proveedor_seleccionado"
+                required
+                data-required="true">
+            <option value="">-- Seleccione un proveedor --</option>
+            {% for proveedor in proveedores %}
+                <option value="{{ proveedor.id }}">{{ proveedor.nombre }}</option>
+            {% endfor %}
+        </select>
+        <small class="form-text text-muted">Seleccione un proveedor para ver sus productos</small>
+    </div>
+
+    <!-- Nombre de Producto -->
+    <div class="col-12">
+        <label for="id_producto_proveedor" class="form-label">
+            Nombre de Producto <span class="text-danger">*</span>
+        </label>
+        <select class="form-control" 
+                id="id_producto_proveedor" 
+                name="producto_proveedor"
+                disabled
+                required
+                data-required="true">
+            <option value="">Seleccione un proveedor primero</option>
+        </select>
+        <small class="form-text text-muted">Seleccione un producto del proveedor seleccionado</small>
+    </div>
+
+    <!-- Categoría -->
+    <div class="col-md-6">
+        <label for="id_categoria_proveedor" class="form-label">
+            <i class="fas fa-layer-group me-2"></i>Categoría
+        </label>
+        <select class="form-control" 
+                id="id_categoria_proveedor" 
+                name="categoria">
+            <option value="">-- Seleccione una categoría --</option>
+            <option value="frutas">Frutas</option>
+            <option value="verduras">Verduras</option>
+            <option value="frutos_secos">Frutos Secos</option>
+            <option value="preelaborados">Preelaborados</option>
+        </select>
+        <small class="form-text text-muted">Categoría del producto</small>
+    </div>
+
+    <!-- Stock Mínimo -->
+    <div class="col-md-6">
+        <label for="id_stock_minimo_proveedor" class="form-label">
+            Stock Mínimo <span class="text-danger">*</span>
+        </label>
+        <input type="number" 
+               class="form-control" 
+               id="id_stock_minimo_proveedor" 
+               name="stock_minimo" 
+               value="10"
+               min="0"
+               required
+               data-required="true">
+    </div>
+
+    <!-- Cantidad de Stock Disponible -->
+    <div class="col-md-6">
+        <label for="id_cantidad_proveedor" class="form-label">
+            Cantidad Existente <span class="text-danger">*</span>
+        </label>
+        <input type="number" 
+               class="form-control" 
+               id="id_cantidad_proveedor" 
+               name="cantidad" 
+               value="0"
+               min="0"
+               readonly
+               required
+               data-required="true"
+               data-auto-calculated="true">
+        <small class="form-text text-muted">
+            <i class="fas fa-info-circle me-1"></i>
+            Esta cantidad se calcula automáticamente desde las entradas de inventario
+        </small>
+    </div>
+
+    <!-- Precio Venta -->
+    <div class="col-md-6">
+        <label for="id_precio_proveedor" class="form-label">
+            Precio Venta <span class="text-danger">*</span>
+        </label>
+        <input type="number" 
+               class="form-control" 
+               id="id_precio_proveedor" 
+               name="precio" 
+               value="0"
+               min="0"
+               step="1"
+               required
+               data-required="true">
+    </div>
+
+    <!-- Precio Costo -->
+    <div class="col-md-6">
+        <label for="id_costo_promedio_actual_proveedor" class="form-label">
+            Precio Costo <span class="text-danger">*</span>
+        </label>
+        <input type="number" 
+               class="form-control" 
+               id="id_costo_promedio_actual_proveedor" 
+               name="costo_promedio_actual" 
+               value="0.00"
+               min="0"
+               step="0.01"
+               readonly
+               style="background-color: #e9ecef;">
+        <small class="form-text text-muted">Se completará automáticamente desde el producto de proveedor</small>
+    </div>
+
+    <!-- Unidad de Medida -->
+    <div class="col-md-6">
+        <label for="id_unidad_medida_proveedor" class="form-label">
+            Unidad de Medida
+        </label>
+        <input type="text" 
+               class="form-control" 
+               id="id_unidad_medida_proveedor" 
+               name="unidad_medida" 
+               placeholder="Ej: kg, unidades, cajas">
+        <small class="form-text text-muted">Se completará automáticamente desde el producto de proveedor</small>
+    </div>
+
+    <!-- Zona -->
+    <div class="col-md-6">
+        <label for="id_zona_select_proveedor" class="form-label">
+            Zona
+        </label>
+        <div class="input-group">
+            <select class="form-control" 
+                    id="id_zona_select_proveedor" 
+                    name="zona">
+                <option value="">-- Seleccione una zona --</option>
+                {% for zona in zonas %}
+                    <option value="{{ zona.id }}">{{ zona.nombre }}</option>
+                {% endfor %}
+            </select>
+            <button type="button" 
+                    class="btn btn-outline-primary" 
+                    id="btn-crear-zona-proveedor"
+                    title="Crear nueva zona">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+        <small class="form-text text-muted">Zona o ubicación donde se almacena el producto</small>
+    </div>
+
+    <!-- Descripción -->
+    <div class="col-12">
+        <label for="id_descripcion_proveedor" class="form-label">
+            Descripción
+        </label>
+        <textarea class="form-control" 
+                  id="id_descripcion_proveedor" 
+                  name="descripcion" 
+                  rows="4"
+                  placeholder="Descripción del producto"></textarea>
+        <small class="form-text text-muted">Se completará automáticamente desde el producto de proveedor</small>
+    </div>
+
+    <!-- Imagen del Producto -->
+    <div class="col-12">
+        <label for="id_imagen_proveedor" class="form-label">
+            Imagen del Producto
+        </label>
+        <input type="file" 
+               class="form-control" 
+               id="id_imagen_proveedor" 
+               name="imagen" 
+               accept="image/*">
+        <small class="form-text text-muted">Seleccione la imagen manualmente</small>
+    </div>
+    
+    <!-- Campo oculto para activo -->
+    <input type="hidden" name="activo" value="true">
+
+<script>
+(function() {
+    'use strict';
+    
+    // Función para inicializar el modal de crear zona (proveedor)
+    function inicializarModalCrearZonaProveedor() {
+        const btnCrearZona = document.getElementById('btn-crear-zona-proveedor');
+        const selectZona = document.getElementById('id_zona_select_proveedor');
+        
+        if (!btnCrearZona) {
+            return false;
+        }
+        
+        // Remover listener anterior si existe
+        const nuevoBtn = btnCrearZona.cloneNode(true);
+        btnCrearZona.parentNode.replaceChild(nuevoBtn, btnCrearZona);
+        
+        const btnActual = document.getElementById('btn-crear-zona-proveedor');
+        
+        btnActual.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Crear modal dinámicamente en el body
+            let modalEl = document.getElementById('modalCrearZonaProveedor');
+            
+            if (!modalEl) {
+                modalEl = document.createElement('div');
+                modalEl.id = 'modalCrearZonaProveedor';
+                modalEl.className = 'modal fade';
+                modalEl.setAttribute('tabindex', '-1');
+                modalEl.setAttribute('aria-labelledby', 'modalCrearZonaProveedorLabel');
+                modalEl.setAttribute('aria-hidden', 'true');
+                modalEl.style.zIndex = '9999';
+                
+                modalEl.innerHTML = `
+                    <div class="modal-dialog modal-dialog-centered" style="z-index: 10000;">
+                        <div class="modal-content">
+                            <div class="modal-header" style="background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%); color: white;">
+                                <h5 class="modal-title" id="modalCrearZonaProveedorLabel">
+                                    <i class="fas fa-map-marker-alt me-2"></i>Crear Nueva Zona
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="form-crear-zona-proveedor">
+                                    <div class="mb-3">
+                                        <label for="nombre_zona_nueva_proveedor" class="form-label">Nombre de la Zona *</label>
+                                        <input type="text" 
+                                               class="form-control" 
+                                               id="nombre_zona_nueva_proveedor" 
+                                               name="nombre" 
+                                               placeholder="Ej: Almacén A, Estantería 3, Zona Fría"
+                                               required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="descripcion_zona_nueva_proveedor" class="form-label">Descripción (Opcional)</label>
+                                        <textarea class="form-control" 
+                                                  id="descripcion_zona_nueva_proveedor" 
+                                                  name="descripcion" 
+                                                  rows="3"
+                                                  placeholder="Descripción de la zona"></textarea>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                    <i class="fas fa-times me-2"></i>Cancelar
+                                </button>
+                                <button type="button" class="btn btn-success" id="btn-guardar-zona-proveedor">
+                                    <i class="fas fa-save me-2"></i>Guardar Zona
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modalEl);
+            }
+            
+            const modalOptions = {
+                backdrop: true,
+                keyboard: true,
+                focus: true
+            };
+            
+            const bsModal = new bootstrap.Modal(modalEl, modalOptions);
+            
+            // Configurar el botón guardar
+            const btnGuardarZona = document.getElementById('btn-guardar-zona-proveedor');
+            if (btnGuardarZona) {
+                const nuevoBtnGuardar = btnGuardarZona.cloneNode(true);
+                btnGuardarZona.parentNode.replaceChild(nuevoBtnGuardar, btnGuardarZona);
+                
+                const btnGuardarActual = document.getElementById('btn-guardar-zona-proveedor');
+                
+                btnGuardarActual.addEventListener('click', function() {
+                    const nombre = document.getElementById('nombre_zona_nueva_proveedor').value.trim();
+                    
+                    if (!nombre) {
+                        if (typeof showAlertModal === 'function') {
+                            showAlertModal('El nombre de la zona es obligatorio', 'error');
+                        } else {
+                            alert('El nombre de la zona es obligatorio');
+                        }
+                        return;
+                    }
+                    
+                    const formData = new FormData();
+                    formData.append('nombre', nombre);
+                    formData.append('descripcion', document.getElementById('descripcion_zona_nueva_proveedor').value.trim());
+                    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+                    if (csrfToken) {
+                        formData.append('csrfmiddlewaretoken', csrfToken.value);
+                    }
+                    
+                    btnGuardarActual.disabled = true;
+                    btnGuardarActual.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Guardando...';
+                    
+                    fetch('{% url "zona_crear_ajax" %}', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            if (selectZona) {
+                                const option = document.createElement('option');
+                                option.value = data.zona.id;
+                                option.textContent = data.zona.nombre;
+                                option.selected = true;
+                                selectZona.appendChild(option);
+                            }
+                            
+                            bsModal.hide();
+                            document.getElementById('form-crear-zona-proveedor').reset();
+                            
+                            if (typeof showAlertModal === 'function') {
+                                showAlertModal(data.message, 'success');
+                            } else {
+                                alert(data.message);
+                            }
+                        } else {
+                            if (typeof showAlertModal === 'function') {
+                                showAlertModal(data.error || 'Error al crear la zona', 'error');
+                            } else {
+                                alert(data.error || 'Error al crear la zona');
+                            }
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        if (typeof showAlertModal === 'function') {
+                            showAlertModal('Error al crear la zona. Por favor, intenta nuevamente.', 'error');
+                        } else {
+                            alert('Error al crear la zona. Por favor, intenta nuevamente.');
+                        }
+                    })
+                    .finally(() => {
+                        btnGuardarActual.disabled = false;
+                        btnGuardarActual.innerHTML = '<i class="fas fa-save me-2"></i>Guardar Zona';
+                    });
+                });
+            }
+            
+            bsModal.show();
+            
+            setTimeout(() => {
+                const backdrop = document.querySelector('.modal-backdrop:last-of-type');
+                if (backdrop) {
+                    backdrop.style.zIndex = '9998';
+                }
+                if (modalEl) {
+                    modalEl.style.zIndex = '9999';
+                }
+            }, 100);
+        });
+        
+        return true;
+    }
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', inicializarModalCrearZonaProveedor);
+    } else {
+        inicializarModalCrearZonaProveedor();
+    }
+    
+    setTimeout(inicializarModalCrearZonaProveedor, 500);
+})();
+</script>
+    
+    <!-- Campo oculto para nombre (se completará automáticamente desde producto_proveedor) -->
+    <input type="hidden" id="id_nombre_producto_proveedor" name="nombre" value="">
+</div>
+
+<script>
+(function() {
+    'use strict';
+    
+    console.log('✅ Script de crear_proveedor_fragment.html cargado');
+    
+    // Función para inicializar el script de proveedor
+    function inicializarScriptProveedor() {
+        console.log('🔄 inicializarScriptProveedor ejecutado');
+        const proveedorSelect = document.getElementById('id_proveedor_seleccionado');
+        const productoSelect = document.getElementById('id_producto_proveedor');
+        const costoInput = document.getElementById('id_costo_promedio_actual_proveedor');
+        const descripcionTextarea = document.getElementById('id_descripcion_proveedor');
+        
+        if (!proveedorSelect || !productoSelect) {
+            console.log('⏳ Esperando elementos del formulario de proveedor...', {
+                proveedorSelect: !!proveedorSelect,
+                productoSelect: !!productoSelect
+            });
+            return false;
+        }
+        
+        console.log('✅ Elementos encontrados, configurando listeners...');
+        
+        // Remover listeners anteriores si existen (clonando el elemento)
+        const nuevoProveedorSelect = proveedorSelect.cloneNode(true);
+        proveedorSelect.parentNode.replaceChild(nuevoProveedorSelect, proveedorSelect);
+        
+        // Obtener referencia actualizada
+        const proveedorSelectActual = document.getElementById('id_proveedor_seleccionado');
+        const productoSelectActual = document.getElementById('id_producto_proveedor');
+        const costoInputActual = document.getElementById('id_costo_promedio_actual_proveedor');
+        const descripcionTextareaActual = document.getElementById('id_descripcion_proveedor');
+        
+        if (!proveedorSelectActual || !productoSelectActual) {
+            console.error('❌ No se pudieron obtener las referencias actualizadas');
+            return false;
+        }
+        
+        // Cargar productos cuando se selecciona un proveedor
+        console.log('✅ Configurando listener para cambio de proveedor...');
+        proveedorSelectActual.addEventListener('change', function() {
+            const proveedorId = this.value;
+            console.log('🔄 Cambio detectado en proveedor. ID:', proveedorId);
+            
+            if (!proveedorId) {
+                productoSelectActual.innerHTML = '<option value="">Seleccione un proveedor primero</option>';
+                productoSelectActual.disabled = true;
+                if (costoInputActual) costoInputActual.value = '0.00';
+                if (descripcionTextareaActual) descripcionTextareaActual.value = '';
+                return;
+            }
+            
+            // Mostrar loading
+            productoSelectActual.disabled = true;
+            productoSelectActual.innerHTML = '<option value="">Cargando productos...</option>';
+            
+            // Construir URL
+            const url = `{% url "inventario_productos_proveedor_ajax" %}?proveedor_id=${encodeURIComponent(proveedorId)}`;
+            console.log('📡 Haciendo petición AJAX a:', url);
+            
+            // Hacer petición AJAX
+            fetch(url, {
+                method: 'GET',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                console.log('📥 Respuesta recibida. Status:', response.status, response.statusText);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('📦 Datos recibidos:', data);
+                
+                if (data.error) {
+                    console.error('❌ Error en respuesta:', data.error);
+                    productoSelectActual.innerHTML = '<option value="">Error al cargar productos</option>';
+                    alert('Error al cargar productos: ' + data.error);
+                    return;
+                }
+                
+                productoSelectActual.innerHTML = '<option value="">-- Seleccione un producto --</option>';
+                
+                if (data.productos && data.productos.length > 0) {
+                    console.log(`✅ Cargando ${data.productos.length} productos en el dropdown`);
+                    data.productos.forEach((producto, index) => {
+                        const option = document.createElement('option');
+                        option.value = producto.id;
+                        option.textContent = producto.nombre;
+                        option.dataset.precio = producto.precio_compra_actual || producto.precio_unitario || '0';
+                        option.dataset.descripcion = producto.descripcion || '';
+                        option.dataset.nombre = producto.nombre;
+                        option.dataset.cantidad = producto.cantidad || '0';
+                        productoSelectActual.appendChild(option);
+                        console.log(`  ✓ Producto ${index + 1}: ${producto.nombre} (ID: ${producto.id}, Cantidad: ${producto.cantidad || 0})`);
+                    });
+                    productoSelectActual.disabled = false;
+                    console.log('✅ Productos cargados exitosamente');
+                } else {
+                    console.warn('⚠️ No hay productos disponibles para este proveedor');
+                    productoSelectActual.innerHTML = '<option value="">No hay productos disponibles</option>';
+                    productoSelectActual.disabled = true;
+                }
+            })
+            .catch(error => {
+                console.error('❌ Error al cargar productos:', error);
+                productoSelectActual.innerHTML = '<option value="">Error al cargar productos</option>';
+                productoSelectActual.disabled = true;
+                alert('Error al cargar los productos del proveedor. Por favor, verifica la consola para más detalles.');
+            });
+        });
+        
+        // Llenar datos cuando se selecciona un producto
+        if (productoSelectActual.hasAttribute('data-listener-attached')) {
+            console.log('⚠️ Listener de producto ya está adjunto, omitiendo...');
+        } else {
+            productoSelectActual.setAttribute('data-listener-attached', 'true');
+            
+            productoSelectActual.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                console.log('🔄 Producto seleccionado:', selectedOption.value, selectedOption.textContent);
+                
+                if (!selectedOption.value) {
+                    if (costoInputActual) costoInputActual.value = '0.00';
+                    if (descripcionTextareaActual) descripcionTextareaActual.value = '';
+                    return;
+                }
+                
+                // Llenar nombre del producto (campo oculto)
+                const nombreProducto = selectedOption.dataset.nombre || selectedOption.textContent;
+                const nombreInput = document.getElementById('id_nombre_producto_proveedor');
+                if (nombreInput) {
+                    nombreInput.value = nombreProducto;
+                    console.log('📝 Nombre del producto actualizado:', nombreProducto);
+                }
+                
+                // Llenar precio costo
+                const precio = selectedOption.dataset.precio || '0';
+                if (costoInputActual) {
+                    costoInputActual.value = parseFloat(precio).toFixed(2);
+                    console.log('💰 Precio costo actualizado:', costoInputActual.value);
+                }
+                
+                // Llenar descripción
+                const descripcion = selectedOption.dataset.descripcion || '';
+                if (descripcionTextareaActual) {
+                    descripcionTextareaActual.value = descripcion;
+                    console.log('📝 Descripción actualizada');
+                }
+                
+                // Calcular y actualizar cantidad desde entradas
+                const cantidadInput = document.getElementById('id_cantidad_proveedor');
+                if (cantidadInput) {
+                    const cantidad = selectedOption.dataset.cantidad || '0';
+                    cantidadInput.value = cantidad;
+                    console.log('📊 Cantidad actualizada desde entradas:', cantidad);
+                }
+            });
+        }
+        
+        console.log('✅ Listeners configurados correctamente');
+        return true;
+    }
+    
+    // Función para verificar si el formulario está visible
+    function esFormularioVisible() {
+        const formularioProveedor = document.getElementById('formulario-proveedor');
+        if (!formularioProveedor) return false;
+        
+        const style = window.getComputedStyle(formularioProveedor);
+        return style.display !== 'none' && style.visibility !== 'hidden';
+    }
+    
+    // Función para intentar inicializar múltiples veces
+    function intentarInicializar(intentos) {
+        console.log(`🔄 Intentando inicializar (intento ${intentos})...`);
+        
+        if (!esFormularioVisible() && intentos < 15) {
+            console.log('⏳ Formulario aún no visible, esperando...');
+            setTimeout(function() {
+                intentarInicializar(intentos + 1);
+            }, 200);
+            return false;
+        }
+        
+        if (inicializarScriptProveedor()) {
+            console.log('✅ Inicialización exitosa');
+            return true;
+        }
+        if (intentos < 15) {
+            setTimeout(function() {
+                intentarInicializar(intentos + 1);
+            }, 200);
+        } else {
+            console.error('❌ No se pudo inicializar después de 15 intentos');
+        }
+        return false;
+    }
+    
+    // Ejecutar inmediatamente y también después de delays
+    console.log('📄 Iniciando inicialización del script de proveedor...');
+    
+    function ejecutarInicializacion() {
+        const formularioProveedor = document.getElementById('formulario-proveedor');
+        const proveedorSelect = document.getElementById('id_proveedor_seleccionado');
+        
+        if (formularioProveedor && proveedorSelect) {
+            const style = window.getComputedStyle(formularioProveedor);
+            const esVisible = style.display !== 'none' && style.visibility !== 'hidden';
+            
+            if (esVisible) {
+                console.log('✅ Formulario proveedor es visible, inicializando...');
+                intentarInicializar(1);
+            } else {
+                console.log('⏳ Formulario proveedor aún no es visible, esperando...');
+            }
+        } else {
+            console.log('⏳ Elementos del formulario aún no disponibles, esperando...');
+        }
+    }
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('📄 DOMContentLoaded disparado');
+            setTimeout(ejecutarInicializacion, 100);
+        });
+    } else {
+        console.log('📄 DOM ya está listo, ejecutando inmediatamente...');
+        setTimeout(ejecutarInicializacion, 100);
+    }
+    
+    setTimeout(function() {
+        console.log('⏰ Timeout 1 ejecutado (300ms)');
+        ejecutarInicializacion();
+    }, 300);
+    
+    setTimeout(function() {
+        console.log('⏰ Timeout 2 ejecutado (800ms)');
+        ejecutarInicializacion();
+    }, 800);
+    
+    setTimeout(function() {
+        console.log('⏰ Timeout 3 ejecutado (1500ms)');
+        ejecutarInicializacion();
+    }, 1500);
+    
+    setTimeout(function() {
+        console.log('⏰ Timeout 4 ejecutado (2500ms)');
+        ejecutarInicializacion();
+    }, 2500);
+    
+    setTimeout(function() {
+        console.log('⏰ Timeout 5 ejecutado (4000ms)');
+        ejecutarInicializacion();
+    }, 4000);
+    
+    try {
+        if (typeof jQuery !== 'undefined' && typeof $ !== 'undefined') {
+            $(document).on('formularioCambiado', function() {
+                console.log('✅ Evento formularioCambiado disparado (jQuery)');
+                setTimeout(function() {
+                    intentarInicializar(1);
+                }, 100);
+            });
+        }
+    } catch (e) {
+        console.log('⚠️ jQuery no disponible, usando eventos nativos');
+    }
+    
+    document.addEventListener('formularioCambiado', function() {
+        console.log('✅ Evento formularioCambiado disparado (nativo)');
+        setTimeout(function() {
+            intentarInicializar(1);
+        }, 100);
+    });
+    
+    window.inicializarScriptProveedor = inicializarScriptProveedor;
+    
+    console.log('✅ Script de crear_proveedor_fragment.html configurado completamente');
+    console.log('✅ inicializarScriptProveedor disponible globalmente:', typeof window.inicializarScriptProveedor);
+    
+    setTimeout(function() {
+        const formularioProveedor = document.getElementById('formulario-proveedor');
+        if (formularioProveedor) {
+            const style = window.getComputedStyle(formularioProveedor);
+            if (style.display !== 'none' && style.visibility !== 'hidden') {
+                console.log('✅ Formulario proveedor es visible, inicializando automáticamente...');
+                inicializarScriptProveedor();
+            }
+        }
+    }, 100);
+})();
+</script>

@@ -1,0 +1,328 @@
+<!-- Fragmento HTML para carga AJAX - Formulario de editar empleado (para modal) -->
+<form method="POST" id="empleado-editar-form" enctype="multipart/form-data" autocomplete="off" novalidate>
+    {% csrf_token %}
+    
+    {% if formulario.errors %}
+    <div class="alert alert-danger mb-3">
+        <strong><i class="fas fa-exclamation-triangle me-2"></i>Por favor, corrige los siguientes errores:</strong>
+        <ul class="mb-0 mt-2">
+            {% for field, errors in formulario.errors.items %}
+                {% for error in errors %}
+                    <li><strong>{{ field|title }}:</strong> {{ error }}</li>
+                {% endfor %}
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+    
+    {% if formulario.non_field_errors %}
+    <div class="mb-3">
+        {% for err in formulario.non_field_errors %}
+            <div class="alert alert-danger">{{ err }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="{{ formulario.nombre.id_for_label }}" class="form-label">{{ formulario.nombre.label }}</label>
+            {{ formulario.nombre }}
+            {% if formulario.nombre.errors %}
+                <div class="text-danger small mt-1">{{ formulario.nombre.errors }}</div>
+            {% endif %}
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="{{ formulario.apellido.id_for_label }}" class="form-label">{{ formulario.apellido.label }}</label>
+            {{ formulario.apellido }}
+            {% if formulario.apellido.errors %}
+                <div class="text-danger small mt-1">{{ formulario.apellido.errors }}</div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="{{ formulario.email.id_for_label }}" class="form-label">{{ formulario.email.label }}</label>
+            {{ formulario.email }}
+            {% if formulario.email.errors %}
+                <div class="text-danger small mt-1">{{ formulario.email.errors }}</div>
+            {% endif %}
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="{{ formulario.telefono.id_for_label }}" class="form-label">{{ formulario.telefono.label }}</label>
+            {{ formulario.telefono }}
+            {% if formulario.telefono.errors %}
+                <div class="text-danger small mt-1">{{ formulario.telefono.errors }}</div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="mb-3">
+        <label for="{{ formulario.foto.id_for_label }}" class="form-label">{{ formulario.foto.label }}</label>
+        {% if estilista.foto %}
+            <div class="mb-2">
+                <img src="{{ estilista.foto.url }}" alt="Foto actual" style="max-width: 150px; max-height: 150px; border-radius: 8px; border: 2px solid #dee2e6;">
+                <p class="text-muted small mt-1">Foto actual</p>
+            </div>
+        {% endif %}
+        {{ formulario.foto }}
+        {% if formulario.foto.help_text %}
+            <small class="form-text text-muted">{{ formulario.foto.help_text }}</small>
+        {% endif %}
+        {% if formulario.foto.errors %}
+            <div class="text-danger small mt-1">{{ formulario.foto.errors }}</div>
+        {% endif %}
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="{{ formulario.disponibilidad.id_for_label }}" class="form-label">{{ formulario.disponibilidad.label }}</label>
+            {{ formulario.disponibilidad }}
+            {% if formulario.disponibilidad.errors %}
+                <div class="text-danger small mt-1">{{ formulario.disponibilidad.errors }}</div>
+            {% endif %}
+        </div>
+        <div class="col-md-6 mb-3">
+            <label for="{{ formulario.experiencia_anos.id_for_label }}" class="form-label">{{ formulario.experiencia_anos.label }}</label>
+            {{ formulario.experiencia_anos }}
+            {% if formulario.experiencia_anos.errors %}
+                <div class="text-danger small mt-1">{{ formulario.experiencia_anos.errors }}</div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label for="{{ formulario.cargo.id_for_label }}" class="form-label">{{ formulario.cargo.label }}</label>
+            {{ formulario.cargo }}
+            {% if formulario.cargo.errors %}
+                <div class="text-danger small mt-1">{{ formulario.cargo.errors }}</div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div class="row mb-3">
+        <div class="col-md-6">
+        <div class="col-md-6">
+            <div class="form-check">
+                {{ formulario.activo }}
+                <label class="form-check-label" for="{{ formulario.activo.id_for_label }}">
+                    {{ formulario.activo.label }}
+                </label>
+                {% if formulario.activo.errors %}
+                    <div class="text-danger small mt-1">{{ formulario.activo.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <hr class="my-4">
+    <h5 class="mb-3"><i class="fas fa-user-shield me-2"></i>Gestionar Usuario para Inicio de Sesión</h5>
+    
+    {% if estilista.user %}
+        <div class="alert alert-info mb-3">
+            <i class="fas fa-info-circle me-2"></i>
+            Este empleado ya tiene un usuario asociado: <strong>{{ estilista.user.username }}</strong>
+        </div>
+    {% endif %}
+    
+    <div class="mb-3">
+        <div class="form-check">
+            {{ formulario.crear_usuario }}
+            <label class="form-check-label" for="{{ formulario.crear_usuario.id_for_label }}">
+                {{ formulario.crear_usuario.label|default:"Crear o actualizar usuario" }}
+            </label>
+            {% if formulario.crear_usuario.help_text %}
+                <small class="form-text text-muted d-block">{{ formulario.crear_usuario.help_text }}</small>
+            {% endif %}
+            {% if formulario.crear_usuario.errors %}
+                <div class="text-danger small mt-1">{{ formulario.crear_usuario.errors }}</div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <div id="usuario_fields" style="display: none;">
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="{{ formulario.username.id_for_label }}" class="form-label">{{ formulario.username.label }}</label>
+                {{ formulario.username }}
+                {% if formulario.username.help_text %}
+                    <small class="form-text text-muted">{{ formulario.username.help_text }}</small>
+                {% endif %}
+                {% if formulario.username.errors %}
+                    <div class="text-danger small mt-1">{{ formulario.username.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6 mb-3">
+                <label for="{{ formulario.password.id_for_label }}" class="form-label">{{ formulario.password.label }}</label>
+                {{ formulario.password }}
+                {% if formulario.password.help_text %}
+                    <small class="form-text text-muted">{{ formulario.password.help_text }}</small>
+                {% endif %}
+                <small class="form-text text-muted d-block">Deja en blanco si no deseas cambiar la contraseña</small>
+                {% if formulario.password.errors %}
+                    <div class="text-danger small mt-1">{{ formulario.password.errors }}</div>
+                {% endif %}
+            </div>
+            <div class="col-md-6 mb-3">
+                <label for="{{ formulario.password_confirm.id_for_label }}" class="form-label">{{ formulario.password_confirm.label }}</label>
+                {{ formulario.password_confirm }}
+                {% if formulario.password_confirm.help_text %}
+                    <small class="form-text text-muted">{{ formulario.password_confirm.help_text }}</small>
+                {% endif %}
+                {% if formulario.password_confirm.errors %}
+                    <div class="text-danger small mt-1">{{ formulario.password_confirm.errors }}</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="d-flex gap-2 justify-content-end mt-4">
+        <button type="button" class="btn btn-secondary" onclick="closeDrawerEmpleadoEditar(); return false;">Cancelar</button>
+        <button type="submit" class="btn btn-primary">Actualizar Empleado</button>
+    </div>
+</form>
+
+<script>
+(function() {
+    function initializeUsuarioFields() {
+        // Buscar el checkbox por su nombre (más robusto que por ID)
+        const crearUsuarioCheck = document.querySelector('input[name="crear_usuario"]');
+        const usuarioFields = document.getElementById('usuario_fields');
+        
+        console.log('Checkbox encontrado:', crearUsuarioCheck);
+        console.log('Campos de usuario encontrados:', usuarioFields);
+        
+        if (crearUsuarioCheck && usuarioFields) {
+            // Función para mostrar/ocultar campos
+            function toggleUsuarioFields() {
+                console.log('Toggle llamado, checked:', crearUsuarioCheck.checked);
+                if (crearUsuarioCheck.checked) {
+                    usuarioFields.style.display = 'block';
+                    const usernameField = document.querySelector('input[name="username"]');
+                    const passwordField = document.querySelector('input[name="password"]');
+                    const passwordConfirmField = document.querySelector('input[name="password_confirm"]');
+                    
+                    if (usernameField) usernameField.required = true;
+                    // En modo edición, la contraseña es opcional si el usuario ya existe
+                    {% if estilista.user %}
+                    // Si ya tiene usuario, la contraseña es opcional
+                    if (passwordField) passwordField.required = false;
+                    if (passwordConfirmField) passwordConfirmField.required = false;
+                    {% else %}
+                    // Si no tiene usuario, la contraseña es obligatoria
+                    if (passwordField) passwordField.required = true;
+                    if (passwordConfirmField) passwordConfirmField.required = true;
+                    {% endif %}
+                } else {
+                    usuarioFields.style.display = 'none';
+                    const usernameField = document.querySelector('input[name="username"]');
+                    const passwordField = document.querySelector('input[name="password"]');
+                    const passwordConfirmField = document.querySelector('input[name="password_confirm"]');
+                    
+                    if (usernameField) usernameField.required = false;
+                    if (passwordField) passwordField.required = false;
+                    if (passwordConfirmField) passwordConfirmField.required = false;
+                }
+            }
+            
+            // Remover listener previo si existe
+            crearUsuarioCheck.removeEventListener('change', toggleUsuarioFields);
+            crearUsuarioCheck.addEventListener('change', toggleUsuarioFields);
+            
+            // Verificar estado inicial
+            toggleUsuarioFields();
+        } else {
+            console.error('No se encontró el checkbox o los campos de usuario');
+        }
+    }
+    
+    // Inicializar inmediatamente y también cuando el DOM esté listo
+    setTimeout(initializeUsuarioFields, 100);
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initializeUsuarioFields);
+    } else {
+        initializeUsuarioFields();
+    }
+})();
+
+// Validación de email Gmail y teléfono
+(function() {
+    const emailInput = document.querySelector('#empleado-editar-form #id_email');
+    const telefonoInput = document.querySelector('#empleado-editar-form #id_telefono');
+    
+    // Validar que el email sea Gmail
+    if (emailInput) {
+        function validarEmailGmail(email) {
+            if (!email || email.trim() === '') {
+                emailInput.classList.remove('is-invalid', 'is-valid');
+                return false;
+            }
+            
+            const emailLower = email.toLowerCase().trim();
+            if (!emailLower.endsWith('@gmail.com')) {
+                emailInput.classList.remove('is-valid');
+                emailInput.classList.add('is-invalid');
+                return false;
+            } else {
+                emailInput.classList.remove('is-invalid');
+                emailInput.classList.add('is-valid');
+                return true;
+            }
+        }
+        
+        emailInput.addEventListener('input', function() {
+            validarEmailGmail(this.value);
+        });
+        
+        emailInput.addEventListener('blur', function() {
+            if (this.value) {
+                this.value = this.value.toLowerCase().trim();
+                validarEmailGmail(this.value);
+            }
+        });
+        
+        // Validar antes de enviar
+        const form = document.getElementById('empleado-editar-form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                if (!validarEmailGmail(emailInput.value)) {
+                    e.preventDefault();
+                    emailInput.focus();
+                    return false;
+                }
+            });
+        }
+    }
+    
+    // Validar que solo se ingresen números en el teléfono
+    if (telefonoInput) {
+    
+    if (telefonoInput) {
+        // Prevenir entrada de caracteres no numéricos
+        telefonoInput.addEventListener('keypress', function(e) {
+            const char = String.fromCharCode(e.which);
+            if (!/[0-9]/.test(char)) {
+                e.preventDefault();
+            }
+        });
+        
+        // Limpiar caracteres no numéricos al pegar
+        telefonoInput.addEventListener('paste', function(e) {
+            e.preventDefault();
+            const paste = (e.clipboardData || window.clipboardData).getData('text');
+            const numbersOnly = paste.replace(/[^0-9]/g, '');
+            this.value = numbersOnly;
+        });
+        
+        // Limpiar caracteres no numéricos en tiempo real
+        telefonoInput.addEventListener('input', function(e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+        });
+    }
+})();
+</script>
+
