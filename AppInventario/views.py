@@ -142,10 +142,9 @@ def validar_horario_atencion(fecha_servicio, hora_obj):
     return True, None
 
 def inicio(request):
-    # If user is authenticated, send them to the admin panel.
+    # If authenticated send to admin panel, otherwise show login (site root as login)
     if request.user.is_authenticated:
         return redirect('admin_panel')
-    # Otherwise show the login page as the site root (login is handled by user_login view)
     return redirect('login')
 
 def user_login(request):
@@ -1561,9 +1560,36 @@ def historial_completo(request):
 # ========== SERVICIOS PÚBLICOS (SIN LOGIN) ==========
 
 def servicios_publicos(request):
-    # Public services page removed — redirect to admin panel for management.
-    messages.info(request, 'La vista pública de servicios fue deshabilitada. Accede al panel de administración.')
-    return redirect('admin_panel')
+    """Vista pública para mostrar servicios ofrecidos por la clínica de forma informativa."""
+    # Leer servicios desde la base de datos si existen (muestra solo activos)
+    # Servicio ya importado a nivel de módulo
+    qs = Servicio.objects.filter(activo=True).order_by('nombre')
+    servicios_info = []
+    for s in qs:
+        servicios_info.append({
+            'id': s.id,
+            'nombre': s.nombre,
+            'descripcion': s.descripcion or '',
+            'precio': s.precio,
+            'duracion_minutos': s.duracion_minutos,
+            'imagen': s.imagen.url if s.imagen else None,
+            'icono': 'fa-concierge-bell',
+            'color': 'primary',
+            'detalle': ''
+        })
+
+    # Si no hay servicios en BD, mostrar la lista informativa por defecto
+    if not servicios_info:
+        servicios_info = [
+            {'id': 1, 'titulo': 'Rejuvenecimiento Facial', 'descripcion': 'Restaura la juventud de tu piel con nuestros tratamientos faciales avanzados. Utilizamos técnicas modernas para eliminar arrugas y líneas de expresión.', 'icono': 'fa-spa', 'color': 'primary', 'detalle': 'Con profesionales certificados', 'precio': 0, 'duracion_minutos': None},
+            {'id': 2, 'titulo': 'Depilación Láser', 'descripcion': 'Elimina vello permanentemente con tecnología láser de última generación. Resultados duraderos, piel suave y sin irritación.', 'icono': 'fa-bolt', 'color': 'success', 'detalle': 'Tratamiento indoloro y efectivo', 'precio': 0, 'duracion_minutos': None},
+            {'id': 3, 'titulo': 'Tratamientos Corporales', 'descripcion': 'Moldea y define tu figura con nuestros tratamientos corporales efectivos. Reduce medidas y mejora la elasticidad de tu piel.', 'icono': 'fa-heartbeat', 'color': 'danger', 'detalle': 'Resultados visibles en poco tiempo', 'precio': 0, 'duracion_minutos': None},
+            {'id': 4, 'titulo': 'Aumento de Labios', 'descripcion': 'Potencia tu sonrisa con nuestros tratamientos de aumento de labios. Resultados naturales y proporcionales con materiales de calidad premium.', 'icono': 'fa-lips', 'color': 'info', 'detalle': 'Resultados naturales garantizados', 'precio': 0, 'duracion_minutos': None},
+            {'id': 5, 'titulo': 'Tratamiento de Ojeras', 'descripcion': 'Elimina las ojeras y bolsas bajo los ojos. Recupera una mirada fresca y descansada con nuestros tratamientos especializados.', 'icono': 'fa-eye', 'color': 'warning', 'detalle': 'Rejuvenecimiento del contorno de ojos', 'precio': 0, 'duracion_minutos': None},
+            {'id': 6, 'titulo': 'Peeling Químico', 'descripcion': 'Exfoliación profunda que renueva tu piel. Elimina manchas, cicatrices y mejora la textura general de tu rostro.', 'icono': 'fa-gem', 'color': 'secondary', 'detalle': 'Renovación celular efectiva', 'precio': 0, 'duracion_minutos': None},
+        ]
+
+    return render(request, 'servicios/publicos.html', {'servicios': servicios_info})
 
 
 # ========== CRUD SERVICIOS REALIZADOS ==========
@@ -2190,9 +2216,27 @@ def _preparar_contexto_agendar(empleados, servicios, admin_mode=False):
 
 @login_required(login_url='login')
 def agendar_cita(request):
-    # Booking (client-facing) has been removed in routing; keep stub to avoid import errors.
-    messages.error(request, 'La funcionalidad de agendar citas públicas ha sido deshabilitada.')
-    return redirect('admin_panel')
+    """Vista para que un cliente autenticado agende una cita y elija un empleado."""
+    if request.method == 'POST':
+        # No se toma descripción libre del cliente; se usará el nombre del servicio seleccionado
+        empleado_id = request.POST.get('empleado')
+        servicio_id = request.POST.get('servicio')
+        fecha_servicio = request.POST.get('fecha_servicio')
+        hora = request.POST.get('hora')
+        costo = request.POST.get('costo') or 0
+        nombre_cliente_post = request.POST.get('nombre_cliente')
+        email_cliente_post = request.POST.get('email_cliente')
+
+        # Validación: campos obligatorios
+        missing = []
+        if not nombre_cliente_post or nombre_cliente_post.strip() == '':
+            missing.append('nombre')
+        if not email_cliente_post or email_cliente_post.strip() == '':
+            missing.append('email')
+        if not servicio_id or servicio_id.strip() == '':
+            missing.append('servicio')
+        if not empleado_id or empleado_id.strip() == '':
+            missing.append('estilista')
         if not fecha_servicio or fecha_servicio.strip() == '':
             missing.append('fecha')
         if not hora or hora.strip() == '':
