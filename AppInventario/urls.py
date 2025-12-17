@@ -12,15 +12,14 @@ urlpatterns = [
     # Rutas Historial de Servicios
     path('servicios/historial/', views.servicios_historial, name='servicios_historial'),
     
-    # Rutas Servicios
-    path('servicios/', views.servicios_publicos, name='servicios_publicos'),
+    # Rutas Servicios (admin-facing). Public-facing service listing and booking removed.
     # CRUD para servicios ofrecidos (administración)
     path('servicios/ofrecidos/', views.servicios_ofrecidos_lista, name='servicios_ofrecidos'),
     path('servicios/ofrecidos/crear/', views.servicios_ofrecidos_crear, name='servicios_ofrecidos_crear'),
     path('servicios/ofrecidos/editar/<int:id>/', views.servicios_ofrecidos_editar, name='servicios_ofrecidos_editar'),
     path('servicios/ofrecidos/eliminar/<int:id>/', views.servicios_ofrecidos_eliminar, name='servicios_ofrecidos_eliminar'),
     path('servicios/crear/', views.servicios_crear, name='servicios_crear'),
-    path('servicios/agendar/', views.agendar_cita, name='agendar_cita'),
+    # path('servicios/agendar/', views.agendar_cita, name='agendar_cita'),  # removed (no public clients)
     path('servicios/editar/<int:id>/', views.servicios_editar, name='servicios_editar'),
     path('servicios/eliminar/<int:id>/', views.servicios_eliminar, name='servicios_eliminar'),
     path('servicios/marcar-completado/<int:id>/', views.servicios_marcar_completado, name='servicios_marcar_completado'),
