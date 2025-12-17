@@ -142,7 +142,11 @@ def validar_horario_atencion(fecha_servicio, hora_obj):
     return True, None
 
 def inicio(request):
-    return render(request, 'paginas/inicio.html')
+    # If user is authenticated, send them to the admin panel.
+    if request.user.is_authenticated:
+        return redirect('admin_panel')
+    # Otherwise show the login page as the site root (login is handled by user_login view)
+    return redirect('login')
 
 def user_login(request):
     if request.method == 'POST':
