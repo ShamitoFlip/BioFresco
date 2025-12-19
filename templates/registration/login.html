@@ -1,78 +1,266 @@
-{% extends "base.html" %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BioFresco - Pantalla Completa</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* ====== RESET Y PANTALLA COMPLETA ====== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-{% block titulo %} Login {% endblock %}
+        html, body {
+            width: 100%;
+            height: 100vh;
+            overflow: hidden; /* Evita scrolls */
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
 
-{% block contenido %}
+        /* ====== CONTENEDOR AL 100% ====== */
+        .container {
+            position: relative;
+            width: 100vw;  /* 100% del ancho de pantalla */
+            height: 100vh; /* 100% del alto de pantalla */
+            background: #fff;
+            overflow: hidden;
+        }
 
-<div class="card">
-    <div class="card-header">
-        Login
-    </div>
-    <div class="card-body">
-        {% if messages %}
-            {% for message in messages %}
-                {% if 'suspendida' in message %}
-                <div class="alert alert-danger alert-prominent" role="alert">
-                    <i class="fas fa-ban me-2"></i>
-                    <strong>Cuenta suspendida:</strong> {{ message }}
-                </div>
-                {% else %}
-                <div class="alert alert-danger" role="alert">
-                    {{ message }}
-                </div>
-                {% endif %}
-            {% endfor %}
-        {% endif %}
+        /* ====== FORMULARIOS ====== */
+        .form-container {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            width: 50%; /* Ocupan la mitad de la pantalla */
+            transition: all 0.6s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-        <form method="POST" action="{% url 'login' %}" autocomplete="off" novalidate>
+        .sign-in-container {
+            left: 0;
+            z-index: 2;
+        }
+
+        .sign-up-container {
+            left: 0;
+            opacity: 0;
+            z-index: 1;
+        }
+
+        /* Animación de desplazamiento */
+        .container.right-panel-active .sign-in-container {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+
+        .container.right-panel-active .sign-up-container {
+            transform: translateX(100%);
+            opacity: 1;
+            z-index: 5;
+            animation: show 0.6s;
+        }
+
+        @keyframes show {
+            0%, 49.99% { opacity: 0; z-index: 1; }
+            50%, 100% { opacity: 1; z-index: 5; }
+        }
+
+        /* ====== ESTILOS FORMULARIO ====== */
+        form {
+            width: 100%;
+            max-width: 400px; /* Limita el ancho del contenido interno para que no se estire feo */
+            padding: 0 50px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .form-title { font-size: 2rem; margin-bottom: 20px; color: #333; }
+        
+        .input-group {
+            position: relative;
+            width: 100%;
+            margin: 10px 0;
+        }
+
+        .input-group i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px 15px 15px 45px;
+            background: #f0f0f0;
+            border: none;
+            border-radius: 10px;
+            outline: none;
+            font-size: 1rem;
+        }
+
+        button {
+            margin-top: 20px;
+            padding: 15px 60px;
+            border-radius: 30px;
+            border: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        button:active { transform: scale(0.95); }
+
+        /* ====== OVERLAY (PANEL DINÁMICO) ====== */
+        .overlay-container {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 50%;
+            height: 100%;
+            overflow: hidden;
+            transition: transform 0.6s ease-in-out;
+            z-index: 100;
+        }
+
+        .container.right-panel-active .overlay-container {
+            transform: translateX(-100%);
+        }
+
+        .overlay {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #fff;
+            position: relative;
+            left: -100%;
+            height: 100%;
+            width: 200%;
+            transform: translateX(0);
+            transition: transform 0.6s ease-in-out;
+        }
+
+        .container.right-panel-active .overlay {
+            transform: translateX(50%);
+        }
+
+        .overlay-panel {
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            padding: 0 40px;
+            text-align: center;
+            top: 0;
+            height: 100%;
+            width: 50%;
+            transition: transform 0.6s ease-in-out;
+        }
+
+        .overlay-left { transform: translateX(-20%); }
+        .container.right-panel-active .overlay-left { transform: translateX(0); }
+
+        .overlay-right { right: 0; transform: translateX(0); }
+        .container.right-panel-active .overlay-right { transform: translateX(20%); }
+
+        .overlay-panel h1 { font-size: 3rem; margin-bottom: 20px; }
+        .overlay-panel p { margin-bottom: 30px; font-size: 1.1rem; }
+        .overlay-panel button { background: transparent; border: 2px solid #fff; }
+
+        /* ====== RESPONSIVO (MÓVIL) ====== */
+        @media (max-width: 768px) {
+            .overlay-container { display: none; }
+            .form-container { width: 100%; }
+            .container.right-panel-active .sign-in-container { display: none; }
+            .container.right-panel-active .sign-up-container { transform: none; width: 100%; opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="container">
+    
+    <div class="form-container sign-up-container">
+        <form method="post" action="/registro/">
             {% csrf_token %}
-            <!-- Anti-autofill dummy fields: browsers will often fill these instead of the real inputs -->
-            <div style="position:absolute; left:-9999px; top:-9999px;">
-                <input type="text" name="username" id="dummy_username" autocomplete="username">
-                <input type="password" name="password" id="dummy_password" autocomplete="current-password">
+            <h1 class="form-title"><i class="fas fa-user-plus"></i> Crear Cuenta</h1>
+            <div class="input-group">
+                <i class="fas fa-at"></i>
+                <input type="text" name="username" placeholder="Nombre de usuario" required>
             </div>
-            <div class="mb-3">
-                <label for="username" class="form-label">Usuario:</label>
-                <input type="text" class="form-control" name="real_username" id="username" autocomplete="off" required>
+            <div class="input-group">
+                <i class="fas fa-envelope"></i>
+                <input type="email" name="email" placeholder="Email" required>
             </div>
-            <div class="mb-3">
-                <label for="password" class="form-label">Contraseña:</label>
-                <input type="password" class="form-control" name="real_password" id="password" autocomplete="new-password" required>
+            <div class="input-group">
+                <i class="fas fa-lock"></i>
+                <input type="password" name="password" placeholder="Contraseña" required>
             </div>
-            <div class="mb-3">
-                <a href="{% url 'password_reset_request' %}" class="text-decoration-none small">
-                    <i class="fas fa-key me-1"></i>¿Olvidaste tu contraseña?
-                </a>
+            <div class="input-group">
+                <i class="fas fa-lock"></i>
+                <input type="password" name="confirm_password" placeholder="Confirmar contraseña" required>
             </div>
-            <button type="submit" class="btn btn-primary">Entrar</button>
+            <button type="submit">Registrarse</button>
         </form>
+    </div>
+
+    <div class="form-container sign-in-container">
+        <form method="post">
+            {% csrf_token %}
+            <h1 class="form-title"><i class="fas fa-sign-in-alt"></i> Iniciar Sesión</h1>
+            <div class="input-group">
+                <i class="fas fa-user"></i>
+                <input type="text" name="username" placeholder="Usuario" required>
+            </div>
+            <div class="input-group">
+                <i class="fas fa-lock"></i>
+                <input type="password" name="password" placeholder="Contraseña" required>
+            </div>
+            <a href="/password-reset/" style="font-size: 14px; color: #667eea; text-decoration: none; margin: 15px 0;">¿Olvidaste tu contraseña?</a>
+            <button type="submit">Ingresar</button>
+        </form>
+    </div>
+
+    <div class="overlay-container">
+        <div class="overlay">
+            <div class="overlay-panel overlay-left">
+                <h1>¡Hola de nuevo!</h1>
+                <p>Si ya tienes una cuenta, inicia sesión para continuar con nosotros</p>
+                <button id="signIn">Ir al Login</button>
+            </div>
+            <div class="overlay-panel overlay-right">
+                <h1>¡Bienvenido!</h1>
+                <p>Crea tu cuenta con tus datos y empieza a disfrutar de BioFresco</p>
+                <button id="signUp">Ir al Registro</button>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
-// Asegurar que el token CSRF se envíe correctamente
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.querySelector('form[method="POST"]');
-    if (form) {
-        // Verificar que el token CSRF esté presente
-        const csrfToken = form.querySelector('input[name="csrfmiddlewaretoken"]');
-        if (!csrfToken) {
-            console.error('Token CSRF no encontrado en el formulario');
-        } else {
-            console.log('Token CSRF encontrado:', csrfToken.value.substring(0, 20) + '...');
-        }
-        
-        // Asegurar que el formulario envíe el token
-        form.addEventListener('submit', function(e) {
-            const token = form.querySelector('input[name="csrfmiddlewaretoken"]');
-            if (!token || !token.value) {
-                e.preventDefault();
-                alert('Error: Token de seguridad no encontrado. Por favor, recarga la página e intenta nuevamente.');
-                return false;
-            }
-        });
-    }
-});
+    const container = document.getElementById('container');
+    const signUpButton = document.getElementById('signUp');
+    const signInButton = document.getElementById('signIn');
+
+    signUpButton.addEventListener('click', () => {
+        container.classList.add("right-panel-active");
+    });
+
+    signInButton.addEventListener('click', () => {
+        container.classList.remove("right-panel-active");
+    });
 </script>
 
-{% endblock %}
+</body>
+</html>

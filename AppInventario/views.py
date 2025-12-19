@@ -5450,4 +5450,4 @@ def auditoria_eliminar(request, id):
         print(f"Error en auditoria_eliminar: {str(e)}")
         print(traceback.format_exc())
         return redirect('auditoria_lista')
-
+# ========== SERVICIOS ==========
